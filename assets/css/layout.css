@@ -122,29 +122,71 @@
   pointer-events: none;
   z-index: var(--z-base);
 }
-.monograma-fundo::before {
+/* Duas camadas com a mesma máscara: ::before é a marca parada, ::after é
+   a luz que a percorre. Como as duas usam o recorte do símbolo, a luz só
+   existe dentro do desenho — nunca vaza como um retângulo. */
+.monograma-fundo::before,
+.monograma-fundo::after {
   content: '';
   position: absolute;
   width: clamp(400px, 52vw, 820px);
   aspect-ratio: 2.1628;
-  background: var(--vinho);
-  opacity: 0.05;
   -webkit-mask: url('../img/logo-monograma.svg') center / contain no-repeat;
   mask: url('../img/logo-monograma.svg') center / contain no-repeat;
 }
+.monograma-fundo::before {
+  background: var(--vinho);
+  opacity: 0.05;
+}
+
+/* A faixa é 2,5x mais larga que o símbolo e caminha de uma borda à outra.
+   Nos dois extremos do ciclo ela está fora do desenho, então o retorno
+   não aparece: o movimento fica contínuo, sem corte. */
+.monograma-fundo::after {
+  background: linear-gradient(100deg,
+    transparent 40%,
+    var(--vinho) 50%,
+    transparent 60%);
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
+  opacity: 0.06;
+  animation: monogramaLuz 9s linear infinite;
+}
+@keyframes monogramaLuz {
+  from { background-position: 0% 50%; }
+  to   { background-position: 100% 50%; }
+}
+
 /* Sangra pela borda: a marca fica como textura no canto, sem sentar
    atrás do texto e virar ruído de leitura. */
-.monograma-fundo--dir::before { right: -22%; top: 50%; transform: translateY(-50%); }
-.monograma-fundo--esq::before { left: -22%;  top: 50%; transform: translateY(-50%); }
+.monograma-fundo--dir::before,
+.monograma-fundo--dir::after { right: -22%; top: 50%; transform: translateY(-50%); }
+.monograma-fundo--esq::before,
+.monograma-fundo--esq::after { left: -22%;  top: 50%; transform: translateY(-50%); }
 
 /* Abaixo de tablet o conteúdo ocupa a largura toda: a marca d'água
    passaria por baixo do texto inteiro. */
 @media (max-width: 900px) {
   .monograma-fundo::before { opacity: 0.035; }
+  .monograma-fundo::after  { opacity: 0.045; }
 }
 
 .secao--azul .monograma-fundo::before,
 .secao--vinho .monograma-fundo::before { background: var(--marfim); opacity: 0.07; }
+/* Sobre fundo escuro quem passa é luz clara, não a cor da marca. */
+.secao--azul .monograma-fundo::after,
+.secao--vinho .monograma-fundo::after {
+  background-image: linear-gradient(100deg,
+    transparent 40%,
+    var(--marfim) 50%,
+    transparent 60%);
+  opacity: 0.09;
+}
+
+/* Movimento é enfeite: quem pediu para reduzir fica com a marca parada. */
+@media (prefers-reduced-motion: reduce) {
+  .monograma-fundo::after { animation: none; opacity: 0; }
+}
 
 /* O conteúdo sempre acima do monograma e da trilha */
 .secao > .container { position: relative; z-index: var(--z-conteudo); }

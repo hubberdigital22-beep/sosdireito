@@ -725,7 +725,12 @@
 /* ============================================================
    TIMELINE — 8 etapas ligadas por linha vinho contínua
    ============================================================ */
-.timeline { position: relative; }
+/* O corpo de cada etapa entra deslocado (x: 24 em timeline.js) e, em tela
+   estreita, esse deslocamento passava da borda e criava alguns pixels de
+   rolagem lateral na página. O corte fica aqui, no bloco que causa o
+   transbordo: no html ele quebraria o cabeçalho sticky, e em .secao
+   quebraria os sticky do contato e da calculadora. */
+.timeline { position: relative; overflow-x: clip; }
 
 .timeline__trilho {
   position: absolute;

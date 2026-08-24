@@ -33,26 +33,33 @@
     );
   });
 
-  /* ---- Hero da Home: monograma e título por frase ----
-     A primeira impressão do site. O monograma entra com uma leve
-     aproximação; o título chega em três frases, não em bloco único;
-     o convite de rolagem fecha a sequência. Sem GSAP ou com movimento
-     reduzido, o CSS de base.css já entrega tudo visível — isto é só
-     a entrada. */
+  /* ---- Monograma dos heróis ----
+     A marca entra com uma leve aproximação em toda página que a tem no
+     herói — Home, Sobre, L-1A, Como Funciona e Contato — e não só na
+     Home, para o carregamento ser o mesmo em todas. O monograma que
+     aparece no meio da página fica de fora: aquele não é entrada de
+     carregamento, e sim de rolagem. */
+  document.querySelectorAll('.hero .monograma-fundo').forEach(function (monograma) {
+    if (!motion.ativo) return;
+    var g = motion.gsap;
+    g.set(monograma, { opacity: 0, scale: 0.94, transformOrigin: '50% 50%' });
+    g.to(monograma, { opacity: 1, scale: 1, duration: 1.05, ease: 'power2.out', delay: 0.15 });
+  });
+
+  /* ---- Hero da Home: título por frase ----
+     A primeira impressão do site: o título chega em três frases, não em
+     bloco único, e o convite de rolagem fecha a sequência. O monograma
+     é tratado acima, junto com o das outras páginas. Sem GSAP ou com
+     movimento reduzido, o CSS de base.css já entrega tudo visível —
+     isto é só a entrada. */
   document.querySelectorAll('.hero--home').forEach(function (hero) {
     if (!motion.ativo) return;
     var g = motion.gsap;
 
-    var monograma = hero.querySelector('.hero__cena .monograma-fundo');
     var frases = hero.querySelectorAll('.hero__frase');
     var rolar = hero.querySelector('.hero__rolar');
 
     var tl = g.timeline({ delay: 0.15 });
-
-    if (monograma) {
-      g.set(monograma, { opacity: 0, scale: 0.94, transformOrigin: '50% 50%' });
-      tl.to(monograma, { opacity: 1, scale: 1, duration: 1.05, ease: 'power2.out' }, 0);
-    }
 
     /* Cada frase entra antes de a anterior terminar: é a sobreposição que
        faz a leitura correr sem degraus. Duração longa com power2.out para
