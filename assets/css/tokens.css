@@ -1,0 +1,154 @@
+/* ============================================================
+   SOS DIREITO — Design Tokens
+   Paleta aprovada pela Diana e pela Camila (identidade do Pedro).
+   As três cores-base são imutáveis. Tudo o mais deriva delas.
+   ============================================================ */
+
+/* ---- Fontes self-hosted ----
+   PRINCIPAL: Roses Bolero — a tipografia da marca, do logo.
+   SECUNDÁRIA: Sweet Sans Pro — indicada pelo Pedro.
+
+   Os arquivos entregues trazem só dois pesos da Sweet Sans (Thin 200 e
+   Medium 500). Por isso a hierarquia do site vem de tamanho, cor,
+   entrelinha e caixa — não de peso. `font-synthesis` fica desligado no
+   base.css: negrito sintético borra o desenho de uma geométrica. */
+
+@font-face {
+  font-family: 'Roses Bolero';
+  src: url('../fonts/roses-bolero.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sweet Sans Pro';
+  src: url('../fonts/sweet-sans-thin.woff2') format('woff2');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sweet Sans Pro';
+  src: url('../fonts/sweet-sans-medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ========== PALETA APROVADA — não alterar ========== */
+  --vinho:      #570615;  /* principal: títulos, botões primários, destaques, trilha */
+  --marfim:     #f4eee7;  /* fundo, respiro entre seções */
+  --azul-tinta: #1d2e40;  /* secundária: blocos institucionais. NUNCA como principal */
+
+  /* ========== Derivadas (tons de trabalho) ========== */
+  --vinho-900:  #3d040f;  /* hover / pressed */
+  --vinho-700:  #74101f;  /* acento sobre fundo escuro */
+  --vinho-300:  #b98d95;  /* filete decorativo sobre vinho */
+  --vinho-100:  #f6e7e9;  /* fundo de selo / badge sobre marfim */
+
+  --marfim-050: #fbf8f4;  /* superfície de card sobre marfim */
+  --marfim-200: #ece2d7;  /* alternância de seção */
+  --marfim-300: #ded2c5;  /* borda sobre marfim */
+
+  --azul-900:   #142130;
+  --azul-700:   #33475c;
+  --azul-100:   #e4e8ec;
+
+  /* ========== Texto ========== */
+  --texto:                #1d2e40;
+  --texto-suave:          #55636f;
+  --texto-inverso:        #f4eee7;
+  --texto-inverso-suave:  rgba(244, 238, 231, 0.74);
+
+  /* ========== Traços ========== */
+  --hairline:         rgba(87, 6, 21, 0.16);
+  --hairline-suave:   rgba(29, 46, 64, 0.10);
+  --hairline-inversa: rgba(244, 238, 231, 0.22);
+
+  /* ========== Tipografia ========== */
+  --font-body:    'Sweet Sans Pro', 'Avenir Next', Avenir, system-ui, -apple-system, sans-serif;
+  --font-display: 'Roses Bolero', 'Didot', 'Bodoni MT', Georgia, serif;
+
+  /* Pesos realmente disponíveis. Usar sempre estes tokens, nunca um
+     número solto — assim fica claro quando um peso não existe. */
+  --peso-fino:    200;   /* Sweet Sans Thin — só em numerais grandes */
+  --peso-corpo:   500;   /* Sweet Sans Medium — todo o texto */
+  --peso-display: 400;   /* Roses Bolero — peso único */
+
+  --fs-display: clamp(2.5rem,   1.55rem + 4.3vw,  4.75rem);
+  --fs-h1:      clamp(2.125rem, 1.52rem + 2.9vw,  3.75rem);
+  --fs-h2:      clamp(1.75rem,  1.38rem + 1.85vw, 2.875rem);
+  --fs-h3:      clamp(1.3rem,   1.16rem + 0.7vw,  1.75rem);
+  --fs-h4:      clamp(1.0625rem, 1.02rem + 0.25vw, 1.25rem);
+  --fs-lead:    clamp(1.125rem, 1.05rem + 0.38vw, 1.375rem);
+  --fs-body:    clamp(1rem,     0.975rem + 0.13vw, 1.0938rem);
+  --fs-sm:      0.9375rem;
+  --fs-xs:      0.8125rem;
+  --fs-eyebrow: 0.75rem;
+
+  /* h1/h2 (Roses Bolero) pedem mais respiro entre linhas que h3/h4
+     (Sweet Sans) — a serifada tem ascendentes e descendentes mais altos. */
+  --lh-tight:   1.12;  /* h1 — Roses Bolero */
+  --lh-display: 1.2;   /* h2 — Roses Bolero */
+  --lh-titulo:  1.18;  /* h3, h4, títulos de componente — Sweet Sans */
+  --lh-media:   1.45;
+  --lh-corpo:   1.68;
+
+  --ls-display: 0.002em;   /* Roses Bolero em h1/h2 — já bem espaçada de origem */
+  --ls-titulo:  -0.012em;  /* Sweet Sans em h3/h4 e títulos de componente */
+  --ls-corpo:   0.004em;   /* geométrica pede ar */
+  --ls-eyebrow: 0.16em;
+
+  /* ========== Espaçamento ========== */
+  --sp-1:  0.25rem;  --sp-2: 0.5rem;   --sp-3: 0.75rem;  --sp-4: 1rem;
+  --sp-5:  1.5rem;   --sp-6: 2rem;     --sp-7: 2.5rem;   --sp-8: 3rem;
+  --sp-9:  4rem;     --sp-10: 5rem;    --sp-11: 6.5rem;  --sp-12: 8rem;
+
+  --sp-secao:       clamp(4rem, 8.5vw, 8.75rem);
+  --sp-secao-densa: clamp(3rem, 5.5vw, 5.5rem);
+  --sp-secao-ampla: clamp(5.5rem, 11vw, 11rem);
+
+  /* ========== Layout ========== */
+  --container:        1200px;
+  --container-largo:  1360px;
+  --container-texto:  none;
+  --medida:           68ch;   /* medida de leitura confortável */
+  --gutter:           clamp(1.25rem, 4.5vw, 3.5rem);
+
+  /* ========== Forma ========== */
+  --r-sm:   4px;
+  --r-md:   10px;
+  --r-lg:   18px;
+  --r-xl:   26px;
+  --r-pill: 999px;
+
+  /* ========== Elevação (sombra levemente quente) ========== */
+  --sh-1: 0 1px 2px rgba(29, 46, 64, 0.05), 0 2px 8px rgba(29, 46, 64, 0.04);
+  --sh-2: 0 2px 6px rgba(29, 46, 64, 0.06), 0 14px 34px rgba(29, 46, 64, 0.08);
+  --sh-3: 0 4px 12px rgba(87, 6, 21, 0.08), 0 26px 64px rgba(87, 6, 21, 0.14);
+
+  /* ========== Movimento ========== */
+  --ease-saida:  cubic-bezier(0.16, 1, 0.30, 1);
+  --ease-suave:  cubic-bezier(0.33, 0.10, 0.20, 1);
+  --dur-rapida:  160ms;
+  --dur-media:   280ms;
+  --dur-lenta:   520ms;
+
+  /* ========== Camadas ========== */
+  --z-base: 1;
+  --z-trilha: 2;
+  --z-conteudo: 3;
+  --z-header: 100;
+  --z-menu: 110;
+  --z-modal: 200;
+
+  /* ========== Formas desenhadas ========== */
+  --seta: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12h15M12.5 5.5 19 12l-6.5 6.5'/%3E%3C/svg%3E");
+
+  /* ========== Foco ========== */
+  --foco: 2px solid var(--vinho);
+  --foco-offset: 3px;
+}

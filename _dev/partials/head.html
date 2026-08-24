@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<meta name="description" content="{{DESC}}">
+<link rel="canonical" href="https://sosdireito.com.br{{URL}}">
+{{ROBOTS}}
+<meta name="theme-color" content="#570615">
+
+<meta property="og:type" content="{{OG_TYPE}}">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="SOS Direito">
+<meta property="og:title" content="{{TITLE}}">
+<meta property="og:description" content="{{DESC}}">
+<meta property="og:url" content="https://sosdireito.com.br{{URL}}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{TITLE}}">
+<meta name="twitter:description" content="{{DESC}}">
+
+<script>
+/* Roda de forma síncrona, antes de qualquer pintura:
+   .js         → o CSS pode esconder o que vai ser animado
+   .js-sem-motion → o conteúdo entra pronto, sem animação
+   Sem JavaScript, nenhuma das duas classes existe e nada é escondido. */
+(function () {
+  var e = document.documentElement;
+  e.classList.add('js');
+  try {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      e.classList.add('js-sem-motion');
+    }
+  } catch (err) {}
+})();
+</script>
+<link rel="preload" href="{{BASE}}assets/fonts/sweet-sans-medium.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{BASE}}assets/fonts/roses-bolero.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{BASE}}assets/css/tokens.css?v={{VER}}">
+<link rel="stylesheet" href="{{BASE}}assets/css/base.css?v={{VER}}">
+<link rel="stylesheet" href="{{BASE}}assets/css/layout.css?v={{VER}}">
+<link rel="stylesheet" href="{{BASE}}assets/css/components.css?v={{VER}}">
+{{HEAD_EXTRA}}
+</head>
+<body{{BODY_ATTR}}>
+<a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+{{SPRITE}}

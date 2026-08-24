@@ -1,0 +1,179 @@
+url: /contato/
+nav: contato
+title: Fale com a SOS Direito | Assessoria Imigratória
+desc: Entre em contato com a SOS Direito e descubra o caminho certo para levar sua empresa ou sua carreira para os Estados Unidos.
+head_extra: <link rel="stylesheet" href="../assets/css/pages/contato.css?v={{VER}}">
+---
+
+<section class="hero hero--interno secao--marfim">
+  <div class="monograma-fundo monograma-fundo--dir" aria-hidden="true" data-parallax></div>
+  <div class="container">
+    <div class="hero__conteudo">
+      <span class="eyebrow" data-revelar>Contato</span>
+      <h1 class="hero__titulo" data-revelar data-revelar-delay="0.06">
+        Vamos conversar sobre o seu processo
+      </h1>
+      <p class="hero__texto" data-revelar data-revelar-delay="0.12">
+        Conte um pouco sobre o seu momento. Nossa equipe responde com os próximos passos.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="secao secao--sem-topo">
+  <div class="container">
+    <div class="grid grid--3" data-revelar="grupo">
+      <article class="card">
+        <span class="card__icone" aria-hidden="true"><svg><use href="#i-email"></use></svg></span>
+        <h2 class="card__titulo">E-mail</h2>
+        <p class="card__texto">Tem uma dúvida? Envie sua mensagem para o nosso e-mail oficial.</p>
+        <div class="card__rodape">
+          <a class="link-seta" href="mailto:info@sosdireito.com.br">info@sosdireito.com.br</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <span class="card__icone" aria-hidden="true"><svg><use href="#i-formulario"></use></svg></span>
+        <h2 class="card__titulo">Formulário</h2>
+        <p class="card__texto">
+          Preencha o formulário abaixo e um dos nossos especialistas retorna com os próximos
+          passos do seu caso.
+        </p>
+        <div class="card__rodape">
+          <a class="link-seta" href="#formulario">Enviar mensagem</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <span class="card__icone" aria-hidden="true"><svg><use href="#i-telefone"></use></svg></span>
+        <h2 class="card__titulo">Ligação</h2>
+        <p class="card__texto">Prefere falar diretamente? Atendemos por telefone em horário comercial.</p>
+        <div class="card__rodape">
+          <a class="link-seta" href="tel:+17863013817">+1 (786) 301-3817</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="secao" id="formulario">
+  <div class="container">
+    <div class="grid grid--texto-apoio contato-grid">
+
+      <div class="contato-form-col">
+        <div class="secao__cabecalho">
+          <h2 data-revelar>Fale com a nossa equipe</h2>
+          <p class="texto-suave" data-revelar data-revelar-delay="0.06">
+            Quanto mais contexto você der sobre a sua empresa, mais direta a nossa resposta.
+          </p>
+        </div>
+
+        <form class="form" data-form novalidate data-revelar>
+          <div class="campo-duplo">
+            <div class="campo">
+              <label class="campo__rotulo" for="c-nome">Nome</label>
+              <input class="campo__controle" type="text" id="c-nome" name="nome"
+                     autocomplete="name" required>
+              <span class="campo__erro" aria-live="polite"></span>
+            </div>
+            <div class="campo">
+              <label class="campo__rotulo" for="c-email">E-mail</label>
+              <input class="campo__controle" type="email" id="c-email" name="email"
+                     autocomplete="email" required>
+              <span class="campo__erro" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <div class="campo">
+            <label class="campo__rotulo" for="c-telefone">Telefone</label>
+            <input class="campo__controle" type="tel" id="c-telefone" name="telefone"
+                   autocomplete="tel" data-mascara="telefone" placeholder="(11) 99999-9999" required>
+            <span class="campo__erro" aria-live="polite"></span>
+          </div>
+
+          <div class="campo-duplo">
+            <div class="campo">
+              <label class="campo__rotulo" for="c-atividade">Tempo de atividade da empresa</label>
+              <select class="campo__controle" id="c-atividade" name="tempo_de_atividade" required>
+                <option value="">Selecione</option>
+                <option>Menos de 1 ano</option>
+                <option>Entre 1 e 3 anos</option>
+                <option>Entre 3 e 5 anos</option>
+                <option>Mais de 5 anos</option>
+                <option>Não tenho empresa</option>
+              </select>
+              <span class="campo__erro" aria-live="polite"></span>
+            </div>
+            <div class="campo">
+              <label class="campo__rotulo" for="c-clt">Número de funcionários CLT</label>
+              <select class="campo__controle" id="c-clt" name="funcionarios_clt" required>
+                <option value="">Selecione</option>
+                <option>Nenhum</option>
+                <option>De 1 a 5</option>
+                <option>De 6 a 20</option>
+                <option>De 21 a 50</option>
+                <option>Mais de 50</option>
+              </select>
+              <span class="campo__erro" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <div class="campo">
+            <label class="campo__rotulo" for="c-mensagem">
+              Sobre o seu momento <span class="opcional">(opcional)</span>
+            </label>
+            <textarea class="campo__controle" id="c-mensagem" name="mensagem" rows="4"
+                      placeholder="Conte brevemente onde você está hoje e para onde quer ir."></textarea>
+          </div>
+
+          <!-- Compliance: o disclaimer aparece de novo, em destaque,
+               perto do botão de envio. -->
+          <p class="form__disclaimer">
+            <svg aria-hidden="true"><use href="#i-escudo"></use></svg>
+            <span><strong>SOS Direito é uma assessoria imigratória.</strong> Não prestamos
+            serviços advocatícios.</span>
+          </p>
+
+          <div>
+            <button class="btn btn--grande" type="submit">
+              <span class="btn__rotulo">Enviar mensagem</span>
+            </button>
+          </div>
+
+          <div class="form__estado form__estado--sucesso" data-form-sucesso data-visivel="false">
+            <strong>Mensagem enviada.</strong>
+            Nossa equipe retorna com os próximos passos do seu caso.
+          </div>
+          <div class="form__estado form__estado--erro" data-form-erro data-visivel="false">
+            <strong>Não foi possível enviar.</strong>
+            Tente novamente em instantes, ou escreva direto para info@sosdireito.com.br.
+          </div>
+        </form>
+      </div>
+
+      <aside class="contato-info pilha-6" data-revelar data-revelar-delay="0.1">
+        <div>
+          <span class="card__icone" aria-hidden="true"><svg><use href="#i-local"></use></svg></span>
+          <h2 class="contato-info__titulo">Endereço</h2>
+          <p class="texto-suave">323 Sunny Isles Blvd, 7º andar<br>Sunny Isles, FL 33160, EUA</p>
+        </div>
+
+        <div>
+          <span class="card__icone" aria-hidden="true"><svg><use href="#i-horario"></use></svg></span>
+          <h2 class="contato-info__titulo">Horário</h2>
+          <p class="texto-suave">Segunda a sexta: 10h às 18h<br>Sábado e domingo: fechado</p>
+        </div>
+
+        <div>
+          <h2 class="contato-info__titulo">Redes sociais</h2>
+          <ul class="sociais sociais--claro">
+            <li><a href="https://www.instagram.com/sosdireito/" target="_blank" rel="noopener noreferrer" aria-label="Instagram da SOS Direito"><svg aria-hidden="true"><use href="#i-instagram"></use></svg></a></li>
+            <li><a href="https://www.facebook.com/sosdireito/" target="_blank" rel="noopener noreferrer" aria-label="Facebook da SOS Direito"><svg aria-hidden="true"><use href="#i-facebook"></use></svg></a></li>
+            <li><a href="https://www.linkedin.com/company/sosdireito/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn da SOS Direito"><svg aria-hidden="true"><use href="#i-linkedin"></use></svg></a></li>
+          </ul>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</section>

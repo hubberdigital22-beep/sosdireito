@@ -1,0 +1,21 @@
+/* ============================================================
+   SOS DIREITO — Tipos de Vistos
+   ============================================================ */
+
+/* Duas fileiras de três, como o briefing pede. O L-1A não quebra
+   o grid: ele domina pelo peso visual (fundo vinho e selo), não
+   por ocupar mais espaço. */
+/* Padrão do site: container de 1200px, igual a todas as outras
+   páginas — nenhuma seção usa largura maior por exceção de página. */
+.grid-vistos { align-items: stretch; }
+.grid-vistos .card__titulo { font-size: clamp(1.05rem, 0.98rem + 0.35vw, 1.3rem); }
+.grid-vistos .card { height: 100%; }
+
+/* O card de aviso fica de propósito mais leve que os demais:
+   ele existe para poupar tempo de quem não se qualifica. */
+.grid-vistos .card--aviso { background: transparent; }
+
+@media (min-width: 901px) {
+  .grid-vistos .card--destaque { transform: scale(1.015); }
+  .grid-vistos .card--destaque:hover { transform: scale(1.015) translateY(-3px); }
+}

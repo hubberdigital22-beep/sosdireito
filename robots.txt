@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Ferramenta de estimativa: útil para quem já está no funil,
+# mas não é página de entrada de busca.
+Disallow: /calculadora/
+
+Sitemap: https://sosdireito.com.br/sitemap.xml

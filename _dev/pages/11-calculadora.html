@@ -1,0 +1,284 @@
+url: /calculadora/
+title: Calculadora de Custos | SOS Direito
+desc: Estime os custos do seu processo de imigração para os Estados Unidos por categoria de visto, com o detalhamento de honorários e taxas do USCIS.
+robots: noindex, follow
+head_extra: <link rel="stylesheet" href="../assets/css/pages/calculadora.css?v={{VER}}">
+scripts_extra: <script src="../assets/js/data/taxas.js?v={{VER}}" defer></script>
+ <script src="../assets/js/components/calculadora.js?v={{VER}}" defer></script>
+---
+
+<!-- ======================== CALCULADORA ========================
+     Opção B do documento, aprovada pela Diana: replica a calculadora
+     do site atual, com o total estimado exposto.
+
+     As fórmulas em assets/js/components/calculadora.js reproduzem
+     exatamente as do calculadora2.html em produção. Todos os valores
+     vivem em assets/js/data/taxas.js.
+
+     Fora do menu principal, acessada só por CTA (L-1A e Tipos de Vistos). -->
+<section class="hero hero--interno secao--marfim">
+  <div class="container">
+    <div class="hero__conteudo">
+      <span class="eyebrow" data-revelar>Calculadora</span>
+      <h1 class="hero__titulo" data-revelar data-revelar-delay="0.06">
+        Estime os custos do seu processo
+      </h1>
+      <p class="hero__texto" data-revelar data-revelar-delay="0.12">
+        Cada categoria de visto tem uma composição de custos diferente. Escolha abaixo o caminho
+        que mais parece com o seu momento e informe a composição do processo para ver a estimativa
+        detalhada.
+      </p>
+      <p class="nota" data-revelar data-revelar-delay="0.18">
+        Todos os valores são estimados e estão sujeitos a alterações a qualquer momento, de acordo
+        com as mudanças da imigração.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="secao secao--sem-topo">
+  <div class="container">
+    <div class="grid calc-layout">
+
+      <form class="calc-form" data-calculadora data-calculado="false" novalidate>
+        <h2 class="calc-form__titulo">Sobre o seu processo</h2>
+
+        <div class="campo">
+          <label class="campo__rotulo" for="calc-visto">Tipo de visto</label>
+          <select class="campo__controle" id="calc-visto" name="visto" required>
+            <option value="">Selecione</option>
+            <option value="L1">L-1A</option>
+            <option value="L1R">L-1A — Renovação</option>
+            <option value="EB1A">EB-1A</option>
+            <option value="EB1C">EB-1C</option>
+            <option value="EB2">EB-2 NIW</option>
+          </select>
+          <span class="campo__erro" aria-live="polite">Escolha uma categoria para calcular.</span>
+        </div>
+
+        <fieldset class="campo calc-fieldset">
+          <legend class="campo__rotulo">Tipo de processo</legend>
+          <div class="escolhas escolhas--empilhadas">
+            <label class="escolha">
+              <input type="radio" name="tipo_processo" value="ajuste" checked>
+              <span>Com ajuste de status (dentro dos EUA)</span>
+            </label>
+            <label class="escolha">
+              <input type="radio" name="tipo_processo" value="consular">
+              <span>Processo consular (fora dos EUA)</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="campo" id="calc-grupo-adultos">
+          <label class="campo__rotulo" for="calc-adultos">
+            Quantas pessoas MAIORES de 14 anos fazem parte do processo?
+          </label>
+          <select class="campo__controle" id="calc-adultos" name="adultos">
+            <option>0</option><option>1</option><option>2</option><option>3</option>
+            <option>4</option><option>5</option><option>6</option><option>7</option>
+            <option>8</option><option>9</option><option>10</option>
+          </select>
+        </div>
+
+        <div class="campo calc-toggle" id="calc-grupo-conjuge" hidden>
+          <span class="campo__rotulo" id="calc-conjuge-legenda">Incluir cônjuge no processo?</span>
+          <label class="interruptor">
+            <input type="checkbox" id="calc-conjuge" aria-labelledby="calc-conjuge-legenda">
+            <span class="interruptor__trilho" aria-hidden="true"></span>
+            <span class="interruptor__rotulo" id="calc-conjuge-rotulo">Não</span>
+          </label>
+        </div>
+
+        <div class="campo" id="calc-grupo-criancas">
+          <label class="campo__rotulo" for="calc-criancas" id="calc-rotulo-criancas">
+            Quantas pessoas MENORES de 14 anos fazem parte do processo?
+          </label>
+          <select class="campo__controle" id="calc-criancas" name="criancas">
+            <option>0</option><option>1</option><option>2</option><option>3</option>
+            <option>4</option><option>5</option><option>6</option><option>7</option>
+            <option>8</option><option>9</option><option>10</option>
+          </select>
+        </div>
+
+        <button class="btn btn--grande btn--bloco" type="submit">
+          <span class="btn__rotulo">Calcular</span>
+        </button>
+
+        <p class="form__disclaimer" style="margin-top:var(--sp-5)">
+          <svg aria-hidden="true"><use href="#i-escudo"></use></svg>
+          <span><strong>SOS Direito é uma assessoria imigratória.</strong> Não prestamos
+          serviços advocatícios.</span>
+        </p>
+      </form>
+
+      <div class="calc-saida">
+        <div class="calc-resultado" id="calc-resultado" hidden aria-live="polite">
+          <div class="calc-total">
+            <span class="calc-total__rotulo">Total estimado</span>
+            <p class="calc-total__valor" id="calc-total">US$ 0,00</p>
+          </div>
+
+          <h2 class="calc-secao__titulo">Detalhamento do valor</h2>
+          <p class="calc-tabela__nota">
+            Todos os valores são aproximados. O valor final será definido após análise individual
+            do caso e formalização do contrato.
+          </p>
+          <div class="calc-linhas" id="calc-linhas"></div>
+
+          <div class="calc-tabelas" id="calc-tabelas"></div>
+        </div>
+
+        <div class="calc-vazio" id="calc-vazio">
+          <span class="card__icone" aria-hidden="true"><svg><use href="#i-corporativo"></use></svg></span>
+          <p class="texto-suave">
+            Escolha a categoria e a composição do processo ao lado para ver a estimativa detalhada.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="secao secao--marfim2" id="calc-disclaimers" hidden>
+  <div class="container container--estreito">
+    <h2 data-revelar>Serviços não inclusos, ofertados por terceiros</h2>
+    <p class="texto-suave" style="margin-top:var(--sp-3)">
+      Valores aproximados e sujeitos a alteração.
+    </p>
+    <div class="estimativas" id="calc-terceiros" style="margin-top:var(--sp-6)"></div>
+
+    <h2 style="margin-top:var(--sp-10)">Antes de prosseguir</h2>
+    <div class="accordion" data-accordion style="margin-top:var(--sp-5)">
+      <div class="accordion__item">
+        <h3>
+          <button class="accordion__gatilho" type="button" data-accordion-gatilho
+                  aria-expanded="false" aria-controls="calc-d1" id="calc-d1-b">
+            Cobrança de serviços adicionais
+            <span class="accordion__sinal" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="accordion__painel" id="calc-d1" role="region" aria-labelledby="calc-d1-b">
+          <div class="accordion__conteudo">
+            <p>
+              Toda e qualquer alteração de processos, incluindo <em>refiles</em>, troca de
+              formulários, renovações de <em>parole</em> ou <em>work permit</em>, será cobrada
+              à parte.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion__item">
+        <h3>
+          <button class="accordion__gatilho" type="button" data-accordion-gatilho
+                  aria-expanded="false" aria-controls="calc-d2" id="calc-d2-b">
+            Limitação do escopo do contrato
+            <span class="accordion__sinal" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="accordion__painel" id="calc-d2" role="region" aria-labelledby="calc-d2-b">
+          <div class="accordion__conteudo">
+            <p>
+              Cada contrato é limitado exclusivamente aos serviços descritos especificamente para
+              fins de assessoria contratados.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion__item">
+        <h3>
+          <button class="accordion__gatilho" type="button" data-accordion-gatilho
+                  aria-expanded="false" aria-controls="calc-d3" id="calc-d3-b">
+            Política de reembolso
+            <span class="accordion__sinal" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="accordion__painel" id="calc-d3" role="region" aria-labelledby="calc-d3-b">
+          <div class="accordion__conteudo">
+            <p>
+              Sob nenhuma circunstância haverá possibilidade de reembolso, seja ele parcial ou
+              total, dos valores pagos.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion__item accordion__item--urgente">
+        <h3>
+          <button class="accordion__gatilho" type="button" data-accordion-gatilho
+                  aria-expanded="false" aria-controls="calc-d4" id="calc-d4-b">
+            Flutuação de custos
+            <span class="accordion__sinal" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="accordion__painel" id="calc-d4" role="region" aria-labelledby="calc-d4-b">
+          <div class="accordion__conteudo">
+            <p>
+              Taxas cobradas pela imigração estão sujeitas a alterações sem aviso prévio, bem como
+              cobrança de taxas extras temporárias, como Taxa de Asilo e Autorização de Saída do
+              País, que não são possíveis de serem previstas ao longo do processo imigratório.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion__item">
+        <h3>
+          <button class="accordion__gatilho" type="button" data-accordion-gatilho
+                  aria-expanded="false" aria-controls="calc-d5" id="calc-d5-b">
+            Serviços de terceiros
+            <span class="accordion__sinal" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="accordion__painel" id="calc-d5" role="region" aria-labelledby="calc-d5-b">
+          <div class="accordion__conteudo">
+            <p>
+              Orçamentos de serviços prestados por terceiros são apenas estimativas e devem ser
+              negociados diretamente com os respectivos provedores.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion__item">
+        <h3>
+          <button class="accordion__gatilho" type="button" data-accordion-gatilho
+                  aria-expanded="false" aria-controls="calc-d6" id="calc-d6-b">
+            Ajuste de status
+            <span class="accordion__sinal" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="accordion__painel" id="calc-d6" role="region" aria-labelledby="calc-d6-b">
+          <div class="accordion__conteudo">
+            <p>
+              O pedido de ajuste de status é um serviço adicional ao contrato, podendo ser feito
+              diretamente pelo cliente ou, se preferir, contratado junto à assessoria.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="texto-suave" style="margin-top:var(--sp-7);font-size:var(--fs-sm)">
+      Esteja ciente de todos os termos e condições antes de prosseguir. Para mais informações sobre
+      as taxas, consulte diretamente o site da imigração:
+      <a href="https://www.uscis.gov/forms/filing-fees" target="_blank" rel="noopener noreferrer">uscis.gov/forms/filing-fees</a>.
+    </p>
+  </div>
+</section>
+
+<section class="secao secao--vinho secao--densa">
+  <div class="container texto-centro">
+    <h2 data-revelar>Uma estimativa é só o começo da conversa.</h2>
+    <p class="lead centro" style="margin-top:var(--sp-4)" data-revelar data-revelar-delay="0.06">
+      O valor final depende da análise do seu caso. Fale com a nossa equipe para entender o que se
+      aplica ao seu perfil.
+    </p>
+    <div class="acoes acoes--centro" style="margin-top:var(--sp-7)" data-revelar data-revelar-delay="0.12">
+      <a class="btn btn--claro btn--grande" href="../contato/">Fale com a nossa equipe</a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,16 @@
+/* ============================================================
+   SOS DIREITO — Como Funciona
+   Substitui a "Timeline do Green Card" quebrada do site anterior.
+   ============================================================ */
+
+.estimativas__titulo { font-size: var(--fs-h3); }
+
+/* O bloco de prazos é referência, não argumento: fica visivelmente
+   mais leve que os cards de etapa da timeline. */
+.estimativas__item:hover { background: color-mix(in srgb, var(--vinho) 3%, transparent); }
+
+/* A Etapa 7 é a única com ramificação; o corpo dela ganha um pouco
+   mais de presença para acomodar a bifurcação sem parecer apertado. */
+.etapa:has(.etapa__ramificacoes) .etapa__corpo {
+  border-color: color-mix(in srgb, var(--vinho) 16%, transparent);
+}

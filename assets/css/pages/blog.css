@@ -1,0 +1,37 @@
+/* ============================================================
+   SOS DIREITO — Blog
+   ============================================================ */
+
+.categorias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  list-style: none;
+  padding: 0;
+  margin-top: var(--sp-6);
+}
+
+.lista-posts { list-style: none; padding: 0; margin: 0; }
+
+/* Categoria numa linha, data e tempo na outra. Deixar os três no mesmo
+   fluxo faz a quebra variar de card para card conforme o nome da categoria. */
+.post-card__meta { flex-direction: column; align-items: flex-start; gap: var(--sp-3); }
+.post-card__data { font-size: var(--fs-xs); color: var(--texto-suave); }
+.lista-posts > li { display: flex; }
+
+/* O link-seta dentro do card não é foco próprio: o card inteiro
+   é o alvo clicável, então a seta só acompanha o hover do card. */
+.post-card .link-seta { pointer-events: none; }
+.post-card:hover .link-seta { gap: 0.85em; border-color: currentColor; }
+
+/* ---- Artigo ---- */
+.artigo__corpo p  { color: var(--texto); }
+.artigo__corpo ul { color: var(--texto-suave); }
+.artigo__corpo code {
+  padding: 0.15em 0.4em;
+  font-size: 0.88em;
+  background: var(--marfim-200);
+  border-radius: var(--r-sm);
+}
+.artigo__corpo em { color: inherit; }
+.artigo__rodape { margin-top: clamp(2.5rem, 5vw, 4rem); }

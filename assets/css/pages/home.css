@@ -1,0 +1,130 @@
+/* ============================================================
+   SOS DIREITO — Home
+   ============================================================ */
+
+/* A largura do container (900px) já vem da regra compartilhada em
+   components.css — vale pra Home e pra todo hero interno igual.
+   Só o título em si precisa resetar aqui: uma sessão anterior tinha
+   deixado um max-width estreito só nele, que este reset desfaz.
+   Testado empiricamente: abaixo de 850px o título quebra em 5 linhas;
+   a partir de 850px estabiliza em 4 (o texto dos três <span> de
+   revelação não flui entre si como texto corrido, então não recalcula
+   pra 3 linhas mesmo com mais espaço — 4 já é a redução que deixa o
+   hero inteiro caber numa tela comum sem rolar). */
+.hero .hero__titulo { max-width: none; }
+
+/* ============================================================
+   HERO DA HOME — monograma de fundo, título revelado por frase,
+   convite de rolagem ao final. Padding reduzido de propósito: com
+   título + texto + dois CTAs, o objetivo é caber numa tela comum
+   sem precisar rolar — não sobra orçamento vertical pra respiro
+   generoso como nos heróis internos, mais curtos. */
+.hero--home {
+  padding-top: clamp(2rem, 4vw, 4rem);
+  padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+/* Reserva a altura do convite de rolagem (que é position:absolute,
+   não soma ao fluxo) — sem isto ele ficaria sobre os botões. */
+.hero--home .acoes { margin-bottom: clamp(2.25rem, 4vw, 3.25rem); }
+
+.hero__cena {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-trilha);
+  overflow: hidden;
+  pointer-events: none;
+}
+/* A cena vira contexto de posicionamento pra máscara do monograma,
+   que normalmente assume o próprio elemento com [data-parallax]. */
+.hero__cena .monograma-fundo { position: absolute; inset: 0; }
+
+/* Abaixo de ~1100px a coluna de texto já disputa espaço com a cena —
+   o monograma some e devolve a largura ao texto. */
+@media (max-width: 1099px) {
+  .hero__cena { display: none; }
+}
+
+/* ---- Título revelado por frase ---- */
+.hero__frase {
+  display: inline-block;
+}
+.js .hero__frase {
+  opacity: 0;
+  transform: translateY(0.4em);
+}
+.js-sem-motion .hero__frase { opacity: 1; transform: none; }
+
+/* ---- Convite de rolagem ----
+   Ícone puro, sem texto novo: um traço vertical que se preenche e um
+   ponto que desliza. Posição absoluta de propósito — ancorado no pé
+   do hero, sem somar altura ao fluxo (é o que deixa título, texto e
+   CTAs caberem numa tela comum sem rolar). */
+.hero__rolar {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(0.75rem, 2.5vw, 1.5rem);
+  transform: translateX(-50%);
+  z-index: var(--z-conteudo);
+  display: flex;
+  justify-content: center;
+  width: 2rem;
+  padding: var(--sp-2) 0;
+}
+.hero__rolar-traco {
+  position: relative;
+  width: 1px;
+  height: 2.75rem;
+  background: var(--hairline);
+  overflow: hidden;
+}
+.hero__rolar-traco::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--vinho);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.7s var(--ease-saida);
+}
+.hero__rolar-traco::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 5px;
+  height: 5px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--vinho);
+  opacity: 0;
+}
+
+.js .hero__rolar { opacity: 0; transition: opacity 0.5s var(--ease-suave); }
+.js-sem-motion .hero__rolar { opacity: 1; }
+.hero__rolar:hover .hero__rolar-traco { background: color-mix(in srgb, var(--vinho) 40%, var(--hairline)); }
+
+/* O JS marca [data-pronto] só depois que título, texto e CTAs pousaram.
+   A opacidade do próprio link é tween do GSAP (ver decor.js) — só as
+   pseudo-elementos do traço, que o GSAP não alcança, dependem do atributo. */
+.hero__rolar[data-pronto] .hero__rolar-traco::before { transform: scaleY(1); }
+.js .hero__rolar[data-pronto] .hero__rolar-traco::after {
+  animation: heroRolarPulso 2.4s ease-in-out 0.6s infinite;
+}
+@keyframes heroRolarPulso {
+  0%   { transform: translateY(0);        opacity: 0; }
+  18%  { opacity: 1; }
+  78%  { opacity: 1; }
+  100% { transform: translateY(2.75rem);  opacity: 0; }
+}
+
+@media (max-width: 700px) {
+  .hero__rolar { display: none; }
+}
+
+/* A bifurcação da Home é mais leve que a do L-1A: aqui ela
+   apresenta a ideia, lá ela decide a página. */
+.bifurcacao__caminhos .caminho { text-align: left; }
+
+@media (min-width: 821px) {
+  .bifurcacao__caminhos { max-width: 92%; margin-inline: auto; }
+}

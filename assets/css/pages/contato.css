@@ -1,0 +1,21 @@
+/* ============================================================
+   SOS DIREITO — Contato
+   ============================================================ */
+
+.contato-info__titulo {
+  font-size: var(--fs-h4);
+  margin: var(--sp-4) 0 var(--sp-3);
+}
+.contato-info > div:first-child .contato-info__titulo { margin-top: var(--sp-4); }
+
+/* A coluna de apoio acompanha o formulário sem competir com ele. */
+@media (min-width: 901px) {
+  .contato-grid { grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr); }
+  .contato-info {
+    padding: clamp(1.5rem, 2.6vw, 2.25rem);
+    background: var(--marfim-200);
+    border-radius: var(--r-lg);
+    position: sticky;
+    top: 7rem;
+  }
+}

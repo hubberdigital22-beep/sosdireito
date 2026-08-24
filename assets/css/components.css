@@ -1,0 +1,1563 @@
+/* ============================================================
+   SOS DIREITO — Componentes compartilhados
+   ============================================================ */
+
+/* ============================================================
+   BOTÕES
+   ============================================================ */
+.btn {
+  --btn-bg: var(--vinho);
+  --btn-fg: var(--marfim);
+  --btn-borda: var(--vinho);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  padding: 0.95em 1.85em;
+  font-size: var(--fs-sm);
+  font-weight: var(--peso-corpo);
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  color: var(--btn-fg);
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-borda);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  max-width: 100%;
+  transition: background var(--dur-media) var(--ease-suave),
+              border-color var(--dur-media) var(--ease-suave),
+              color var(--dur-media) var(--ease-suave),
+              transform var(--dur-rapida) var(--ease-saida),
+              box-shadow var(--dur-media) var(--ease-suave);
+}
+.btn:hover {
+  --btn-bg: var(--vinho-900);
+  --btn-borda: var(--vinho-900);
+  color: var(--btn-fg);
+  transform: translateY(-2px);
+  box-shadow: var(--sh-2);
+}
+.btn:active { transform: translateY(0); box-shadow: var(--sh-1); }
+.btn[disabled], .btn[aria-disabled="true"] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.btn--secundario {
+  --btn-bg: transparent;
+  --btn-fg: var(--vinho);
+  --btn-borda: color-mix(in srgb, var(--vinho) 34%, transparent);
+}
+.btn--secundario:hover {
+  --btn-bg: var(--vinho);
+  --btn-fg: var(--marfim);
+  --btn-borda: var(--vinho);
+}
+
+/* Variantes para uso sobre fundo escuro */
+.secao--azul .btn--secundario,
+.secao--vinho .btn--secundario,
+.btn--claro {
+  --btn-bg: transparent;
+  --btn-fg: var(--marfim);
+  --btn-borda: var(--hairline-inversa);
+}
+.secao--azul .btn--secundario:hover,
+.secao--vinho .btn--secundario:hover,
+.btn--claro:hover {
+  --btn-bg: var(--marfim);
+  --btn-fg: var(--vinho);
+  --btn-borda: var(--marfim);
+}
+.secao--azul .btn:not(.btn--secundario):not(.btn--claro):hover {
+  --btn-bg: var(--vinho-700);
+  --btn-borda: var(--vinho-700);
+}
+
+.btn--grande { padding: 1.1em 2.4em; font-size: var(--fs-body); }
+.btn--bloco  { display: flex; width: 100%; }
+
+/* Link com seta — o CTA discreto que o documento usa muito */
+.link-seta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  font-size: var(--fs-sm);
+  font-weight: var(--peso-corpo);
+  color: var(--vinho);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--vinho) 26%, transparent);
+  padding-bottom: 0.22em;
+  transition: gap var(--dur-media) var(--ease-saida),
+              border-color var(--dur-media) var(--ease-suave);
+}
+.link-seta::after {
+  /* Nem a Roses Bolero nem a Sweet Sans trazem o glifo →. Desenhado em
+     máscara, a seta acompanha a cor do texto e nunca cai num fallback. */
+  content: '';
+  width: 0.95em;
+  height: 0.95em;
+  flex-shrink: 0;
+  background: currentColor;
+  -webkit-mask: var(--seta) center / contain no-repeat;
+  mask: var(--seta) center / contain no-repeat;
+  transition: transform var(--dur-media) var(--ease-saida);
+}
+.link-seta:hover { gap: 0.85em; border-color: currentColor; }
+.link-seta:hover::after { transform: translateX(2px); }
+.secao--azul .link-seta, .secao--vinho .link-seta { color: var(--marfim); }
+
+/* Grupo de CTAs */
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  align-items: center;
+}
+.acoes--centro { justify-content: center; }
+
+/* ============================================================
+   CABEÇALHO E NAVEGAÇÃO
+   ============================================================ */
+.cabecalho {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  background: color-mix(in srgb, var(--marfim) 86%, transparent);
+  backdrop-filter: saturate(1.4) blur(14px);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur-media) var(--ease-suave),
+              background var(--dur-media) var(--ease-suave),
+              box-shadow var(--dur-media) var(--ease-suave);
+}
+.cabecalho[data-rolado="true"] {
+  border-bottom-color: var(--hairline);
+  background: color-mix(in srgb, var(--marfim) 94%, transparent);
+  box-shadow: 0 1px 20px rgba(29, 46, 64, 0.05);
+}
+
+.cabecalho .container { max-width: var(--container-largo); }
+
+.cabecalho__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  min-height: 5rem;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  color: var(--vinho);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+/* O logo entra como máscara, não como SVG inline: assim o arquivo é
+   buscado uma vez e fica em cache para as 18 páginas, em vez de repetir
+   ~35 KB de path em cada HTML. A cor continua vindo do CSS.
+   As proporções são as caixas reais medidas nos arquivos entregues. */
+.logo__marca {
+  display: block;
+  height: clamp(2.1rem, 1.4rem + 1vw, 2.7rem);
+  aspect-ratio: 4.6272;
+  background: currentColor;
+  -webkit-mask: url('../img/logo-horizontal.svg') center / contain no-repeat;
+  mask: url('../img/logo-horizontal.svg') center / contain no-repeat;
+}
+.logo__marca--vertical {
+  aspect-ratio: 1.3866;
+  -webkit-mask-image: url('../img/logo-vertical.svg');
+  mask-image: url('../img/logo-vertical.svg');
+}
+/* A vertical empilha a marca sobre o nome: para o mesmo peso visual do
+   lockup horizontal ela precisa de mais altura, não da mesma altura. */
+.cabecalho .logo__marca--vertical { height: clamp(2.6rem, 1.85rem + 1.35vw, 3.5rem); }
+.rodape .logo__marca--vertical    { height: 5.4rem; }
+.logo__marca--monograma {
+  aspect-ratio: 2.1628;
+  -webkit-mask-image: url('../img/logo-monograma.svg');
+  mask-image: url('../img/logo-monograma.svg');
+}
+/* Sem palavra pra ler, o símbolo sozinho pode pesar mais do que os
+   lockups com texto pesavam nesse mesmo espaço. */
+.cabecalho .logo__marca--monograma { height: clamp(2.5rem, 1.85rem + 1.1vw, 3.15rem); }
+.secao--azul .logo, .secao--vinho .logo, .rodape .logo { color: var(--marfim); }
+
+/* --- Navegação principal --- */
+.nav { display: flex; align-items: center; gap: clamp(0.5rem, 1.2vw, 1.1rem); }
+.nav__cta { flex-shrink: 0; }
+.nav__cta .btn { font-size: 0.875rem; padding: 0.85em 1.6em; white-space: nowrap; }
+.nav__lista {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.3rem, 0.9vw, 0.85rem);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.nav__link {
+  position: relative;
+  display: inline-block;
+  padding: 0.55rem 0.25rem;
+  font-size: 0.875rem;
+  font-weight: var(--peso-corpo);
+  color: var(--texto);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--dur-rapida) var(--ease-suave);
+}
+.nav__link::after {
+  content: '';
+  position: absolute;
+  left: 0.25rem; right: 0.25rem; bottom: 0.28rem;
+  height: 1px;
+  background: var(--vinho);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-media) var(--ease-saida);
+}
+.nav__link:hover { color: var(--vinho); }
+.nav__link:hover::after,
+.nav__link[aria-current="page"]::after { transform: scaleX(1); }
+.nav__link[aria-current="page"] { color: var(--vinho); font-weight: var(--peso-corpo); }
+
+/* O L-1A aparece solto no menu, com destaque de item principal (§5 do briefing) */
+.nav__link--destaque {
+  padding: 0.5rem 0.95rem;
+  font-weight: var(--peso-corpo);
+  color: var(--vinho);
+  background: var(--vinho-100);
+  border: 1px solid color-mix(in srgb, var(--vinho) 20%, transparent);
+  border-radius: var(--r-pill);
+  letter-spacing: 0.005em;
+}
+.nav__link--destaque::after { display: none; }
+.nav__link--destaque:hover {
+  background: var(--vinho);
+  color: var(--marfim);
+  border-color: var(--vinho);
+}
+.nav__link--destaque[aria-current="page"] {
+  background: var(--vinho);
+  color: var(--marfim);
+  border-color: var(--vinho);
+}
+
+/* --- Botão hambúrguer --- */
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.85rem;
+  height: 2.85rem;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-pill);
+  color: var(--vinho);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--dur-rapida) var(--ease-suave);
+}
+.nav-toggle:hover { background: var(--vinho-100); }
+.nav-toggle__barras {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 11px;
+}
+.nav-toggle__barras span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  background: currentColor;
+  border-radius: 2px;
+  transition: transform var(--dur-media) var(--ease-saida),
+              opacity var(--dur-rapida) var(--ease-suave);
+}
+.nav-toggle__barras span:nth-child(1) { top: 0; }
+.nav-toggle__barras span:nth-child(2) { top: 50%; transform: translateY(-50%); }
+.nav-toggle__barras span:nth-child(3) { bottom: 0; }
+.nav-toggle[aria-expanded="true"] .nav-toggle__barras span:nth-child(1) { top: 50%; transform: translateY(-50%) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] .nav-toggle__barras span:nth-child(2) { opacity: 0; }
+.nav-toggle[aria-expanded="true"] .nav-toggle__barras span:nth-child(3) { bottom: 50%; transform: translateY(50%) rotate(-45deg); }
+
+@media (max-width: 1279px) {
+  .nav-toggle { display: inline-flex; }
+  .nav { display: none; }
+
+  .nav[data-menu-movel] {
+    position: fixed;
+    inset: 5rem 0 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    padding: var(--sp-6) var(--gutter) var(--sp-9);
+    background: var(--marfim);
+    border-top: 1px solid var(--hairline);
+    overflow-y: auto;
+    z-index: var(--z-menu);
+  }
+  .nav[data-menu-movel] .nav__lista {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    width: 100%;
+  }
+  .nav[data-menu-movel] .nav__item { border-bottom: 1px solid var(--hairline-suave); }
+  .nav[data-menu-movel] .nav__link {
+    display: block;
+    padding: var(--sp-4) 0;
+    font-size: var(--fs-lead);
+    white-space: normal;
+  }
+  .nav[data-menu-movel] .nav__link::after { display: none; }
+  .nav[data-menu-movel] .nav__link--destaque {
+    display: inline-block;
+    margin-block: var(--sp-3);
+    padding: 0.6rem 1.2rem;
+  }
+  .nav[data-menu-movel] .nav__cta { margin-top: var(--sp-6); }
+  .nav[data-menu-movel] .nav__cta .btn { width: 100%; white-space: normal; }
+  body[data-menu-aberto="true"] { overflow: hidden; }
+}
+
+@media (max-width: 420px) {
+  .logo__marca { height: 1.9rem; }
+  .cabecalho__inner { min-height: 4.5rem; }
+  .nav[data-menu-movel] { inset-block-start: 4.5rem; }
+}
+
+/* ============================================================
+   RODAPÉ
+   ============================================================ */
+.rodape {
+  background: var(--vinho);
+  color: var(--texto-inverso);
+  padding-block: var(--sp-9) var(--sp-6);
+}
+.rodape a { color: var(--marfim); text-decoration-color: rgba(244,238,231,0.4); }
+.rodape a:hover { color: var(--marfim); text-decoration-color: currentColor; }
+
+.rodape__topo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  padding-bottom: var(--sp-8);
+  border-bottom: 1px solid var(--hairline-inversa);
+}
+@media (max-width: 900px) { .rodape__topo { grid-template-columns: 1fr; } }
+
+.rodape__marca p {
+  margin-top: var(--sp-4);
+  font-size: var(--fs-sm);
+  color: var(--texto-inverso-suave);
+  max-width: 34ch;
+}
+.rodape__titulo {
+  font-size: var(--fs-eyebrow);
+  font-weight: var(--peso-corpo);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--texto-inverso-suave);
+  margin-bottom: var(--sp-4);
+}
+.rodape__lista { list-style: none; padding: 0; margin: 0; }
+.rodape__lista li + li { margin-top: var(--sp-3); }
+.rodape__lista a { font-size: var(--fs-sm); text-decoration: none; }
+.rodape__lista a:hover { text-decoration: underline; }
+
+.rodape__nav-colunas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-5);
+}
+
+.rodape__contato { font-size: var(--fs-sm); color: var(--texto-inverso-suave); }
+.rodape__contato p + p { margin-top: var(--sp-3); }
+.rodape__contato a { color: var(--marfim); text-decoration: none; }
+.rodape__contato a:hover { text-decoration: underline; }
+
+.rodape__base {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4) var(--sp-6);
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--sp-6);
+}
+.rodape__disclaimer {
+  font-size: var(--fs-sm);
+  color: var(--marfim);
+  font-weight: var(--peso-corpo);
+  max-width: 62ch;
+}
+.rodape__copy { font-size: var(--fs-xs); color: var(--texto-inverso-suave); }
+
+/* Ícones sociais: lineares, na cor do site, nunca nas cores das marcas */
+.sociais { display: flex; gap: var(--sp-3); list-style: none; padding: 0; margin: 0; }
+.sociais a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--hairline-inversa);
+  border-radius: var(--r-pill);
+  color: var(--marfim);
+  transition: background var(--dur-media) var(--ease-suave),
+              border-color var(--dur-media) var(--ease-suave),
+              color var(--dur-media) var(--ease-suave);
+}
+.sociais a:hover { background: var(--marfim); color: var(--vinho); border-color: var(--marfim); }
+.sociais svg { width: 1.05rem; height: 1.05rem; }
+
+/* Variante dos sociais sobre fundo claro (página de Contato) */
+.sociais--claro a { border-color: var(--hairline); color: var(--vinho); }
+.sociais--claro a:hover { background: var(--vinho); color: var(--marfim); border-color: var(--vinho); }
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: clamp(1.5rem, 2.6vw, 2.25rem);
+  background: var(--marfim-050);
+  border: 1px solid var(--hairline-suave);
+  border-radius: var(--r-lg);
+  transition: transform var(--dur-media) var(--ease-saida),
+              box-shadow var(--dur-media) var(--ease-suave),
+              border-color var(--dur-media) var(--ease-suave);
+}
+.card__icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  color: var(--vinho);
+  border: 1px solid color-mix(in srgb, var(--vinho) 22%, transparent);
+  border-radius: var(--r-md);
+  flex-shrink: 0;
+}
+.card__icone svg { width: 1.5rem; height: 1.5rem; }
+.card__titulo { font-size: var(--fs-h4); color: var(--vinho); }
+.card__texto  { font-size: var(--fs-sm); line-height: var(--lh-corpo); color: var(--texto-suave); }
+.card__rodape { margin-top: auto; padding-top: var(--sp-2); }
+
+.card--interativo:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sh-2);
+  border-color: color-mix(in srgb, var(--vinho) 18%, transparent);
+}
+
+/* Card de visto em destaque — o L-1A é o produto central */
+.card--destaque {
+  background: var(--vinho);
+  border-color: var(--vinho);
+  color: var(--texto-inverso);
+  box-shadow: var(--sh-3);
+}
+.card--destaque .card__titulo { color: var(--marfim); font-size: var(--fs-h3); }
+.card--destaque .card__texto  { color: var(--texto-inverso-suave); }
+.card--destaque .card__icone  { color: var(--marfim); border-color: var(--hairline-inversa); }
+.card--destaque .link-seta    { color: var(--marfim); border-bottom-color: var(--hairline-inversa); }
+
+/* Card em tom de aviso — o E-2 não vende, avisa */
+.card--aviso {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--marfim-300);
+}
+.card--aviso .card__titulo { color: var(--texto-suave); font-weight: var(--peso-corpo); }
+.card--aviso .card__texto  { color: var(--texto-suave); }
+.card--aviso .card__icone  { color: var(--texto-suave); border-color: var(--marfim-300); }
+
+/* Card institucional em azul-tinta */
+.card--azul {
+  background: var(--azul-tinta);
+  border-color: var(--azul-tinta);
+  color: var(--texto-inverso);
+}
+.card--azul .card__titulo { color: var(--marfim); }
+.card--azul .card__texto  { color: var(--texto-inverso-suave); }
+.card--azul .card__icone  { color: var(--marfim); border-color: var(--hairline-inversa); }
+
+/* Faixa horizontal de destaque complementar */
+.faixa {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+  padding: clamp(1.75rem, 3.5vw, 3rem);
+  background: var(--azul-tinta);
+  color: var(--texto-inverso);
+  border-radius: var(--r-lg);
+}
+.faixa h2, .faixa h3 { color: var(--marfim); }
+.faixa .eyebrow      { color: var(--texto-inverso-suave); }
+.faixa p  { color: var(--texto-inverso-suave); margin-top: var(--sp-3); max-width: 62ch; }
+@media (max-width: 800px) { .faixa { grid-template-columns: 1fr; } }
+
+.faixa--marfim {
+  background: var(--marfim-200);
+  color: var(--texto);
+  border: 1px solid var(--hairline-suave);
+}
+.faixa--marfim h2, .faixa--marfim h3 { color: var(--vinho); }
+.faixa--marfim .eyebrow { color: var(--vinho); }
+.faixa--marfim p  { color: var(--texto-suave); }
+
+/* Empilhada: só texto corrido (eyebrow + parágrafos), sem a segunda
+   coluna de ícone/CTA. É o formato do azul-tinta como "bloco
+   institucional" — a cor secundária contida num painel, nunca
+   ocupando a seção inteira (ver identidade visual, pág. 3 do
+   direcionamento: "nunca como cor principal"). */
+.faixa--empilhada {
+  display: block;
+  padding: clamp(2rem, 4vw, 3.5rem);
+}
+.faixa--empilhada p + p { margin-top: var(--sp-4); }
+
+/* ============================================================
+   SELO / BADGE
+   ============================================================ */
+.selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.35em 0.85em;
+  font-size: var(--fs-xs);
+  font-weight: var(--peso-corpo);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vinho);
+  background: var(--vinho-100);
+  border-radius: var(--r-pill);
+  align-self: flex-start;
+}
+.selo--claro    { color: var(--vinho); background: var(--marfim); }
+.selo--contorno { background: transparent; border: 1px solid color-mix(in srgb, var(--vinho) 28%, transparent); }
+.selo--neutro   { color: var(--texto-suave); background: var(--marfim-200); }
+.selo--aviso    { color: var(--texto-suave); background: transparent; border: 1px dashed var(--marfim-300); }
+
+/* Um selo com duas linhas não pode ser pílula: vira retângulo arredondado. */
+.selo--bloco {
+  border-radius: var(--r-md);
+  text-align: left;
+  line-height: 1.4;
+  padding: 0.5em 0.85em;
+  max-width: 100%;
+}
+
+/* ============================================================
+   BARRA DE CREDIBILIDADE
+   Linha horizontal fina, três frases separadas por filete vertical.
+   ============================================================ */
+.barra-credibilidade {
+  border-block: 1px solid var(--hairline);
+  background: var(--marfim);
+}
+.barra-credibilidade__lista {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.barra-credibilidade__item {
+  position: relative;
+  padding: clamp(1.5rem, 3vw, 2.25rem) clamp(1rem, 2.5vw, 2.25rem);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-media);
+  color: var(--texto);
+  text-align: center;
+}
+.js .barra-credibilidade__item + .barra-credibilidade__item::before { transform: translateY(-50%) scaleY(0); }
+.js-sem-motion .barra-credibilidade__item + .barra-credibilidade__item::before { transform: translateY(-50%) scaleY(1); }
+
+.barra-credibilidade__item + .barra-credibilidade__item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) scaleY(1);
+  transform-origin: center;
+  width: 1px;
+  height: 54%;
+  background: var(--hairline);
+  transition: transform var(--dur-lenta) var(--ease-saida);
+}
+.barra-credibilidade[data-animada="true"] .barra-credibilidade__item + .barra-credibilidade__item::before {
+  transform: translateY(-50%) scaleY(1);
+}
+@media (max-width: 780px) {
+  .barra-credibilidade__lista { grid-template-columns: 1fr; }
+  .barra-credibilidade__item { padding-block: var(--sp-5); }
+  .barra-credibilidade__item + .barra-credibilidade__item::before {
+    left: 50%; top: 0;
+    width: 44%; height: 1px;
+    transform: translateX(-50%) scaleX(1);
+  }
+  .js .barra-credibilidade__item + .barra-credibilidade__item::before { transform: translateX(-50%) scaleX(0); }
+  .js-sem-motion .barra-credibilidade__item + .barra-credibilidade__item::before,
+  .barra-credibilidade[data-animada="true"] .barra-credibilidade__item + .barra-credibilidade__item::before {
+    transform: translateX(-50%) scaleX(1);
+  }
+  .barra-credibilidade[data-animada="true"] .barra-credibilidade__item + .barra-credibilidade__item::before {
+    transform: translateX(-50%) scaleX(1);
+  }
+}
+
+/* ============================================================
+   TRILHA / BIFURCAÇÃO
+   O motivo-assinatura: uma linha vinho que parte de um ponto
+   comum e se divide em dois caminhos.
+   ============================================================ */
+.bifurcacao { position: relative; }
+
+/* O ponto de partida comum: um nó e o tronco que desce até a divisão.
+   Fica fora do SVG porque o desenho estica na horizontal (preserveAspectRatio
+   "none") e um círculo viraria elipse. */
+.bifurcacao__origem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.js .bifurcacao__no { transform: scale(0); }
+.bifurcacao__no {
+  width: 11px;
+  height: 11px;
+  border-radius: var(--r-pill);
+  background: var(--marfim);
+  border: 1.5px solid var(--vinho);
+}
+.js-sem-motion .bifurcacao__no { transform: scale(1); }
+.js .bifurcacao__tronco { transform: scaleY(0); }
+.bifurcacao__tronco {
+  width: 1.5px;
+  height: clamp(28px, 4vw, 48px);
+  background: var(--vinho);
+  transform-origin: top;
+}
+.js-sem-motion .bifurcacao__tronco { transform: scaleY(1); }
+
+.secao--azul .bifurcacao__no     { background: var(--azul-tinta); border-color: var(--marfim); }
+.secao--azul .bifurcacao__tronco { background: var(--marfim); }
+
+.bifurcacao__desenho {
+  display: block;
+  width: 100%;
+  height: clamp(48px, 7vw, 96px);
+}
+.bifurcacao__desenho path {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.bifurcacao__ramo-a { stroke: var(--vinho); }
+.bifurcacao__ramo-b { stroke: var(--azul-tinta); }
+.secao--azul .bifurcacao__ramo-a { stroke: var(--vinho-300); }
+.secao--azul .bifurcacao__ramo-b { stroke: var(--marfim); }
+
+.bifurcacao__caminhos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+}
+@media (max-width: 820px) {
+  .bifurcacao__caminhos { grid-template-columns: 1fr; }
+  .bifurcacao__desenho { height: 44px; }
+}
+
+.caminho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: clamp(1.5rem, 2.8vw, 2.4rem);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--hairline-suave);
+  background: var(--marfim-050);
+  border-top: 3px solid var(--vinho);
+}
+.caminho--b { border-top-color: var(--azul-tinta); }
+.caminho__icone {
+  display: inline-flex;
+  width: 3.25rem;
+  height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-pill);
+  background: var(--vinho-100);
+  color: var(--vinho);
+}
+.caminho--b .caminho__icone { background: var(--azul-100); color: var(--azul-tinta); }
+.caminho__icone svg { width: 1.6rem; height: 1.6rem; }
+.caminho__titulo { font-size: var(--fs-h4); color: var(--vinho); }
+.caminho--b .caminho__titulo { color: var(--azul-tinta); }
+.caminho__texto { font-size: var(--fs-sm); color: var(--texto-suave); }
+
+/* Bifurcação forte — o tratamento mais pesado do site (L-1A Bloco 3) */
+.caminho--forte {
+  padding: clamp(1.85rem, 3.4vw, 3rem);
+  border-width: 1px;
+  border-top-width: 4px;
+  box-shadow: var(--sh-1);
+}
+.caminho--forte .caminho__titulo { font-size: var(--fs-h3); }
+.caminho--forte .caminho__texto  { font-size: var(--fs-body); color: var(--texto); }
+
+/* ============================================================
+   TIMELINE — 8 etapas ligadas por linha vinho contínua
+   ============================================================ */
+.timeline { position: relative; }
+
+.timeline__trilho {
+  position: absolute;
+  left: 1.375rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--hairline);
+  overflow: hidden;
+  border-radius: 2px;
+}
+.timeline__trilho-preenchido {
+  position: absolute;
+  inset: 0;
+  background: var(--vinho);
+  transform-origin: top;
+  border-radius: 2px;
+}
+.js .timeline__trilho-preenchido { transform: scaleY(0); }
+
+.timeline__lista { list-style: none; margin: 0; padding: 0; }
+
+.etapa {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  gap: clamp(1.25rem, 2.6vw, 2.25rem);
+  padding-bottom: clamp(2.25rem, 4.5vw, 3.75rem);
+}
+.etapa:last-child { padding-bottom: 0; }
+
+.etapa__marcador {
+  position: relative;
+  z-index: var(--z-conteudo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: var(--fs-sm);
+  font-weight: var(--peso-corpo);
+  font-variant-numeric: tabular-nums;
+  color: var(--texto-suave);
+  background: var(--marfim);
+  border: 2px solid var(--hairline);
+  border-radius: var(--r-pill);
+  transition: color var(--dur-media) var(--ease-suave),
+              background var(--dur-media) var(--ease-suave),
+              border-color var(--dur-media) var(--ease-suave),
+              transform var(--dur-media) var(--ease-saida);
+}
+.etapa[data-ativa="true"] .etapa__marcador {
+  color: var(--marfim);
+  background: var(--vinho);
+  border-color: var(--vinho);
+  transform: scale(1.06);
+}
+
+.etapa__corpo {
+  padding: clamp(1.25rem, 2.4vw, 2rem);
+  background: var(--marfim-050);
+  border: 1px solid var(--hairline-suave);
+  border-radius: var(--r-lg);
+  transition: box-shadow var(--dur-media) var(--ease-suave),
+              border-color var(--dur-media) var(--ease-suave);
+}
+.etapa[data-ativa="true"] .etapa__corpo {
+  border-color: color-mix(in srgb, var(--vinho) 20%, transparent);
+  box-shadow: var(--sh-1);
+}
+.etapa__rotulo {
+  display: block;
+  font-size: var(--fs-eyebrow);
+  font-weight: var(--peso-corpo);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  margin-bottom: var(--sp-2);
+}
+.etapa[data-ativa="true"] .etapa__rotulo { color: var(--vinho); }
+.etapa__titulo { font-size: var(--fs-h4); color: var(--vinho); margin-bottom: var(--sp-3); }
+.etapa__texto  { font-size: var(--fs-sm); color: var(--texto-suave); }
+
+/* Bifurcação da Etapa 7: aprovado / RFE */
+.etapa__ramificacoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: var(--sp-4);
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--hairline-suave);
+}
+
+.ramificacao {
+  position: relative;
+  padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-5);
+  border-radius: var(--r-md);
+  background: var(--marfim);
+  border-left: 3px solid var(--vinho);
+}
+.ramificacao--rfe { border-left-color: var(--azul-tinta); background: var(--azul-100); }
+.ramificacao__titulo {
+  font-size: var(--fs-sm);
+  font-weight: var(--peso-corpo);
+  color: var(--vinho);
+  margin-bottom: var(--sp-2);
+}
+.ramificacao--rfe .ramificacao__titulo { color: var(--azul-tinta); }
+.ramificacao__texto { font-size: var(--fs-sm); color: var(--texto-suave); line-height: var(--lh-media); }
+
+@media (max-width: 560px) {
+  .timeline__trilho { left: 1.125rem; }
+  .etapa { grid-template-columns: 2.25rem minmax(0, 1fr); gap: var(--sp-4); }
+  .etapa__marcador { width: 2.25rem; height: 2.25rem; font-size: var(--fs-xs); }
+}
+
+/* ============================================================
+   ACCORDION — mesmo componente no L-1A, no glossário e na FAQ
+   ============================================================ */
+.accordion { border-top: 1px solid var(--hairline); }
+
+.accordion__item { border-bottom: 1px solid var(--hairline); }
+
+.accordion__gatilho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  width: 100%;
+  padding: clamp(1.15rem, 2.2vw, 1.65rem) 0;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  font-size: var(--fs-h4);
+  font-weight: var(--peso-corpo);
+  line-height: var(--lh-titulo);
+  letter-spacing: var(--ls-titulo);
+  color: var(--vinho);
+  transition: color var(--dur-rapida) var(--ease-suave);
+}
+.accordion__gatilho:hover { color: var(--vinho-900); }
+
+.accordion__sinal {
+  position: relative;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.15em;
+  border-radius: var(--r-pill);
+  border: 1px solid color-mix(in srgb, var(--vinho) 26%, transparent);
+  transition: background var(--dur-media) var(--ease-suave),
+              border-color var(--dur-media) var(--ease-suave);
+}
+.accordion__sinal::before,
+.accordion__sinal::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  background: currentColor;
+  border-radius: 2px;
+  transform: translate(-50%, -50%);
+  transition: transform var(--dur-media) var(--ease-saida), opacity var(--dur-rapida) linear;
+}
+.accordion__sinal::before { width: 0.65rem; height: 1.5px; }
+.accordion__sinal::after  { width: 1.5px; height: 0.65rem; }
+.accordion__gatilho[aria-expanded="true"] .accordion__sinal {
+  background: var(--vinho);
+  border-color: var(--vinho);
+  color: var(--marfim);
+}
+.accordion__gatilho[aria-expanded="true"] .accordion__sinal::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+  opacity: 0;
+}
+
+.accordion__painel { overflow: hidden; height: 0; }
+.accordion__conteudo {
+  padding-bottom: clamp(1.25rem, 2.2vw, 1.75rem);
+  padding-right: clamp(0rem, 4vw, 3rem);
+  font-size: var(--fs-body);
+  line-height: var(--lh-corpo);
+  color: var(--texto-suave);
+  max-width: var(--medida);
+}
+.accordion__conteudo > * + * { margin-top: var(--sp-4); }
+
+/* Item de glossário com urgência real ("Por que isso importa mais em 2026") */
+.accordion__item--urgente {
+  background: var(--vinho-100);
+  border-left: 3px solid var(--vinho);
+  padding-inline: clamp(1rem, 2.2vw, 1.5rem);
+  margin-block: var(--sp-2);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+}
+.accordion__item--urgente .accordion__gatilho { color: var(--vinho); }
+.accordion__item--urgente .accordion__conteudo { color: var(--texto); }
+
+/* Accordion sobre fundo escuro */
+.secao--azul .accordion,
+.secao--azul .accordion__item { border-color: var(--hairline-inversa); }
+.secao--azul .accordion__gatilho { color: var(--marfim); }
+.secao--azul .accordion__conteudo { color: var(--texto-inverso-suave); }
+.secao--azul .accordion__sinal { border-color: var(--hairline-inversa); }
+.secao--azul .accordion__gatilho[aria-expanded="true"] .accordion__sinal {
+  background: var(--marfim); border-color: var(--marfim); color: var(--vinho);
+}
+
+/* Blocos temáticos da FAQ */
+.faq-bloco + .faq-bloco { margin-top: clamp(2.5rem, 5vw, 4.5rem); }
+.faq-bloco__titulo {
+  font-size: var(--fs-h3);
+  margin-bottom: var(--sp-5);
+  padding-bottom: var(--sp-4);
+}
+
+/* ============================================================
+   CARROSSEL — prova social na Home
+   ============================================================ */
+.carrossel { position: relative; }
+.carrossel__viewport {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+  padding-block: var(--sp-2) var(--sp-5);
+}
+.carrossel__viewport::-webkit-scrollbar { display: none; }
+
+.carrossel__trilho {
+  display: flex;
+  gap: var(--sp-5);
+  width: max-content;
+}
+.carrossel__slide {
+  scroll-snap-align: start;
+  width: clamp(240px, 30vw, 320px);
+  flex-shrink: 0;
+}
+
+.carrossel__controles {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+}
+.carrossel__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-pill);
+  color: var(--vinho);
+  cursor: pointer;
+  transition: background var(--dur-rapida) var(--ease-suave),
+              border-color var(--dur-rapida) var(--ease-suave),
+              opacity var(--dur-rapida) linear;
+}
+.carrossel__btn:hover:not([disabled]) { background: var(--vinho); color: var(--marfim); border-color: var(--vinho); }
+.carrossel__btn[disabled] { opacity: 0.3; cursor: default; }
+.carrossel__btn svg { width: 1.05rem; height: 1.05rem; }
+
+/* ============================================================
+   CARD DE PROVA SOCIAL / CASO
+   Só mídia + trecho curto. Sem explicar tipo de caso.
+   ============================================================ */
+.caso {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--marfim-050);
+  border: 1px solid var(--hairline-suave);
+  border-radius: var(--r-lg);
+  height: 100%;
+  transition: transform var(--dur-media) var(--ease-saida),
+              box-shadow var(--dur-media) var(--ease-suave);
+}
+.caso:hover { transform: translateY(-3px); box-shadow: var(--sh-2); }
+
+.caso__midia {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  background: var(--marfim-200);
+  overflow: hidden;
+}
+.caso__midia img, .caso__midia video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.caso__midia--video::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(29,46,64,0.34), transparent 46%);
+  pointer-events: none;
+}
+.caso__play {
+  position: absolute;
+  left: var(--sp-4);
+  bottom: var(--sp-4);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.4em 0.85em;
+  font-size: var(--fs-xs);
+  font-weight: var(--peso-corpo);
+  color: var(--marfim);
+  background: rgba(87, 6, 21, 0.82);
+  backdrop-filter: blur(4px);
+  border-radius: var(--r-pill);
+  z-index: 2;
+}
+.caso__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: clamp(1.1rem, 2vw, 1.5rem);
+  flex: 1;
+}
+.caso__feedback {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-media);
+  color: var(--texto);
+}
+.caso__autor {
+  font-size: var(--fs-xs);
+  font-weight: var(--peso-corpo);
+  letter-spacing: 0.02em;
+  color: var(--vinho);
+  margin-top: auto;
+}
+
+/* Grid do portfólio — arranjo livre, efeito de mural */
+.mural {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem);
+  align-items: start;
+}
+.mural .caso--alto  .caso__midia { aspect-ratio: 3 / 5; }
+.mural .caso--baixo .caso__midia { aspect-ratio: 1 / 1; }
+
+/* ============================================================
+   CITAÇÃO — a voz da Diana sem mostrar o rosto (página Sobre)
+   ============================================================ */
+.citacao {
+  position: relative;
+  max-width: 22ch;
+  margin: 0;
+}
+.citacao__texto {
+  font-family: var(--font-body);
+  font-size: var(--fs-h2);
+  font-weight: var(--peso-corpo);
+  line-height: 1.2;
+  letter-spacing: var(--ls-display);
+  color: var(--vinho);
+  text-wrap: balance;
+}
+.citacao--larga { max-width: 26ch; }
+.citacao--centro { margin-inline: auto; text-align: center; }
+.citacao__fonte {
+  display: block;
+  margin-top: var(--sp-5);
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-style: normal;
+  font-weight: var(--peso-corpo);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+.citacao::before {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 2px;
+  background: var(--vinho);
+  margin-bottom: var(--sp-5);
+}
+.citacao--centro::before { margin-inline: auto; }
+
+/* ============================================================
+   LINHA DO TEMPO HORIZONTAL — "26 anos" (página Sobre)
+   ============================================================ */
+.marco {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  padding-block: clamp(1.75rem, 3.5vw, 2.75rem);
+}
+.marco__linha {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  background: var(--hairline);
+  overflow: hidden;
+}
+.marco__linha-preenchida {
+  position: absolute;
+  inset: 0;
+  background: var(--vinho);
+  transform-origin: left;
+}
+.js .marco__linha-preenchida { transform: scaleX(0); }
+.marco__valor {
+  flex-shrink: 0;
+  font-family: var(--font-body);
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: var(--peso-fino);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--vinho);
+  font-variant-numeric: tabular-nums;
+}
+.marco__rotulo {
+  flex-shrink: 0;
+  font-size: var(--fs-eyebrow);
+  font-weight: var(--peso-corpo);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  max-width: 12ch;
+}
+
+/* ============================================================
+   TABELA / LISTA DE ESTIMATIVAS — discreta, por escolha
+   ============================================================ */
+.estimativas {
+  border-top: 1px solid var(--hairline-suave);
+  font-size: var(--fs-sm);
+}
+.estimativas__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--sp-5);
+  align-items: baseline;
+  padding-block: var(--sp-4);
+  border-bottom: 1px solid var(--hairline-suave);
+}
+.estimativas__fase  { color: var(--texto-suave); }
+.estimativas__prazo {
+  font-weight: var(--peso-corpo);
+  color: var(--vinho);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.estimativas__nota {
+  margin-top: var(--sp-4);
+  font-size: var(--fs-xs);
+  color: var(--texto-suave);
+}
+@media (max-width: 520px) {
+  .estimativas__item { grid-template-columns: 1fr; gap: var(--sp-1); }
+}
+
+/* ============================================================
+   NOTA / DISCLAIMER EM DESTAQUE
+   ============================================================ */
+.nota {
+  padding: var(--sp-5);
+  border-left: 3px solid var(--vinho);
+  background: var(--vinho-100);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-media);
+  color: var(--texto);
+}
+.nota strong { color: var(--vinho); }
+.nota--neutra { background: var(--marfim-200); border-left-color: var(--texto-suave); }
+.nota--azul   { background: var(--azul-100); border-left-color: var(--azul-tinta); }
+
+/* ============================================================
+   FORMULÁRIO
+   ============================================================ */
+.form { display: flex; flex-direction: column; gap: var(--sp-5); }
+
+.campo { display: flex; flex-direction: column; gap: var(--sp-2); }
+.campo__rotulo {
+  font-size: var(--fs-sm);
+  font-weight: var(--peso-corpo);
+  color: var(--texto);
+}
+.campo__rotulo .opcional {
+  font-weight: var(--peso-display);
+  color: var(--texto-suave);
+  font-size: var(--fs-xs);
+}
+
+.campo__controle {
+  width: 100%;
+  padding: 0.85em 1.05em;
+  font-size: var(--fs-body);
+  color: var(--texto);
+  background: var(--marfim-050);
+  border: 1px solid var(--marfim-300);
+  border-radius: var(--r-md);
+  transition: border-color var(--dur-rapida) var(--ease-suave),
+              box-shadow var(--dur-rapida) var(--ease-suave),
+              background var(--dur-rapida) var(--ease-suave);
+  appearance: none;
+}
+.campo__controle::placeholder { color: color-mix(in srgb, var(--texto-suave) 68%, transparent); }
+.campo__controle:hover { border-color: color-mix(in srgb, var(--vinho) 26%, var(--marfim-300)); }
+.campo__controle:focus {
+  outline: none;
+  background: var(--marfim-050);
+  border-color: var(--vinho);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--vinho) 14%, transparent);
+}
+textarea.campo__controle { min-height: 8rem; resize: vertical; line-height: var(--lh-media); }
+
+select.campo__controle {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%23570615' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1.05em center;
+  background-size: 0.75rem;
+  padding-right: 2.75em;
+  cursor: pointer;
+}
+
+.campo__erro {
+  display: none;
+  font-size: var(--fs-xs);
+  font-weight: var(--peso-corpo);
+  color: var(--vinho);
+}
+.campo[data-invalido="true"] .campo__controle {
+  border-color: var(--vinho);
+  background: color-mix(in srgb, var(--vinho) 4%, var(--marfim-050));
+}
+.campo[data-invalido="true"] .campo__erro { display: block; }
+
+.campo-duplo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-5);
+}
+@media (max-width: 620px) { .campo-duplo { grid-template-columns: 1fr; } }
+
+/* Grupo de rádio / escolha */
+.escolhas { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+.escolha { position: relative; }
+.escolha input {
+  position: absolute;
+  opacity: 0;
+  width: 100%; height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+.escolha span {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6em 1.25em;
+  font-size: var(--fs-sm);
+  font-weight: var(--peso-corpo);
+  color: var(--texto);
+  background: var(--marfim-050);
+  border: 1px solid var(--marfim-300);
+  border-radius: var(--r-pill);
+  transition: all var(--dur-rapida) var(--ease-suave);
+  cursor: pointer;
+}
+.escolha input:hover + span { border-color: color-mix(in srgb, var(--vinho) 34%, transparent); }
+.escolha input:checked + span {
+  color: var(--marfim);
+  background: var(--vinho);
+  border-color: var(--vinho);
+}
+.escolha input:focus-visible + span {
+  outline: var(--foco);
+  outline-offset: var(--foco-offset);
+}
+
+/* Disclaimer obrigatório perto do botão de envio */
+.form__disclaimer {
+  display: flex;
+  gap: var(--sp-4);
+  align-items: flex-start;
+  padding: var(--sp-5);
+  background: var(--vinho-100);
+  border: 1px solid color-mix(in srgb, var(--vinho) 18%, transparent);
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-media);
+  color: var(--texto);
+}
+.form__disclaimer svg { flex-shrink: 0; width: 1.25rem; height: 1.25rem; color: var(--vinho); margin-top: 0.1em; }
+.form__disclaimer strong { color: var(--vinho); font-weight: var(--peso-corpo); }
+
+/* Estados de envio */
+.form__estado {
+  display: none;
+  padding: var(--sp-5);
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-media);
+}
+.form__estado[data-visivel="true"] { display: block; }
+.form__estado--sucesso {
+  background: var(--azul-100);
+  border-left: 3px solid var(--azul-tinta);
+  color: var(--texto);
+}
+.form__estado--erro {
+  background: var(--vinho-100);
+  border-left: 3px solid var(--vinho);
+  color: var(--texto);
+}
+.form__estado strong { display: block; margin-bottom: var(--sp-2); color: var(--vinho); }
+.form__estado--sucesso strong { color: var(--azul-tinta); }
+
+.btn[data-carregando="true"] { pointer-events: none; opacity: 0.72; }
+.btn[data-carregando="true"] .btn__rotulo::after {
+  content: '';
+  display: inline-block;
+  width: 0.85em; height: 0.85em;
+  margin-left: 0.6em;
+  vertical-align: -0.08em;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: girar 620ms linear infinite;
+}
+@keyframes girar { to { transform: rotate(360deg); } }
+
+/* ============================================================
+   BLOG — cards de post
+   ============================================================ */
+.post-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: clamp(1.4rem, 2.5vw, 2rem);
+  height: 100%;
+  background: var(--marfim-050);
+  border: 1px solid var(--hairline-suave);
+  border-radius: var(--r-lg);
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--dur-media) var(--ease-saida),
+              box-shadow var(--dur-media) var(--ease-suave),
+              border-color var(--dur-media) var(--ease-suave);
+}
+.post-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sh-2);
+  border-color: color-mix(in srgb, var(--vinho) 18%, transparent);
+  color: inherit;
+}
+.post-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-xs);
+  color: var(--texto-suave);
+}
+.post-card__meta .selo { align-self: auto; }
+.post-card__titulo {
+  font-size: var(--fs-h4);
+  color: var(--vinho);
+  line-height: var(--lh-titulo);
+}
+.post-card__resumo {
+  font-size: var(--fs-sm);
+  color: var(--texto-suave);
+  line-height: var(--lh-corpo);
+}
+.post-card__rodape { margin-top: auto; padding-top: var(--sp-2); }
+
+/* Artigo do blog */
+.artigo { max-width: 720px; margin-inline: auto; }
+.artigo__cabecalho { margin-bottom: clamp(2rem, 4vw, 3.25rem); }
+.artigo__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-5);
+  font-size: var(--fs-xs);
+  color: var(--texto-suave);
+}
+.artigo__corpo > * + * { margin-top: var(--sp-5); }
+.artigo__corpo h2 { font-size: var(--fs-h3); margin-top: var(--sp-8); }
+.artigo__corpo h3 { font-size: var(--fs-h4); margin-top: var(--sp-7); }
+.artigo__corpo ul, .artigo__corpo ol { padding-left: 1.35em; }
+.artigo__corpo li + li { margin-top: var(--sp-3); }
+.artigo__corpo li::marker { color: var(--vinho); }
+.artigo__corpo blockquote {
+  margin: var(--sp-7) 0;
+  padding-left: var(--sp-5);
+  border-left: 3px solid var(--vinho);
+  font-size: var(--fs-lead);
+  color: var(--vinho);
+}
+
+/* Aviso de rascunho — visível para quem revisa, some ao publicar */
+.aviso-rascunho {
+  display: flex;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  margin-bottom: var(--sp-7);
+  background: var(--marfim-200);
+  border: 1px dashed var(--vinho);
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-media);
+  color: var(--texto);
+}
+.aviso-rascunho strong { display: block; color: var(--vinho); margin-bottom: var(--sp-1); }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  position: relative;
+  padding-block: clamp(4rem, 9vw, 8.5rem) clamp(3.5rem, 7vw, 6.5rem);
+  overflow: hidden;
+}
+/* 900px, não 62ch: "ch" resolve na fonte herdada (Sweet Sans), mas o
+   h1 renderiza em Roses Bolero — mais aberta por caractere — então um
+   container calculado pela métrica errada quebrava linha cedo demais
+   em todo hero do site. Valor fixo em px, testado e já usado na Home,
+   evita esse descompasso entre fontes e mantém a largura igual em
+   todas as páginas. */
+.hero__conteudo { position: relative; z-index: var(--z-conteudo); max-width: 900px; }
+.hero__titulo { margin-bottom: var(--sp-6); }
+.hero__texto {
+  font-size: var(--fs-lead);
+  line-height: var(--lh-media);
+  color: var(--texto-suave);
+  max-width: 58ch;
+  margin-bottom: var(--sp-7);
+}
+.hero--centro .hero__conteudo { max-width: 72ch; margin-inline: auto; text-align: center; }
+.hero--centro .hero__texto { margin-inline: auto; }
+.hero--centro .acoes { justify-content: center; }
+
+/* Hero interno, mais compacto */
+.hero--interno { padding-block: clamp(3rem, 6vw, 5.5rem) clamp(2.25rem, 4vw, 3.5rem); }
+
+/* ============================================================
+   MIGALHAS (breadcrumb)
+   ============================================================ */
+.migalhas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--sp-5);
+  font-size: var(--fs-xs);
+  color: var(--texto-suave);
+}
+.migalhas li { display: flex; align-items: center; gap: var(--sp-2); }
+.migalhas li + li::before { content: '/'; color: var(--marfim-300); }
+.migalhas a { color: var(--texto-suave); text-decoration: none; }
+.migalhas a:hover { color: var(--vinho); text-decoration: underline; }
+.migalhas [aria-current="page"] { color: var(--vinho); font-weight: var(--peso-corpo); }
+
+/* ============================================================
+   ESTADOS DE REVELAÇÃO (GSAP entrega o estado final)
+   ============================================================ */
+.js [data-revelar] { opacity: 0; }
+.js-sem-motion [data-revelar] { opacity: 1 !important; transform: none !important; }
+
+/* ============================================================
+   LISTA DE CHECKS
+   ============================================================ */
+.checks { list-style: none; padding: 0; margin: 0; }
+.checks li {
+  position: relative;
+  padding-left: 1.85em;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-media);
+  color: var(--texto-suave);
+}
+.checks li + li { margin-top: var(--sp-3); }
+.checks li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.42em;
+  width: 0.7em;
+  height: 0.38em;
+  border-left: 1.5px solid var(--vinho);
+  border-bottom: 1.5px solid var(--vinho);
+  transform: rotate(-45deg);
+}
+.card--destaque .checks li { color: var(--texto-inverso-suave); }
+.card--destaque .checks li::before { border-color: var(--marfim); }
+
+/* ============================================================
+   PLACEHOLDER DE MÍDIA
+   Enquanto o banco de fotos e vídeos não chega, o card mostra o
+   monograma e um rótulo honesto — em vez de uma imagem falsa.
+   ============================================================ */
+.midia-pendente {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 50% 42%, var(--marfim-050) 0%, var(--marfim-200) 72%);
+  color: var(--vinho);
+  overflow: hidden;
+}
+.midia-pendente::before {
+  content: '';
+  position: absolute;
+  width: 58%;
+  aspect-ratio: 2.1628;
+  background: currentColor;
+  opacity: 0.10;
+  -webkit-mask: url('../img/logo-monograma.svg') center / contain no-repeat;
+  mask: url('../img/logo-monograma.svg') center / contain no-repeat;
+}
+.midia-pendente__rotulo {
+  position: relative;
+  z-index: 1;
+  padding: 0.4em 0.9em;
+  font-size: var(--fs-xs);
+  font-weight: var(--peso-corpo);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  background: color-mix(in srgb, var(--marfim) 82%, transparent);
+  border: 1px dashed var(--marfim-300);
+  border-radius: var(--r-pill);
+}

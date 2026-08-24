@@ -1,0 +1,23 @@
+/* ============================================================
+   SOS DIREITO — Sobre
+   A página se organiza em torno da voz da Diana, não da imagem:
+   sem retrato, por decisão de marca.
+   ============================================================ */
+
+/* Na coluna de apoio a citação fica estreita e alta demais no tamanho
+   de H2. Um corpo menor devolve a proporção sem perder a presença. */
+.citacao--larga .citacao__texto {
+  font-size: clamp(1.5rem, 1.15rem + 1.5vw, 2.1rem);
+  line-height: 1.24;
+}
+
+/* A assinatura da citação não precisa quebrar em duas linhas. */
+.citacao__fonte { max-width: none; }
+
+/* O rótulo da direita não precisa quebrar em três linhas. */
+.marco__rotulo { max-width: 16ch; }
+
+@media (max-width: 760px) {
+  .marco { flex-wrap: wrap; }
+  .marco__linha { min-width: 100%; order: 3; }
+}
