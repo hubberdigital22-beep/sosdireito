@@ -113,7 +113,6 @@
 
   /* ========== Layout ========== */
   --container:        1200px;
-  --container-largo:  1360px;
   --container-texto:  none;
   --medida:           68ch;   /* medida de leitura confortável */
   --gutter:           clamp(1.25rem, 4.5vw, 3.5rem);

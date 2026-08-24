@@ -10,6 +10,12 @@ html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
   scroll-padding-top: 6rem;
+  /* As entradas animadas nascem deslocadas (a timeline entra de x: 24).
+     Em tela estreita esse deslocamento passa da borda e vira rolagem
+     lateral. `clip` corta sem criar contexto de rolagem — `hidden` aqui
+     quebraria o cabeçalho sticky, e no body ele apenas propaga para a
+     viewport, sem cortar nada. */
+  overflow-x: clip;
 }
 
 body {

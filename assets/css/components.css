@@ -139,8 +139,6 @@
   box-shadow: 0 1px 20px rgba(29, 46, 64, 0.05);
 }
 
-.cabecalho .container { max-width: var(--container-largo); }
-
 .cabecalho__inner {
   display: flex;
   align-items: center;
