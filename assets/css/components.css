@@ -140,11 +140,14 @@
 }
 
 .cabecalho__inner {
+  /* Uma fonte só para a altura da faixa: o recuo do menu em tela cheia
+     é calculado a partir dela, então as duas nunca saem de sincronia. */
+  --altura-cabecalho: 5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-5);
-  min-height: 5rem;
+  min-height: var(--altura-cabecalho);
 }
 
 .logo {
@@ -295,25 +298,60 @@
   .nav-toggle { display: inline-flex; }
   .nav { display: none; }
 
+  /* No mobile a marca fica centrada e o botão sai do fluxo, encostado na
+     margem do conteúdo. Sem isso o space-between empurraria o logo para a
+     esquerda. */
+  .cabecalho__inner { position: relative; justify-content: center; }
+  /* right recebe o gutter: em absoluto o 0 cairia na borda da tela, e não
+     na margem do conteúdo onde o resto do site começa.
+     O z-index acima do menu é o que mantém o botão clicável: o overlay é
+     descendente do cabeçalho, então subir o z-index da faixa não bastaria
+     — dentro daquele contexto o menu ainda cobriria o botão. */
+  .nav-toggle {
+    position: absolute;
+    right: var(--gutter);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: calc(var(--z-menu) + 1);
+  }
+  /* A marca acompanha, para seguir visível sobre o menu aberto. */
+  .cabecalho .logo { position: relative; z-index: calc(var(--z-menu) + 1); }
+
+  /* Menu em tela cheia. O conteúdo começa abaixo da faixa do cabeçalho,
+     que sobe acima do overlay enquanto o menu está aberto — é o que
+     mantém o logo e o X visíveis e clicáveis para fechar. */
   .nav[data-menu-movel] {
     position: fixed;
-    inset: 5rem 0 0 0;
+    inset: 0;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
     justify-content: flex-start;
     gap: 0;
-    padding: var(--sp-6) var(--gutter) var(--sp-9);
+    padding: calc(var(--altura-cabecalho) + var(--sp-6)) var(--gutter) var(--sp-9);
     background: var(--marfim);
-    border-top: 1px solid var(--hairline);
     overflow-y: auto;
     z-index: var(--z-menu);
   }
+  /* O backdrop-filter do cabeçalho cria bloco de contenção para filhos
+     position: fixed — com ele ligado, o menu se posicionava em relação à
+     faixa e não à viewport, e nunca chegava à tela cheia. Aberto o menu, o
+     cabeçalho fica sólido de qualquer forma, então o filtro sai. */
+  body[data-menu-aberto="true"] .cabecalho {
+    z-index: calc(var(--z-menu) + 1);
+    background: var(--marfim);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  /* margin auto no lugar de justify-content: center — centraliza quando
+     sobra espaço e, quando não sobra, deixa rolar sem cortar o topo. */
   .nav[data-menu-movel] .nav__lista {
     flex-direction: column;
     align-items: stretch;
     gap: 0;
     width: 100%;
+    margin-top: auto;
+    text-align: center;
   }
   .nav[data-menu-movel] .nav__item { border-bottom: 1px solid var(--hairline-suave); }
   .nav[data-menu-movel] .nav__link {
@@ -328,15 +366,16 @@
     margin-block: var(--sp-3);
     padding: 0.6rem 1.2rem;
   }
-  .nav[data-menu-movel] .nav__cta { margin-top: var(--sp-6); }
+  .nav[data-menu-movel] .nav__cta { margin-top: var(--sp-6); margin-bottom: auto; width: 100%; }
   .nav[data-menu-movel] .nav__cta .btn { width: 100%; white-space: normal; }
   body[data-menu-aberto="true"] { overflow: hidden; }
 }
 
 @media (max-width: 420px) {
   .logo__marca { height: 1.9rem; }
-  .cabecalho__inner { min-height: 4.5rem; }
-  .nav[data-menu-movel] { inset-block-start: 4.5rem; }
+  /* A faixa encolhe e o recuo do menu acompanha sozinho pela variável.
+     O menu segue em tela cheia — nada de deslocar o topo dele aqui. */
+  .cabecalho__inner { --altura-cabecalho: 4.5rem; }
 }
 
 /* ============================================================
