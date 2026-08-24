@@ -116,25 +116,70 @@
      Qualquer elemento com [data-revelar] entra sozinho.
      data-revelar="grupo" agrupa filhos em stagger. */
   function iniciarReveals() {
+    var dobra = window.innerHeight;
+
     gsap.utils.toArray('[data-revelar]').forEach(function (el) {
       var modo = el.getAttribute('data-revelar');
       var atraso = parseFloat(el.getAttribute('data-revelar-delay')) || 0;
+
+      /* Quem nasce dentro da primeira dobra entra sozinho, sem gatilho de
+         rolagem. O gatilho padrão ('top 84%') só dispara quando o topo do
+         elemento sobe até 84% da tela: num hero de altura cheia os CTAs
+         nascem abaixo dessa linha e ficavam invisíveis até a página rolar
+         — numa seção feita justamente para não precisar de rolagem. */
+      var imediato = el.getBoundingClientRect().top < dobra;
 
       if (modo === 'grupo') {
         var filhos = Array.prototype.slice.call(el.children);
         if (!filhos.length) return;
         gsap.set(el, { opacity: 1 });
-        M.revelar(filhos, { trigger: el, delay: atraso });
+        M.revelar(filhos, { trigger: el, delay: atraso, imediato: imediato });
       } else {
-        M.revelar([el], { trigger: el, stagger: 0, delay: atraso });
+        M.revelar([el], { trigger: el, stagger: 0, delay: atraso, imediato: imediato });
       }
     });
   }
 
-  /* As fontes mudam a altura do texto; recalcular evita gatilhos errados. */
+  /* ---- Rede de segurança dos gatilhos ----
+     Cada bloco animado espera o seu gatilho de rolagem, e cada gatilho tem
+     a sua linha: 'top 92%' na barra de credibilidade, 'top 82%' no corpo
+     das etapas, 'top 62%' no marcador da timeline, e assim por diante. O
+     que nasce dentro da tela mas abaixo da própria linha nunca dispara sem
+     uma rolagem — e até lá o leitor vê um vão em branco no lugar do texto.
+
+     Esta varredura libera na hora todo gatilho que já está visível e ainda
+     não entrou, venha ele de qual componente for. Fica de fora quem usa
+     scrub: esse segue a rolagem por definição, não tem entrada a forçar. */
+  function destravarVisiveis() {
+    var dobra = window.innerHeight;
+
+    ScrollTrigger.getAll().forEach(function (st) {
+      if (!st.trigger || st.vars.scrub || st.progress > 0) return;
+      if (st.trigger.getBoundingClientRect().top >= dobra) return;
+
+      var anim = st.animation;
+      var aoEntrar = st.vars.onEnter;
+
+      /* Com animação: solta o gatilho (preservando o tween) e roda a
+         entrada normalmente, na velocidade de sempre. Sem animação — os
+         gatilhos que só marcam estado — chama o onEnter e mantém o gatilho
+         vivo, porque ele ainda precisa responder ao onLeaveBack. */
+      if (anim) {
+        st.kill(false, true);
+        anim.play();
+      }
+      if (typeof aoEntrar === 'function') aoEntrar(st);
+    });
+  }
+
+  /* As fontes mudam a altura do texto; recalcular evita gatilhos errados.
+     A varredura vem depois do refresh, com a página já no tamanho final. */
   function aoCarregarFontes() {
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
+      document.fonts.ready.then(function () {
+        ScrollTrigger.refresh();
+        destravarVisiveis();
+      });
     }
   }
 
@@ -148,5 +193,13 @@
     aoCarregarFontes();
   }
 
-  window.addEventListener('load', function () { ScrollTrigger.refresh(); });
+  /* No load todos os componentes já criaram os seus gatilhos: é o momento
+     em que a varredura alcança o site inteiro. Repeti-la a cada refresh
+     cobre também redimensionamento e virada de orientação. */
+  window.addEventListener('load', function () {
+    ScrollTrigger.refresh();
+    destravarVisiveis();
+  });
+
+  ScrollTrigger.addEventListener('refresh', destravarVisiveis);
 })();

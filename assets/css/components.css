@@ -515,7 +515,7 @@
   border: 1px solid var(--hairline-suave);
 }
 .faixa--marfim h2, .faixa--marfim h3 { color: var(--vinho); }
-.faixa--marfim .eyebrow { color: var(--vinho); }
+.faixa--marfim .eyebrow { color: var(--azul-tinta); }
 .faixa--marfim p  { color: var(--texto-suave); }
 
 /* Empilhada: só texto corrido (eyebrow + parágrafos), sem a segunda

@@ -166,7 +166,7 @@ a:hover { color: var(--vinho-900); text-decoration-color: currentColor; }
   font-weight: var(--peso-corpo);
   letter-spacing: var(--ls-eyebrow);
   text-transform: uppercase;
-  color: var(--vinho);
+  color: var(--azul-tinta);
   margin-bottom: var(--sp-4);
 }
 .secao--azul .eyebrow,
