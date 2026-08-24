@@ -99,7 +99,11 @@
   opacity: 0;
 }
 
-.js .hero__rolar { opacity: 0; transition: opacity 0.5s var(--ease-suave); }
+/* Sem transition de opacidade aqui: quem anima essa propriedade é o tween
+   do GSAP (ver decor.js). Com as duas ativas, cada valor que o tween
+   escreve disparava uma transição CSS por cima, e o resultado era um fade
+   arrastado em vez de suave. */
+.js .hero__rolar { opacity: 0; }
 .js-sem-motion .hero__rolar { opacity: 1; }
 .hero__rolar:hover .hero__rolar-traco { background: color-mix(in srgb, var(--vinho) 40%, var(--hairline)); }
 

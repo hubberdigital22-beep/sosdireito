@@ -21,7 +21,9 @@
 
   gsap.registerPlugin(ScrollTrigger);
 
-  gsap.defaults({ ease: 'power3.out', duration: 0.9 });
+  /* power2.out desacelera de forma mais longa e macia que power3.out, que
+     chega rápido demais e parece parar de repente. */
+  gsap.defaults({ ease: 'power2.out', duration: 1 });
 
   var M = {
     ativo: true,
@@ -34,11 +36,11 @@
       opcoes = opcoes || {};
 
       return gsap.fromTo(els,
-        { opacity: 0, y: opcoes.y != null ? opcoes.y : 22 },
+        { opacity: 0, y: opcoes.y != null ? opcoes.y : 18 },
         {
           opacity: 1,
           y: 0,
-          duration: opcoes.duration || 0.9,
+          duration: opcoes.duration || 1,
           stagger: opcoes.stagger != null ? opcoes.stagger : 0.09,
           delay: opcoes.delay || 0,
           scrollTrigger: opcoes.imediato ? undefined : {

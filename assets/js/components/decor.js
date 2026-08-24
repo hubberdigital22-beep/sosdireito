@@ -54,10 +54,13 @@
       tl.to(monograma, { opacity: 1, scale: 1, duration: 1.05, ease: 'power2.out' }, 0);
     }
 
+    /* Cada frase entra antes de a anterior terminar: é a sobreposição que
+       faz a leitura correr sem degraus. Duração longa com power2.out para
+       a chegada ser macia em vez de estalada. */
     if (frases.length) {
       tl.fromTo(frases,
-        { opacity: 0, y: '0.4em' },
-        { opacity: 1, y: '0em', duration: 0.65, ease: 'power3.out', stagger: 0.17 },
+        { opacity: 0, y: '0.35em' },
+        { opacity: 1, y: '0em', duration: 0.95, ease: 'power2.out', stagger: 0.14 },
         0.1
       );
     }
@@ -68,8 +71,8 @@
        site); [data-pronto] só liga as pseudo-elementos do traço, que
        o GSAP não alcança. */
     if (rolar) {
-      tl.to(rolar, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 2.6);
-      tl.call(function () { rolar.setAttribute('data-pronto', 'true'); }, null, 2.6);
+      tl.to(rolar, { opacity: 1, duration: 0.6, ease: 'power2.out' }, 1.5);
+      tl.call(function () { rolar.setAttribute('data-pronto', 'true'); }, null, 1.5);
     }
   });
 

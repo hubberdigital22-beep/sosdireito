@@ -107,9 +107,13 @@
   --sp-5:  1.5rem;   --sp-6: 2rem;     --sp-7: 2.5rem;   --sp-8: 3rem;
   --sp-9:  4rem;     --sp-10: 5rem;    --sp-11: 6.5rem;  --sp-12: 8rem;
 
-  --sp-secao:       clamp(4rem, 8.5vw, 8.75rem);
-  --sp-secao-densa: clamp(3rem, 5.5vw, 5.5rem);
-  --sp-secao-ampla: clamp(5.5rem, 11vw, 11rem);
+  /* Respiro vertical das seções, reduzido a dois terços do valor original.
+     Os três acompanham a mesma proporção para o ritmo da página seguir
+     coerente: entre duas seções o vão passa de 228px para 152px em tela
+     larga. */
+  --sp-secao:       clamp(2.65rem, 5.65vw, 5.85rem);
+  --sp-secao-densa: clamp(2rem, 3.65vw, 3.65rem);
+  --sp-secao-ampla: clamp(3.65rem, 7.35vw, 7.35rem);
 
   /* ========== Layout ========== */
   --container:        1320px;
