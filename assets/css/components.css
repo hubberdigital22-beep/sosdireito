@@ -298,23 +298,12 @@
   .nav-toggle { display: inline-flex; }
   .nav { display: none; }
 
-  /* No mobile a marca fica centrada e o botão sai do fluxo, encostado na
-     margem do conteúdo. Sem isso o space-between empurraria o logo para a
-     esquerda. */
-  .cabecalho__inner { position: relative; justify-content: center; }
-  /* right recebe o gutter: em absoluto o 0 cairia na borda da tela, e não
-     na margem do conteúdo onde o resto do site começa.
-     O z-index acima do menu é o que mantém o botão clicável: o overlay é
-     descendente do cabeçalho, então subir o z-index da faixa não bastaria
-     — dentro daquele contexto o menu ainda cobriria o botão. */
-  .nav-toggle {
-    position: absolute;
-    right: var(--gutter);
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: calc(var(--z-menu) + 1);
-  }
-  /* A marca acompanha, para seguir visível sobre o menu aberto. */
+  /* O cabeçalho fica como no desktop: logo à esquerda, botão à direita.
+     O z-index acima do menu é o que mantém os dois visíveis e clicáveis
+     com o menu aberto — o overlay é descendente do cabeçalho, então subir
+     o z-index da faixa não bastaria: dentro daquele contexto de
+     empilhamento o menu ainda cobriria ambos. */
+  .nav-toggle { position: relative; z-index: calc(var(--z-menu) + 1); }
   .cabecalho .logo { position: relative; z-index: calc(var(--z-menu) + 1); }
 
   /* Menu em tela cheia. O conteúdo começa abaixo da faixa do cabeçalho,
@@ -325,7 +314,7 @@
     inset: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     justify-content: flex-start;
     gap: 0;
     padding: calc(var(--altura-cabecalho) + var(--sp-6)) var(--gutter) var(--sp-9);
@@ -351,7 +340,6 @@
     gap: 0;
     width: 100%;
     margin-top: auto;
-    text-align: center;
   }
   .nav[data-menu-movel] .nav__item { border-bottom: 1px solid var(--hairline-suave); }
   .nav[data-menu-movel] .nav__link {
@@ -396,7 +384,6 @@
   padding-bottom: var(--sp-8);
   border-bottom: 1px solid var(--hairline-inversa);
 }
-@media (max-width: 900px) { .rodape__topo { grid-template-columns: 1fr; } }
 
 .rodape__marca p {
   margin-top: var(--sp-4);
@@ -443,6 +430,20 @@
   max-width: 62ch;
 }
 .rodape__copy { font-size: var(--fs-xs); color: var(--texto-inverso-suave); }
+
+/* Empilhado, o rodapé fica centrado — em coluna única o alinhamento à
+   esquerda deixa cada bloco solto na largura. Os blocos com max-width
+   precisam de margin-inline: auto junto: sem isso o texto centraliza
+   dentro de uma caixa que continua encostada à esquerda.
+   Este bloco fica DEPOIS das regras do rodapé de propósito: mesma
+   especificidade, então quem vem por último é que vale. */
+@media (max-width: 900px) {
+  .rodape__topo { grid-template-columns: 1fr; text-align: center; }
+  .rodape__marca p { margin-inline: auto; }
+  .sociais { justify-content: center; }
+  .rodape__base { justify-content: center; text-align: center; }
+  .rodape__disclaimer { margin-inline: auto; }
+}
 
 /* Ícones sociais: lineares, na cor do site, nunca nas cores das marcas */
 .sociais { display: flex; gap: var(--sp-3); list-style: none; padding: 0; margin: 0; }
@@ -1162,6 +1163,9 @@
 /* ============================================================
    LINHA DO TEMPO HORIZONTAL — "26 anos" (página Sobre)
    ============================================================ */
+/* Três itens na horizontal: o bloco do número, o traço no meio e o rótulo
+   da direita. O número e "anos de estrada" formam um bloco só, empilhado —
+   soltos, viravam dois itens da linha e o traço perdia o centro. */
 .marco {
   position: relative;
   display: flex;
@@ -1169,6 +1173,14 @@
   gap: var(--sp-5);
   padding-block: clamp(1.75rem, 3.5vw, 2.75rem);
 }
+.marco__bloco {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+.marco__rotulo--fim { text-align: right; }
 .marco__linha {
   position: relative;
   flex: 1;
