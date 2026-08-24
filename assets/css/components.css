@@ -1463,7 +1463,7 @@ select.campo__controle {
    ficaria parado no meio da área maior, sem ganhar o espaço. O parágrafo
    continua preso à própria medida de leitura (58ch), então quem cresce
    de fato é o título. */
-.hero__conteudo { position: relative; z-index: var(--z-conteudo); max-width: 1080px; }
+.hero__conteudo { position: relative; z-index: var(--z-conteudo); max-width: 1000px; }
 .hero__titulo { margin-bottom: var(--sp-6); }
 .hero__texto {
   font-size: var(--fs-lead);

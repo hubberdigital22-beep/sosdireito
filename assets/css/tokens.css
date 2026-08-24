@@ -112,7 +112,7 @@
   --sp-secao-ampla: clamp(5.5rem, 11vw, 11rem);
 
   /* ========== Layout ========== */
-  --container:        1440px;
+  --container:        1320px;
   --container-texto:  none;
   --medida:           68ch;   /* medida de leitura confortável */
   --gutter:           clamp(1.25rem, 4.5vw, 3.5rem);
