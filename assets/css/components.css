@@ -720,10 +720,6 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(1.5rem, 4vw, 3.5rem);
 }
-@media (max-width: 820px) {
-  .bifurcacao__caminhos { grid-template-columns: 1fr; }
-  .bifurcacao__desenho { height: 44px; }
-}
 
 .caminho {
   display: flex;
@@ -752,6 +748,7 @@
 .caminho--b .caminho__titulo { color: var(--azul-tinta); }
 .caminho__texto { font-size: var(--fs-sm); color: var(--texto-suave); }
 
+
 /* Bifurcação forte — o tratamento mais pesado do site (L-1A Bloco 3) */
 .caminho--forte {
   padding: clamp(1.85rem, 3.4vw, 3rem);
@@ -761,6 +758,59 @@
 }
 .caminho--forte .caminho__titulo { font-size: var(--fs-h3); }
 .caminho--forte .caminho__texto  { font-size: var(--fs-body); color: var(--texto); }
+
+/* Empilhados, os dois caminhos não cabem numa bifurcação horizontal: o
+   desenho que abre para os lados termina acima do primeiro card e deixa o
+   segundo sem ligação nenhuma. No lugar dele entra um trilho vertical à
+   esquerda, com um gancho lateral ligando cada card ao seu ramo — e o
+   acento de cor do card muda do topo para a lateral, que é onde a ligação
+   chega. O trilho termina rente à base do último card. */
+@media (max-width: 820px) {
+  .bifurcacao__caminhos {
+    position: relative;
+    grid-template-columns: 1fr;
+    padding-left: 26px;
+  }
+  .bifurcacao__desenho { display: none; }
+
+  /* O nó e o tronco descem na mesma vertical do trilho. */
+  .bifurcacao__origem { width: 20px; }
+  .bifurcacao__caminhos::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 1.5px;
+    transform: translateX(-50%);
+    background: var(--vinho);
+  }
+
+  .caminho {
+    position: relative;
+    border-top: 1px solid var(--hairline-suave);
+    border-left: 3px solid var(--vinho);
+  }
+  .caminho--b { border-left-color: var(--azul-tinta); }
+  /* A variante forte redefine border-width por inteiro; aqui o acento
+     precisa ser reafirmado na lateral. */
+  .caminho--forte { border-top-width: 1px; border-left-width: 3px; }
+
+  /* O gancho sai do trilho e encosta na borda lateral do card. */
+  .caminho::before {
+    content: '';
+    position: absolute;
+    left: -19px;
+    top: 2rem;
+    width: 19px;
+    height: 1.5px;
+    background: var(--vinho);
+  }
+  .caminho--b::before { background: var(--azul-tinta); }
+
+  .secao--azul .bifurcacao__caminhos::before,
+  .secao--vinho .bifurcacao__caminhos::before { background: var(--marfim); }
+}
 
 /* ============================================================
    TIMELINE — 8 etapas ligadas por linha vinho contínua
