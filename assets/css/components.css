@@ -186,11 +186,12 @@
 .secao--azul .logo, .secao--vinho .logo, .rodape .logo { color: var(--marfim); }
 
 /* --- Navegação principal --- */
-/* O menu divide a mesma largura de 1200px que o corpo do site, para que
-   logo e CTA nasçam exatamente nas margens do conteúdo. São 8 itens mais
-   o botão dentro de 955px úteis, então a escala aqui é mais compacta que
-   a do corpo — é o que mantém as laterais simétricas sem virar duas
-   linhas. Ao mexer nestes valores, conferir a soma em 1280px. */
+/* O menu divide a mesma largura que o corpo do site, para que logo e CTA
+   nasçam exatamente nas margens do conteúdo. A escala aqui é mais
+   compacta que a do corpo porque o aperto não é na tela larga e sim em
+   1280px, onde o container ainda é limitado pela janela e sobram ~1020px
+   para 8 itens mais o botão. Ao mexer nestes valores, conferir a soma
+   nessa largura, não na maior. */
 .nav { display: flex; align-items: center; gap: clamp(0.4rem, 1vw, 0.9rem); }
 .nav__cta { flex-shrink: 0; }
 .nav__cta .btn { font-size: 0.8125rem; padding: 0.85em 1.4em; white-space: nowrap; }
@@ -1458,7 +1459,11 @@ select.campo__controle {
    em todo hero do site. Valor fixo em px, testado e já usado na Home,
    evita esse descompasso entre fontes e mantém a largura igual em
    todas as páginas. */
-.hero__conteudo { position: relative; z-index: var(--z-conteudo); max-width: 900px; }
+/* Acompanha a largura do container: com 900px fixos o bloco do hero
+   ficaria parado no meio da área maior, sem ganhar o espaço. O parágrafo
+   continua preso à própria medida de leitura (58ch), então quem cresce
+   de fato é o título. */
+.hero__conteudo { position: relative; z-index: var(--z-conteudo); max-width: 1080px; }
 .hero__titulo { margin-bottom: var(--sp-6); }
 .hero__texto {
   font-size: var(--fs-lead);

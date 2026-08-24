@@ -6,7 +6,7 @@
    Duas larguras para o site inteiro, sem exceção — cabeçalho incluso,
    para que a margem de toda seção fique sempre na mesma linha do menu:
 
-   .container            1200px — padrão. Cabeçalho, heróis, CTAs,
+   .container            1440px — padrão. Cabeçalho, heróis, CTAs,
                           grids, blog, contato, calculadora. É o que
                           quase toda seção do site usa.
    .container--estreito   860px — texto corrido e accordions (FAQ,
