@@ -21,7 +21,7 @@ PAGES = os.path.join(RAIZ, '_dev', 'pages')
 NAV = {
     'home': 'A_HOME', 'sobre': 'A_SOBRE', 'vistos': 'A_VISTOS', 'l1a': 'A_L1A',
     'como': 'A_COMO', 'casos': 'A_CASOS', 'faq': 'A_FAQ', 'blog': 'A_BLOG',
-    'contato': 'A_CONTATO',
+    'contato': 'A_CONTATO', 'calculadora': 'A_CALC',
 }
 
 
