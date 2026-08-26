@@ -81,7 +81,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--vinho);
+  background: var(--principal);
   transform: scaleY(0);
   transform-origin: top;
   transition: transform 0.7s var(--ease-saida);
@@ -95,7 +95,7 @@
   height: 5px;
   margin-left: -2px;
   border-radius: 50%;
-  background: var(--vinho);
+  background: var(--principal);
   opacity: 0;
 }
 
@@ -105,7 +105,7 @@
    arrastado em vez de suave. */
 .js .hero__rolar { opacity: 0; }
 .js-sem-motion .hero__rolar { opacity: 1; }
-.hero__rolar:hover .hero__rolar-traco { background: color-mix(in srgb, var(--vinho) 40%, var(--hairline)); }
+.hero__rolar:hover .hero__rolar-traco { background: color-mix(in srgb, var(--principal) 40%, var(--hairline)); }
 
 /* O JS marca [data-pronto] só depois que título, texto e CTAs pousaram.
    A opacidade do próprio link é tween do GSAP (ver decor.js) — só as

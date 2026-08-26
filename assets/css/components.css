@@ -6,9 +6,9 @@
    BOTÕES
    ============================================================ */
 .btn {
-  --btn-bg: var(--vinho);
+  --btn-bg: var(--principal);
   --btn-fg: var(--marfim);
-  --btn-borda: var(--vinho);
+  --btn-borda: var(--principal);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -33,8 +33,8 @@
               box-shadow var(--dur-media) var(--ease-suave);
 }
 .btn:hover {
-  --btn-bg: var(--vinho-900);
-  --btn-borda: var(--vinho-900);
+  --btn-bg: var(--principal-900);
+  --btn-borda: var(--principal-900);
   color: var(--btn-fg);
   transform: translateY(-2px);
   box-shadow: var(--sh-2);
@@ -47,33 +47,33 @@
 
 .btn--secundario {
   --btn-bg: transparent;
-  --btn-fg: var(--vinho);
-  --btn-borda: color-mix(in srgb, var(--vinho) 34%, transparent);
+  --btn-fg: var(--principal);
+  --btn-borda: color-mix(in srgb, var(--principal) 34%, transparent);
 }
 .btn--secundario:hover {
-  --btn-bg: var(--vinho);
+  --btn-bg: var(--principal);
   --btn-fg: var(--marfim);
-  --btn-borda: var(--vinho);
+  --btn-borda: var(--principal);
 }
 
 /* Variantes para uso sobre fundo escuro */
-.secao--azul .btn--secundario,
-.secao--vinho .btn--secundario,
+.secao--apoio .btn--secundario,
+.secao--principal .btn--secundario,
 .btn--claro {
   --btn-bg: transparent;
   --btn-fg: var(--marfim);
   --btn-borda: var(--hairline-inversa);
 }
-.secao--azul .btn--secundario:hover,
-.secao--vinho .btn--secundario:hover,
+.secao--apoio .btn--secundario:hover,
+.secao--principal .btn--secundario:hover,
 .btn--claro:hover {
   --btn-bg: var(--marfim);
-  --btn-fg: var(--vinho);
+  --btn-fg: var(--principal);
   --btn-borda: var(--marfim);
 }
-.secao--azul .btn:not(.btn--secundario):not(.btn--claro):hover {
-  --btn-bg: var(--vinho-700);
-  --btn-borda: var(--vinho-700);
+.secao--apoio .btn:not(.btn--secundario):not(.btn--claro):hover {
+  --btn-bg: var(--principal-700);
+  --btn-borda: var(--principal-700);
 }
 
 .btn--grande { padding: 1.1em 2.4em; font-size: var(--fs-body); }
@@ -86,9 +86,9 @@
   gap: 0.55em;
   font-size: var(--fs-sm);
   font-weight: var(--peso-corpo);
-  color: var(--vinho);
+  color: var(--principal);
   text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--vinho) 26%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--principal) 26%, transparent);
   padding-bottom: 0.22em;
   transition: gap var(--dur-media) var(--ease-saida),
               border-color var(--dur-media) var(--ease-suave);
@@ -107,7 +107,7 @@
 }
 .link-seta:hover { gap: 0.85em; border-color: currentColor; }
 .link-seta:hover::after { transform: translateX(2px); }
-.secao--azul .link-seta, .secao--vinho .link-seta { color: var(--marfim); }
+.secao--apoio .link-seta, .secao--principal .link-seta { color: var(--marfim); }
 
 /* Grupo de CTAs */
 .acoes {
@@ -153,7 +153,7 @@
 .logo {
   display: inline-flex;
   align-items: center;
-  color: var(--vinho);
+  color: var(--principal);
   text-decoration: none;
   flex-shrink: 0;
 }
@@ -186,7 +186,7 @@
 /* Sem palavra pra ler, o símbolo sozinho pode pesar mais do que os
    lockups com texto pesavam nesse mesmo espaço. */
 .cabecalho .logo__marca--monograma { height: clamp(2.5rem, 1.85rem + 1.1vw, 3.15rem); }
-.secao--azul .logo, .secao--vinho .logo, .rodape .logo { color: var(--marfim); }
+.secao--apoio .logo, .secao--principal .logo, .rodape .logo { color: var(--marfim); }
 
 /* --- Navegação principal --- */
 /* O menu divide a mesma largura que o corpo do site, para que logo e CTA
@@ -222,36 +222,39 @@
   position: absolute;
   left: 0.2rem; right: 0.2rem; bottom: 0.28rem;
   height: 1px;
-  background: var(--vinho);
+  background: var(--principal);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform var(--dur-media) var(--ease-saida);
 }
-.nav__link:hover { color: var(--vinho); }
+.nav__link:hover { color: var(--principal); }
 .nav__link:hover::after,
 .nav__link[aria-current="page"]::after { transform: scaleX(1); }
-.nav__link[aria-current="page"] { color: var(--vinho); font-weight: var(--peso-corpo); }
+.nav__link[aria-current="page"] { color: var(--principal); font-weight: var(--peso-corpo); }
 
 /* O L-1A aparece solto no menu, com destaque de item principal (§5 do briefing) */
+/* O selo do L-1A usa a cor de apoio, não a principal: um destaque só
+   destaca se contrastar com o que está em volta, e o menu inteiro agora é
+   da cor principal. Trocado o vinho pelo azul, o acento é o vinho. */
 .nav__link--destaque {
   padding: 0.5rem 0.8rem;
   font-weight: var(--peso-corpo);
-  color: var(--vinho);
-  background: var(--vinho-100);
-  border: 1px solid color-mix(in srgb, var(--vinho) 20%, transparent);
+  color: var(--apoio);
+  background: var(--apoio-100);
+  border: 1px solid color-mix(in srgb, var(--apoio) 20%, transparent);
   border-radius: var(--r-pill);
   letter-spacing: 0.005em;
 }
 .nav__link--destaque::after { display: none; }
 .nav__link--destaque:hover {
-  background: var(--vinho);
+  background: var(--apoio);
   color: var(--marfim);
-  border-color: var(--vinho);
+  border-color: var(--apoio);
 }
 .nav__link--destaque[aria-current="page"] {
-  background: var(--vinho);
+  background: var(--apoio);
   color: var(--marfim);
-  border-color: var(--vinho);
+  border-color: var(--apoio);
 }
 
 /* --- Botão hambúrguer --- */
@@ -265,12 +268,12 @@
   background: transparent;
   border: 1px solid var(--hairline);
   border-radius: var(--r-pill);
-  color: var(--vinho);
+  color: var(--principal);
   cursor: pointer;
   flex-shrink: 0;
   transition: background var(--dur-rapida) var(--ease-suave);
 }
-.nav-toggle:hover { background: var(--vinho-100); }
+.nav-toggle:hover { background: var(--principal-100); }
 .nav-toggle__barras {
   position: relative;
   display: block;
@@ -370,7 +373,7 @@
    RODAPÉ
    ============================================================ */
 .rodape {
-  background: var(--vinho);
+  background: var(--principal);
   color: var(--texto-inverso);
   padding-block: var(--sp-9) var(--sp-6);
 }
@@ -460,12 +463,12 @@
               border-color var(--dur-media) var(--ease-suave),
               color var(--dur-media) var(--ease-suave);
 }
-.sociais a:hover { background: var(--marfim); color: var(--vinho); border-color: var(--marfim); }
+.sociais a:hover { background: var(--marfim); color: var(--principal); border-color: var(--marfim); }
 .sociais svg { width: 1.05rem; height: 1.05rem; }
 
 /* Variante dos sociais sobre fundo claro (página de Contato) */
-.sociais--claro a { border-color: var(--hairline); color: var(--vinho); }
-.sociais--claro a:hover { background: var(--vinho); color: var(--marfim); border-color: var(--vinho); }
+.sociais--claro a { border-color: var(--hairline); color: var(--principal); }
+.sociais--claro a:hover { background: var(--principal); color: var(--marfim); border-color: var(--principal); }
 
 /* ============================================================
    CARDS
@@ -489,26 +492,26 @@
   justify-content: center;
   width: 3rem;
   height: 3rem;
-  color: var(--vinho);
-  border: 1px solid color-mix(in srgb, var(--vinho) 22%, transparent);
+  color: var(--principal);
+  border: 1px solid color-mix(in srgb, var(--principal) 22%, transparent);
   border-radius: var(--r-md);
   flex-shrink: 0;
 }
 .card__icone svg { width: 1.5rem; height: 1.5rem; }
-.card__titulo { font-size: var(--fs-h4); color: var(--vinho); }
+.card__titulo { font-size: var(--fs-h4); color: var(--principal); }
 .card__texto  { font-size: var(--fs-sm); line-height: var(--lh-corpo); color: var(--texto-suave); }
 .card__rodape { margin-top: auto; padding-top: var(--sp-2); }
 
 .card--interativo:hover {
   transform: translateY(-3px);
   box-shadow: var(--sh-2);
-  border-color: color-mix(in srgb, var(--vinho) 18%, transparent);
+  border-color: color-mix(in srgb, var(--principal) 18%, transparent);
 }
 
 /* Card de visto em destaque — o L-1A é o produto central */
 .card--destaque {
-  background: var(--vinho);
-  border-color: var(--vinho);
+  background: var(--principal);
+  border-color: var(--principal);
   color: var(--texto-inverso);
   box-shadow: var(--sh-3);
 }
@@ -529,8 +532,8 @@
 
 /* Card institucional em azul-tinta */
 .card--azul {
-  background: var(--azul-tinta);
-  border-color: var(--azul-tinta);
+  background: var(--apoio);
+  border-color: var(--apoio);
   color: var(--texto-inverso);
 }
 .card--azul .card__titulo { color: var(--marfim); }
@@ -544,7 +547,7 @@
   gap: clamp(1.5rem, 4vw, 3.5rem);
   align-items: center;
   padding: clamp(1.75rem, 3.5vw, 3rem);
-  background: var(--azul-tinta);
+  background: var(--apoio);
   color: var(--texto-inverso);
   border-radius: var(--r-lg);
 }
@@ -558,8 +561,8 @@
   color: var(--texto);
   border: 1px solid var(--hairline-suave);
 }
-.faixa--marfim h2, .faixa--marfim h3 { color: var(--vinho); }
-.faixa--marfim .eyebrow { color: var(--azul-tinta); }
+.faixa--marfim h2, .faixa--marfim h3 { color: var(--principal); }
+.faixa--marfim .eyebrow { color: var(--apoio); }
 .faixa--marfim p  { color: var(--texto-suave); }
 
 /* Empilhada: só texto corrido (eyebrow + parágrafos), sem a segunda
@@ -585,13 +588,13 @@
   font-weight: var(--peso-corpo);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--vinho);
-  background: var(--vinho-100);
+  color: var(--principal);
+  background: var(--principal-100);
   border-radius: var(--r-pill);
   align-self: flex-start;
 }
-.selo--claro    { color: var(--vinho); background: var(--marfim); }
-.selo--contorno { background: transparent; border: 1px solid color-mix(in srgb, var(--vinho) 28%, transparent); }
+.selo--claro    { color: var(--principal); background: var(--marfim); }
+.selo--contorno { background: transparent; border: 1px solid color-mix(in srgb, var(--principal) 28%, transparent); }
 .selo--neutro   { color: var(--texto-suave); background: var(--marfim-200); }
 .selo--aviso    { color: var(--texto-suave); background: transparent; border: 1px dashed var(--marfim-300); }
 
@@ -685,20 +688,20 @@
   height: 11px;
   border-radius: var(--r-pill);
   background: var(--marfim);
-  border: 1.5px solid var(--vinho);
+  border: 1.5px solid var(--principal);
 }
 .js-sem-motion .bifurcacao__no { transform: scale(1); }
 .js .bifurcacao__tronco { transform: scaleY(0); }
 .bifurcacao__tronco {
   width: 1.5px;
   height: clamp(28px, 4vw, 48px);
-  background: var(--vinho);
+  background: var(--principal);
   transform-origin: top;
 }
 .js-sem-motion .bifurcacao__tronco { transform: scaleY(1); }
 
-.secao--azul .bifurcacao__no     { background: var(--azul-tinta); border-color: var(--marfim); }
-.secao--azul .bifurcacao__tronco { background: var(--marfim); }
+.secao--apoio .bifurcacao__no     { background: var(--apoio); border-color: var(--marfim); }
+.secao--apoio .bifurcacao__tronco { background: var(--marfim); }
 
 .bifurcacao__desenho {
   display: block;
@@ -710,10 +713,10 @@
   stroke-width: 1.5;
   stroke-linecap: round;
 }
-.bifurcacao__ramo-a { stroke: var(--vinho); }
-.bifurcacao__ramo-b { stroke: var(--azul-tinta); }
-.secao--azul .bifurcacao__ramo-a { stroke: var(--vinho-300); }
-.secao--azul .bifurcacao__ramo-b { stroke: var(--marfim); }
+.bifurcacao__ramo-a { stroke: var(--principal); }
+.bifurcacao__ramo-b { stroke: var(--apoio); }
+.secao--apoio .bifurcacao__ramo-a { stroke: var(--principal-300); }
+.secao--apoio .bifurcacao__ramo-b { stroke: var(--marfim); }
 
 .bifurcacao__caminhos {
   display: grid;
@@ -729,9 +732,9 @@
   border-radius: var(--r-lg);
   border: 1px solid var(--hairline-suave);
   background: var(--marfim-050);
-  border-top: 3px solid var(--vinho);
+  border-top: 3px solid var(--principal);
 }
-.caminho--b { border-top-color: var(--azul-tinta); }
+.caminho--b { border-top-color: var(--apoio); }
 .caminho__icone {
   display: inline-flex;
   width: 3.25rem;
@@ -739,13 +742,13 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--r-pill);
-  background: var(--vinho-100);
-  color: var(--vinho);
+  background: var(--principal-100);
+  color: var(--principal);
 }
-.caminho--b .caminho__icone { background: var(--azul-100); color: var(--azul-tinta); }
+.caminho--b .caminho__icone { background: var(--apoio-100); color: var(--apoio); }
 .caminho__icone svg { width: 1.6rem; height: 1.6rem; }
-.caminho__titulo { font-size: var(--fs-h4); color: var(--vinho); }
-.caminho--b .caminho__titulo { color: var(--azul-tinta); }
+.caminho__titulo { font-size: var(--fs-h4); color: var(--principal); }
+.caminho--b .caminho__titulo { color: var(--apoio); }
 .caminho__texto { font-size: var(--fs-sm); color: var(--texto-suave); }
 
 
@@ -783,15 +786,15 @@
     bottom: 0;
     width: 1.5px;
     transform: translateX(-50%);
-    background: var(--vinho);
+    background: var(--principal);
   }
 
   .caminho {
     position: relative;
     border-top: 1px solid var(--hairline-suave);
-    border-left: 3px solid var(--vinho);
+    border-left: 3px solid var(--principal);
   }
-  .caminho--b { border-left-color: var(--azul-tinta); }
+  .caminho--b { border-left-color: var(--apoio); }
   /* A variante forte redefine border-width por inteiro; aqui o acento
      precisa ser reafirmado na lateral. */
   .caminho--forte { border-top-width: 1px; border-left-width: 3px; }
@@ -804,12 +807,12 @@
     top: 2rem;
     width: 19px;
     height: 1.5px;
-    background: var(--vinho);
+    background: var(--principal);
   }
-  .caminho--b::before { background: var(--azul-tinta); }
+  .caminho--b::before { background: var(--apoio); }
 
-  .secao--azul .bifurcacao__caminhos::before,
-  .secao--vinho .bifurcacao__caminhos::before { background: var(--marfim); }
+  .secao--apoio .bifurcacao__caminhos::before,
+  .secao--principal .bifurcacao__caminhos::before { background: var(--marfim); }
 }
 
 /* ============================================================
@@ -835,7 +838,7 @@
 .timeline__trilho-preenchido {
   position: absolute;
   inset: 0;
-  background: var(--vinho);
+  background: var(--principal);
   transform-origin: top;
   border-radius: 2px;
 }
@@ -874,8 +877,8 @@
 }
 .etapa[data-ativa="true"] .etapa__marcador {
   color: var(--marfim);
-  background: var(--vinho);
-  border-color: var(--vinho);
+  background: var(--principal);
+  border-color: var(--principal);
   transform: scale(1.06);
 }
 
@@ -888,7 +891,7 @@
               border-color var(--dur-media) var(--ease-suave);
 }
 .etapa[data-ativa="true"] .etapa__corpo {
-  border-color: color-mix(in srgb, var(--vinho) 20%, transparent);
+  border-color: color-mix(in srgb, var(--principal) 20%, transparent);
   box-shadow: var(--sh-1);
 }
 .etapa__rotulo {
@@ -900,8 +903,8 @@
   color: var(--texto-suave);
   margin-bottom: var(--sp-2);
 }
-.etapa[data-ativa="true"] .etapa__rotulo { color: var(--vinho); }
-.etapa__titulo { font-size: var(--fs-h4); color: var(--vinho); margin-bottom: var(--sp-3); }
+.etapa[data-ativa="true"] .etapa__rotulo { color: var(--principal); }
+.etapa__titulo { font-size: var(--fs-h4); color: var(--principal); margin-bottom: var(--sp-3); }
 .etapa__texto  { font-size: var(--fs-sm); color: var(--texto-suave); }
 
 /* Bifurcação da Etapa 7: aprovado / RFE */
@@ -919,16 +922,16 @@
   padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-5);
   border-radius: var(--r-md);
   background: var(--marfim);
-  border-left: 3px solid var(--vinho);
+  border-left: 3px solid var(--principal);
 }
-.ramificacao--rfe { border-left-color: var(--azul-tinta); background: var(--azul-100); }
+.ramificacao--rfe { border-left-color: var(--apoio); background: var(--apoio-100); }
 .ramificacao__titulo {
   font-size: var(--fs-sm);
   font-weight: var(--peso-corpo);
-  color: var(--vinho);
+  color: var(--principal);
   margin-bottom: var(--sp-2);
 }
-.ramificacao--rfe .ramificacao__titulo { color: var(--azul-tinta); }
+.ramificacao--rfe .ramificacao__titulo { color: var(--apoio); }
 .ramificacao__texto { font-size: var(--fs-sm); color: var(--texto-suave); line-height: var(--lh-media); }
 
 @media (max-width: 560px) {
@@ -959,10 +962,10 @@
   font-weight: var(--peso-corpo);
   line-height: var(--lh-titulo);
   letter-spacing: var(--ls-titulo);
-  color: var(--vinho);
+  color: var(--principal);
   transition: color var(--dur-rapida) var(--ease-suave);
 }
-.accordion__gatilho:hover { color: var(--vinho-900); }
+.accordion__gatilho:hover { color: var(--principal-900); }
 
 .accordion__sinal {
   position: relative;
@@ -971,7 +974,7 @@
   height: 1.5rem;
   margin-top: 0.15em;
   border-radius: var(--r-pill);
-  border: 1px solid color-mix(in srgb, var(--vinho) 26%, transparent);
+  border: 1px solid color-mix(in srgb, var(--principal) 26%, transparent);
   transition: background var(--dur-media) var(--ease-suave),
               border-color var(--dur-media) var(--ease-suave);
 }
@@ -988,8 +991,8 @@
 .accordion__sinal::before { width: 0.65rem; height: 1.5px; }
 .accordion__sinal::after  { width: 1.5px; height: 0.65rem; }
 .accordion__gatilho[aria-expanded="true"] .accordion__sinal {
-  background: var(--vinho);
-  border-color: var(--vinho);
+  background: var(--principal);
+  border-color: var(--principal);
   color: var(--marfim);
 }
 .accordion__gatilho[aria-expanded="true"] .accordion__sinal::after {
@@ -1010,23 +1013,23 @@
 
 /* Item de glossário com urgência real ("Por que isso importa mais em 2026") */
 .accordion__item--urgente {
-  background: var(--vinho-100);
-  border-left: 3px solid var(--vinho);
+  background: var(--principal-100);
+  border-left: 3px solid var(--principal);
   padding-inline: clamp(1rem, 2.2vw, 1.5rem);
   margin-block: var(--sp-2);
   border-radius: 0 var(--r-md) var(--r-md) 0;
 }
-.accordion__item--urgente .accordion__gatilho { color: var(--vinho); }
+.accordion__item--urgente .accordion__gatilho { color: var(--principal); }
 .accordion__item--urgente .accordion__conteudo { color: var(--texto); }
 
 /* Accordion sobre fundo escuro */
-.secao--azul .accordion,
-.secao--azul .accordion__item { border-color: var(--hairline-inversa); }
-.secao--azul .accordion__gatilho { color: var(--marfim); }
-.secao--azul .accordion__conteudo { color: var(--texto-inverso-suave); }
-.secao--azul .accordion__sinal { border-color: var(--hairline-inversa); }
-.secao--azul .accordion__gatilho[aria-expanded="true"] .accordion__sinal {
-  background: var(--marfim); border-color: var(--marfim); color: var(--vinho);
+.secao--apoio .accordion,
+.secao--apoio .accordion__item { border-color: var(--hairline-inversa); }
+.secao--apoio .accordion__gatilho { color: var(--marfim); }
+.secao--apoio .accordion__conteudo { color: var(--texto-inverso-suave); }
+.secao--apoio .accordion__sinal { border-color: var(--hairline-inversa); }
+.secao--apoio .accordion__gatilho[aria-expanded="true"] .accordion__sinal {
+  background: var(--marfim); border-color: var(--marfim); color: var(--principal);
 }
 
 /* Blocos temáticos da FAQ */
@@ -1080,13 +1083,13 @@
   background: transparent;
   border: 1px solid var(--hairline);
   border-radius: var(--r-pill);
-  color: var(--vinho);
+  color: var(--principal);
   cursor: pointer;
   transition: background var(--dur-rapida) var(--ease-suave),
               border-color var(--dur-rapida) var(--ease-suave),
               opacity var(--dur-rapida) linear;
 }
-.carrossel__btn:hover:not([disabled]) { background: var(--vinho); color: var(--marfim); border-color: var(--vinho); }
+.carrossel__btn:hover:not([disabled]) { background: var(--principal); color: var(--marfim); border-color: var(--principal); }
 .carrossel__btn[disabled] { opacity: 0.3; cursor: default; }
 .carrossel__btn svg { width: 1.05rem; height: 1.05rem; }
 
@@ -1135,7 +1138,7 @@
   font-size: var(--fs-xs);
   font-weight: var(--peso-corpo);
   color: var(--marfim);
-  background: rgba(87, 6, 21, 0.82);
+  background: color-mix(in srgb, var(--principal) 82%, transparent);
   backdrop-filter: blur(4px);
   border-radius: var(--r-pill);
   z-index: 2;
@@ -1156,7 +1159,7 @@
   font-size: var(--fs-xs);
   font-weight: var(--peso-corpo);
   letter-spacing: 0.02em;
-  color: var(--vinho);
+  color: var(--principal);
   margin-top: auto;
 }
 
@@ -1184,7 +1187,7 @@
   font-weight: var(--peso-corpo);
   line-height: 1.2;
   letter-spacing: var(--ls-display);
-  color: var(--vinho);
+  color: var(--principal);
   text-wrap: balance;
 }
 .citacao--larga { max-width: 26ch; }
@@ -1205,7 +1208,7 @@
   display: block;
   width: 2.5rem;
   height: 2px;
-  background: var(--vinho);
+  background: var(--principal);
   margin-bottom: var(--sp-5);
 }
 .citacao--centro::before { margin-inline: auto; }
@@ -1241,7 +1244,7 @@
 .marco__linha-preenchida {
   position: absolute;
   inset: 0;
-  background: var(--vinho);
+  background: var(--principal);
   transform-origin: left;
 }
 .js .marco__linha-preenchida { transform: scaleX(0); }
@@ -1252,7 +1255,7 @@
   font-weight: var(--peso-fino);
   line-height: 1;
   letter-spacing: -0.02em;
-  color: var(--vinho);
+  color: var(--principal);
   font-variant-numeric: tabular-nums;
 }
 .marco__rotulo {
@@ -1283,7 +1286,7 @@
 .estimativas__fase  { color: var(--texto-suave); }
 .estimativas__prazo {
   font-weight: var(--peso-corpo);
-  color: var(--vinho);
+  color: var(--principal);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -1301,16 +1304,16 @@
    ============================================================ */
 .nota {
   padding: var(--sp-5);
-  border-left: 3px solid var(--vinho);
-  background: var(--vinho-100);
+  border-left: 3px solid var(--principal);
+  background: var(--principal-100);
   border-radius: 0 var(--r-md) var(--r-md) 0;
   font-size: var(--fs-sm);
   line-height: var(--lh-media);
   color: var(--texto);
 }
-.nota strong { color: var(--vinho); }
+.nota strong { color: var(--principal); }
 .nota--neutra { background: var(--marfim-200); border-left-color: var(--texto-suave); }
-.nota--azul   { background: var(--azul-100); border-left-color: var(--azul-tinta); }
+.nota--azul   { background: var(--apoio-100); border-left-color: var(--apoio); }
 
 /* ============================================================
    FORMULÁRIO
@@ -1343,12 +1346,12 @@
   appearance: none;
 }
 .campo__controle::placeholder { color: color-mix(in srgb, var(--texto-suave) 68%, transparent); }
-.campo__controle:hover { border-color: color-mix(in srgb, var(--vinho) 26%, var(--marfim-300)); }
+.campo__controle:hover { border-color: color-mix(in srgb, var(--principal) 26%, var(--marfim-300)); }
 .campo__controle:focus {
   outline: none;
   background: var(--marfim-050);
-  border-color: var(--vinho);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--vinho) 14%, transparent);
+  border-color: var(--principal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--principal) 14%, transparent);
 }
 textarea.campo__controle { min-height: 8rem; resize: vertical; line-height: var(--lh-media); }
 
@@ -1365,11 +1368,11 @@ select.campo__controle {
   display: none;
   font-size: var(--fs-xs);
   font-weight: var(--peso-corpo);
-  color: var(--vinho);
+  color: var(--principal);
 }
 .campo[data-invalido="true"] .campo__controle {
-  border-color: var(--vinho);
-  background: color-mix(in srgb, var(--vinho) 4%, var(--marfim-050));
+  border-color: var(--principal);
+  background: color-mix(in srgb, var(--principal) 4%, var(--marfim-050));
 }
 .campo[data-invalido="true"] .campo__erro { display: block; }
 
@@ -1403,11 +1406,11 @@ select.campo__controle {
   transition: all var(--dur-rapida) var(--ease-suave);
   cursor: pointer;
 }
-.escolha input:hover + span { border-color: color-mix(in srgb, var(--vinho) 34%, transparent); }
+.escolha input:hover + span { border-color: color-mix(in srgb, var(--principal) 34%, transparent); }
 .escolha input:checked + span {
   color: var(--marfim);
-  background: var(--vinho);
-  border-color: var(--vinho);
+  background: var(--principal);
+  border-color: var(--principal);
 }
 .escolha input:focus-visible + span {
   outline: var(--foco);
@@ -1420,15 +1423,15 @@ select.campo__controle {
   gap: var(--sp-4);
   align-items: flex-start;
   padding: var(--sp-5);
-  background: var(--vinho-100);
-  border: 1px solid color-mix(in srgb, var(--vinho) 18%, transparent);
+  background: var(--principal-100);
+  border: 1px solid color-mix(in srgb, var(--principal) 18%, transparent);
   border-radius: var(--r-md);
   font-size: var(--fs-sm);
   line-height: var(--lh-media);
   color: var(--texto);
 }
-.form__disclaimer svg { flex-shrink: 0; width: 1.25rem; height: 1.25rem; color: var(--vinho); margin-top: 0.1em; }
-.form__disclaimer strong { color: var(--vinho); font-weight: var(--peso-corpo); }
+.form__disclaimer svg { flex-shrink: 0; width: 1.25rem; height: 1.25rem; color: var(--principal); margin-top: 0.1em; }
+.form__disclaimer strong { color: var(--principal); font-weight: var(--peso-corpo); }
 
 /* Estados de envio */
 .form__estado {
@@ -1440,17 +1443,17 @@ select.campo__controle {
 }
 .form__estado[data-visivel="true"] { display: block; }
 .form__estado--sucesso {
-  background: var(--azul-100);
-  border-left: 3px solid var(--azul-tinta);
+  background: var(--apoio-100);
+  border-left: 3px solid var(--apoio);
   color: var(--texto);
 }
 .form__estado--erro {
-  background: var(--vinho-100);
-  border-left: 3px solid var(--vinho);
+  background: var(--principal-100);
+  border-left: 3px solid var(--principal);
   color: var(--texto);
 }
-.form__estado strong { display: block; margin-bottom: var(--sp-2); color: var(--vinho); }
-.form__estado--sucesso strong { color: var(--azul-tinta); }
+.form__estado strong { display: block; margin-bottom: var(--sp-2); color: var(--principal); }
+.form__estado--sucesso strong { color: var(--apoio); }
 
 .btn[data-carregando="true"] { pointer-events: none; opacity: 0.72; }
 .btn[data-carregando="true"] .btn__rotulo::after {
@@ -1487,7 +1490,7 @@ select.campo__controle {
 .post-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--sh-2);
-  border-color: color-mix(in srgb, var(--vinho) 18%, transparent);
+  border-color: color-mix(in srgb, var(--principal) 18%, transparent);
   color: inherit;
 }
 .post-card__meta {
@@ -1501,7 +1504,7 @@ select.campo__controle {
 .post-card__meta .selo { align-self: auto; }
 .post-card__titulo {
   font-size: var(--fs-h4);
-  color: var(--vinho);
+  color: var(--principal);
   line-height: var(--lh-titulo);
 }
 .post-card__resumo {
@@ -1528,13 +1531,13 @@ select.campo__controle {
 .artigo__corpo h3 { font-size: var(--fs-h4); margin-top: var(--sp-7); }
 .artigo__corpo ul, .artigo__corpo ol { padding-left: 1.35em; }
 .artigo__corpo li + li { margin-top: var(--sp-3); }
-.artigo__corpo li::marker { color: var(--vinho); }
+.artigo__corpo li::marker { color: var(--principal); }
 .artigo__corpo blockquote {
   margin: var(--sp-7) 0;
   padding-left: var(--sp-5);
-  border-left: 3px solid var(--vinho);
+  border-left: 3px solid var(--principal);
   font-size: var(--fs-lead);
-  color: var(--vinho);
+  color: var(--principal);
 }
 
 /* Aviso de rascunho — visível para quem revisa, some ao publicar */
@@ -1544,13 +1547,13 @@ select.campo__controle {
   padding: var(--sp-5);
   margin-bottom: var(--sp-7);
   background: var(--marfim-200);
-  border: 1px dashed var(--vinho);
+  border: 1px dashed var(--principal);
   border-radius: var(--r-md);
   font-size: var(--fs-sm);
   line-height: var(--lh-media);
   color: var(--texto);
 }
-.aviso-rascunho strong { display: block; color: var(--vinho); margin-bottom: var(--sp-1); }
+.aviso-rascunho strong { display: block; color: var(--principal); margin-bottom: var(--sp-1); }
 
 /* ============================================================
    HERO
@@ -1603,8 +1606,8 @@ select.campo__controle {
 .migalhas li { display: flex; align-items: center; gap: var(--sp-2); }
 .migalhas li + li::before { content: '/'; color: var(--marfim-300); }
 .migalhas a { color: var(--texto-suave); text-decoration: none; }
-.migalhas a:hover { color: var(--vinho); text-decoration: underline; }
-.migalhas [aria-current="page"] { color: var(--vinho); font-weight: var(--peso-corpo); }
+.migalhas a:hover { color: var(--principal); text-decoration: underline; }
+.migalhas [aria-current="page"] { color: var(--principal); font-weight: var(--peso-corpo); }
 
 /* ============================================================
    ESTADOS DE REVELAÇÃO (GSAP entrega o estado final)
@@ -1631,8 +1634,8 @@ select.campo__controle {
   top: 0.42em;
   width: 0.7em;
   height: 0.38em;
-  border-left: 1.5px solid var(--vinho);
-  border-bottom: 1.5px solid var(--vinho);
+  border-left: 1.5px solid var(--principal);
+  border-bottom: 1.5px solid var(--principal);
   transform: rotate(-45deg);
 }
 .card--destaque .checks li { color: var(--texto-inverso-suave); }
@@ -1650,7 +1653,7 @@ select.campo__controle {
   justify-content: center;
   background:
     radial-gradient(circle at 50% 42%, var(--marfim-050) 0%, var(--marfim-200) 72%);
-  color: var(--vinho);
+  color: var(--principal);
   overflow: hidden;
 }
 .midia-pendente::before {

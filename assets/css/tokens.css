@@ -38,10 +38,14 @@
 }
 
 :root {
-  /* ========== PALETA APROVADA — não alterar ========== */
-  --vinho:      #570615;  /* principal: títulos, botões primários, destaques, trilha */
+  /* ========== PALETA APROVADA — os valores da marca ==========
+     As três cores continuam as mesmas. O que mudou foi o papel de cada
+     uma: o cliente pediu o azul liderando no lugar do vinho. A inversão
+     está no bloco PAPÉIS abaixo — nenhum componente precisa saber disso,
+     todos falam em --principal / --apoio. */
+  --vinho:      #570615;
   --marfim:     #f4eee7;  /* fundo, respiro entre seções */
-  --azul-tinta: #1d2e40;  /* secundária: blocos institucionais. NUNCA como principal */
+  --azul-tinta: #1d2e40;
 
   /* ========== Derivadas (tons de trabalho) ========== */
   --vinho-900:  #3d040f;  /* hover / pressed */
@@ -55,7 +59,22 @@
 
   --azul-900:   #142130;
   --azul-700:   #33475c;
+  --azul-300:   #93a6b8;  /* filete decorativo sobre fundo escuro (par do --vinho-300) */
   --azul-100:   #e4e8ec;
+
+  /* ========== PAPÉIS ==========
+     Trocar estas linhas inverte a hierarquia de cor do site inteiro. */
+  --principal:      var(--azul-tinta);
+  --principal-900:  var(--azul-900);
+  --principal-700:  var(--azul-700);
+  --principal-300:  var(--azul-300);
+  --principal-100:  var(--azul-100);
+
+  --apoio:          var(--vinho);
+  --apoio-900:      var(--vinho-900);
+  --apoio-700:      var(--vinho-700);
+  --apoio-300:      var(--vinho-300);
+  --apoio-100:      var(--vinho-100);
 
   /* ========== Texto ========== */
   --texto:                #1d2e40;
@@ -64,7 +83,7 @@
   --texto-inverso-suave:  rgba(244, 238, 231, 0.74);
 
   /* ========== Traços ========== */
-  --hairline:         rgba(87, 6, 21, 0.16);
+  --hairline:         rgba(29, 46, 64, 0.16);   /* tingido pela cor principal */
   --hairline-suave:   rgba(29, 46, 64, 0.10);
   --hairline-inversa: rgba(244, 238, 231, 0.22);
 
@@ -131,7 +150,7 @@
   /* ========== Elevação (sombra levemente quente) ========== */
   --sh-1: 0 1px 2px rgba(29, 46, 64, 0.05), 0 2px 8px rgba(29, 46, 64, 0.04);
   --sh-2: 0 2px 6px rgba(29, 46, 64, 0.06), 0 14px 34px rgba(29, 46, 64, 0.08);
-  --sh-3: 0 4px 12px rgba(87, 6, 21, 0.08), 0 26px 64px rgba(87, 6, 21, 0.14);
+  --sh-3: 0 4px 12px rgba(29, 46, 64, 0.08), 0 26px 64px rgba(29, 46, 64, 0.14);
 
   /* ========== Movimento ========== */
   --ease-saida:  cubic-bezier(0.16, 1, 0.30, 1);
@@ -152,6 +171,6 @@
   --seta: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12h15M12.5 5.5 19 12l-6.5 6.5'/%3E%3C/svg%3E");
 
   /* ========== Foco ========== */
-  --foco: 2px solid var(--vinho);
+  --foco: 2px solid var(--principal);
   --foco-offset: 3px;
 }

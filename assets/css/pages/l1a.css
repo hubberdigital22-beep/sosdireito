@@ -22,7 +22,7 @@
 .bloco-identificacao .frase + .frase { margin-top: clamp(2rem, 4.5vw, 3.5rem); }
 
 .bloco-identificacao .frase--peso {
-  color: var(--vinho);
+  color: var(--principal);
   font-weight: var(--peso-corpo);
 }
 
@@ -34,7 +34,7 @@
 .destaque-termo {
   position: relative;
   display: inline-block;
-  color: var(--vinho);
+  color: var(--principal);
   font-weight: var(--peso-corpo);
   white-space: nowrap;
   /* Sem contexto de empilhamento próprio, o grifo em z-index -1 cairia
@@ -47,7 +47,7 @@
   right: -0.08em;
   bottom: 0.04em;
   height: 0.32em;
-  background: color-mix(in srgb, var(--vinho) 17%, transparent);
+  background: color-mix(in srgb, var(--principal) 17%, transparent);
   border-radius: 2px;
   z-index: -1;
   transform-origin: left;
@@ -64,7 +64,7 @@
   font-weight: var(--peso-corpo);
   line-height: 1.3;
   letter-spacing: var(--ls-titulo);
-  color: var(--vinho);
+  color: var(--principal);
   text-align: center;
   text-wrap: balance;
 }
@@ -73,7 +73,7 @@
   display: block;
   width: 2.5rem;
   height: 2px;
-  background: var(--vinho);
+  background: var(--principal);
   margin: 0 auto var(--sp-6);
 }
 

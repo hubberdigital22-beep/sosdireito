@@ -42,21 +42,21 @@
 .secao--marfim  { background: var(--marfim); }
 .secao--marfim2 { background: var(--marfim-200); }
 
-.secao--azul {
-  background: var(--azul-tinta);
+.secao--apoio {
+  background: var(--apoio);
   color: var(--texto-inverso);
 }
-.secao--azul h1, .secao--azul h2, .secao--azul h3, .secao--azul h4 { color: var(--marfim); }
-.secao--azul p  { color: var(--texto-inverso-suave); }
-.secao--azul a  { color: var(--marfim); }
+.secao--apoio h1, .secao--apoio h2, .secao--apoio h3, .secao--apoio h4 { color: var(--marfim); }
+.secao--apoio p  { color: var(--texto-inverso-suave); }
+.secao--apoio a  { color: var(--marfim); }
 
-.secao--vinho {
-  background: var(--vinho);
+.secao--principal {
+  background: var(--principal);
   color: var(--texto-inverso);
 }
-.secao--vinho h1, .secao--vinho h2, .secao--vinho h3, .secao--vinho h4 { color: var(--marfim); }
-.secao--vinho p { color: var(--texto-inverso-suave); }
-.secao--vinho a { color: var(--marfim); }
+.secao--principal h1, .secao--principal h2, .secao--principal h3, .secao--principal h4 { color: var(--marfim); }
+.secao--principal p { color: var(--texto-inverso-suave); }
+.secao--principal a { color: var(--marfim); }
 
 /* ---- Cabeçalho de seção ---- */
 .secao__cabecalho {
@@ -110,7 +110,7 @@
   border: 0;
   margin-block: var(--sp-8);
 }
-.secao--azul .filete, .secao--vinho .filete { background: var(--hairline-inversa); }
+.secao--apoio .filete, .secao--principal .filete { background: var(--hairline-inversa); }
 
 /* ---- Marca d'água ----
    Usa o monograma real da identidade (assets/img/logo-monograma.svg),
@@ -135,7 +135,7 @@
   mask: url('../img/logo-monograma.svg') center / contain no-repeat;
 }
 .monograma-fundo::before {
-  background: var(--vinho);
+  background: var(--principal);
   opacity: 0.05;
 }
 
@@ -145,7 +145,7 @@
 .monograma-fundo::after {
   background: linear-gradient(100deg,
     transparent 40%,
-    var(--vinho) 50%,
+    var(--principal) 50%,
     transparent 60%);
   background-size: 250% 100%;
   background-repeat: no-repeat;
@@ -171,11 +171,11 @@
   .monograma-fundo::after  { opacity: 0.045; }
 }
 
-.secao--azul .monograma-fundo::before,
-.secao--vinho .monograma-fundo::before { background: var(--marfim); opacity: 0.07; }
+.secao--apoio .monograma-fundo::before,
+.secao--principal .monograma-fundo::before { background: var(--marfim); opacity: 0.07; }
 /* Sobre fundo escuro quem passa é luz clara, não a cor da marca. */
-.secao--azul .monograma-fundo::after,
-.secao--vinho .monograma-fundo::after {
+.secao--apoio .monograma-fundo::after,
+.secao--principal .monograma-fundo::after {
   background-image: linear-gradient(100deg,
     transparent 40%,
     var(--marfim) 50%,

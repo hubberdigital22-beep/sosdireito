@@ -59,7 +59,7 @@ p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
    real, não é sobre preferência de leitura, é sobre o desenho ficar
    pequeno demais pro traço sobreviver. */
 h1, h2, h3, h4 {
-  color: var(--vinho);
+  color: var(--principal);
   line-height: var(--lh-titulo);
   letter-spacing: var(--ls-titulo);
   text-wrap: balance;
@@ -108,14 +108,14 @@ p + p { margin-top: var(--sp-5); }
 
 /* ---- Links ---- */
 a {
-  color: var(--vinho);
-  text-decoration-color: color-mix(in srgb, var(--vinho) 32%, transparent);
+  color: var(--principal);
+  text-decoration-color: color-mix(in srgb, var(--principal) 32%, transparent);
   text-underline-offset: 0.22em;
   text-decoration-thickness: 1px;
   transition: color var(--dur-rapida) var(--ease-suave),
               text-decoration-color var(--dur-rapida) var(--ease-suave);
 }
-a:hover { color: var(--vinho-900); text-decoration-color: currentColor; }
+a:hover { color: var(--principal-900); text-decoration-color: currentColor; }
 
 /* ---- Foco visível ---- */
 :focus-visible {
@@ -127,8 +127,8 @@ a:hover { color: var(--vinho-900); text-decoration-color: currentColor; }
 
 /* Sobre fundo escuro o foco inverte, senão o vinho some */
 .sobre-escuro :focus-visible,
-.secao--azul :focus-visible,
-.secao--vinho :focus-visible {
+.secao--apoio :focus-visible,
+.secao--principal :focus-visible {
   outline-color: var(--marfim);
 }
 
@@ -139,7 +139,7 @@ a:hover { color: var(--vinho-900); text-decoration-color: currentColor; }
   top: var(--sp-4);
   z-index: var(--z-modal);
   padding: var(--sp-3) var(--sp-5);
-  background: var(--vinho);
+  background: var(--principal);
   color: var(--texto-inverso);
   border-radius: var(--r-md);
   font-size: var(--fs-sm);
@@ -170,11 +170,11 @@ a:hover { color: var(--vinho-900); text-decoration-color: currentColor; }
   font-weight: var(--peso-corpo);
   letter-spacing: var(--ls-eyebrow);
   text-transform: uppercase;
-  color: var(--azul-tinta);
+  color: var(--apoio);
   margin-bottom: var(--sp-4);
 }
-.secao--azul .eyebrow,
-.secao--vinho .eyebrow { color: var(--texto-inverso-suave); }
+.secao--apoio .eyebrow,
+.secao--principal .eyebrow { color: var(--texto-inverso-suave); }
 
 .lead {
   font-size: var(--fs-lead);
@@ -189,17 +189,17 @@ a:hover { color: var(--vinho-900); text-decoration-color: currentColor; }
 .texto-centro{ text-align: center; }
 
 /* ---- Seleção ---- */
-::selection { background: var(--vinho); color: var(--marfim); }
+::selection { background: var(--principal); color: var(--marfim); }
 
 /* ---- Barra de rolagem (WebKit) ---- */
 ::-webkit-scrollbar { width: 12px; height: 12px; }
 ::-webkit-scrollbar-track { background: var(--marfim-200); }
 ::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--vinho) 45%, var(--marfim-200));
+  background: color-mix(in srgb, var(--principal) 45%, var(--marfim-200));
   border-radius: var(--r-pill);
   border: 3px solid var(--marfim-200);
 }
-::-webkit-scrollbar-thumb:hover { background: var(--vinho); }
+::-webkit-scrollbar-thumb:hover { background: var(--principal); }
 
 /* ---- Respeito a movimento reduzido ----
    O JS já entrega o estado final; isto é a segunda camada de defesa. */

@@ -66,7 +66,7 @@
   box-shadow: var(--sh-1);
   transition: transform var(--dur-media) var(--ease-saida);
 }
-.interruptor input:checked ~ .interruptor__trilho { background: var(--vinho); }
+.interruptor input:checked ~ .interruptor__trilho { background: var(--principal); }
 .interruptor input:checked ~ .interruptor__trilho::after { transform: translateX(1.4rem); }
 .interruptor input:focus-visible ~ .interruptor__trilho {
   outline: var(--foco);
@@ -95,7 +95,7 @@
 /* ---- Total ---- */
 .calc-total {
   padding: clamp(1.5rem, 3vw, 2.25rem);
-  background: var(--vinho);
+  background: var(--principal);
   color: var(--texto-inverso);
   border-radius: var(--r-lg);
   text-align: center;
@@ -143,7 +143,7 @@
 .calc-linha__valor {
   font-size: var(--fs-body);
   font-weight: var(--peso-corpo);
-  color: var(--vinho);
+  color: var(--principal);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -191,7 +191,7 @@
   padding-top: var(--sp-4);
   font-weight: var(--peso-corpo);
 }
-.calc-tabela__linha--total dt { color: var(--vinho); }
-.calc-tabela__linha--total dd { color: var(--vinho); }
+.calc-tabela__linha--total dt { color: var(--principal); }
+.calc-tabela__linha--total dd { color: var(--principal); }
 
 .calc-adicionais { margin-top: var(--sp-5); font-size: var(--fs-sm); }
