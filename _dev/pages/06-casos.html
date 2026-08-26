@@ -28,16 +28,17 @@ head_extra: <link rel="stylesheet" href="../assets/css/pages/casos.css?v={{VER}}
      adicional. O efeito é simbólico, quase um mural de gratidão.
 
      Os textos vêm do banco de feedback em assets/js/data/casos.js.
-     Ao receber as fotos e vídeos da Gerusa, substituir cada
-     .midia-pendente pela mídia correspondente ao perfil indicado em
-     data-perfil, e identificar pelo nome só quem for pessoa pública. -->
+     A mídia já está em assets/media/prova/. Ninguém é identificado pelo
+     nome, e nenhuma imagem mostra documento: boa parte do material
+     original trazia green cards legíveis e ficou de fora por isso. -->
 <section class="secao secao--sem-topo secao-mural">
   <div class="container">
     <ul class="mural" role="list" data-revelar="grupo">
         <li>
           <article class="caso caso--alto" data-perfil="familia">
-            <div class="caso__midia midia-pendente">
-              <span class="midia-pendente__rotulo">Mídia pendente</span>
+            <div class="caso__midia">
+              <img src="{{BASE}}assets/media/prova/caso-01.jpg"
+                   alt="Casal cliente da SOS Direito em viagem, depois do processo concluído" loading="lazy" decoding="async">
             </div>
             <div class="caso__corpo">
               <p class="caso__feedback">“Deu tudo certo pra mim e para os meus. Gratidão à SOS Direito por cada passo desse caminho.”</p>
@@ -46,8 +47,9 @@ head_extra: <link rel="stylesheet" href="../assets/css/pages/casos.css?v={{VER}}
         </li>
         <li>
           <article class="caso caso--baixo" data-perfil="empresario">
-            <div class="caso__midia midia-pendente">
-              <span class="midia-pendente__rotulo">Mídia pendente</span>
+            <div class="caso__midia">
+              <img src="{{BASE}}assets/media/prova/caso-02.jpg"
+                   alt="Casal cliente da SOS Direito" loading="lazy" decoding="async">
             </div>
             <div class="caso__corpo">
               <p class="caso__feedback">“A SOS Direito entendeu exatamente o que minha empresa precisava para dar esse passo.”</p>
@@ -56,8 +58,9 @@ head_extra: <link rel="stylesheet" href="../assets/css/pages/casos.css?v={{VER}}
         </li>
         <li>
           <article class="caso" data-perfil="pessoaComum">
-            <div class="caso__midia midia-pendente">
-              <span class="midia-pendente__rotulo">Mídia pendente</span>
+            <div class="caso__midia">
+              <img src="{{BASE}}assets/media/prova/caso-03.jpg"
+                   alt="Casal cliente da SOS Direito nos Estados Unidos" loading="lazy" decoding="async">
             </div>
             <div class="caso__corpo">
               <p class="caso__feedback">“Graças a Deus, deu tudo certo. Muito feliz com esse resultado.”</p>
@@ -66,8 +69,9 @@ head_extra: <link rel="stylesheet" href="../assets/css/pages/casos.css?v={{VER}}
         </li>
         <li>
           <article class="caso" data-perfil="familia">
-            <div class="caso__midia midia-pendente">
-              <span class="midia-pendente__rotulo">Mídia pendente</span>
+            <div class="caso__midia">
+              <img src="{{BASE}}assets/media/prova/caso-04.jpg"
+                   alt="Cliente da SOS Direito gravando seu depoimento" loading="lazy" decoding="async">
             </div>
             <div class="caso__corpo">
               <p class="caso__feedback">“Hoje minha família está aqui graças ao cuidado da Diana e da equipe.”</p>
@@ -76,8 +80,9 @@ head_extra: <link rel="stylesheet" href="../assets/css/pages/casos.css?v={{VER}}
         </li>
         <li>
           <article class="caso caso--alto" data-perfil="empresario">
-            <div class="caso__midia midia-pendente">
-              <span class="midia-pendente__rotulo">Mídia pendente</span>
+            <div class="caso__midia">
+              <img src="{{BASE}}assets/media/prova/caso-05.jpg"
+                   alt="Cliente da SOS Direito gravando seu depoimento" loading="lazy" decoding="async">
             </div>
             <div class="caso__corpo">
               <p class="caso__feedback">“Processo conduzido com segurança do início ao fim. Recomendo de olhos fechados.”</p>
@@ -86,8 +91,9 @@ head_extra: <link rel="stylesheet" href="../assets/css/pages/casos.css?v={{VER}}
         </li>
         <li>
           <article class="caso caso--baixo" data-perfil="pessoaComum">
-            <div class="caso__midia midia-pendente">
-              <span class="midia-pendente__rotulo">Mídia pendente</span>
+            <div class="caso__midia">
+              <img src="{{BASE}}assets/media/prova/caso-06.jpg"
+                   alt="Clientes da SOS Direito gravando seu depoimento" loading="lazy" decoding="async">
             </div>
             <div class="caso__corpo">
               <p class="caso__feedback">“Agradeço à SOS Direito por ter me auxiliado em cada etapa desse processo.”</p>
@@ -96,8 +102,9 @@ head_extra: <link rel="stylesheet" href="../assets/css/pages/casos.css?v={{VER}}
         </li>
         <li>
           <article class="caso caso--baixo" data-perfil="familia">
-            <div class="caso__midia midia-pendente">
-              <span class="midia-pendente__rotulo">Mídia pendente</span>
+            <div class="caso__midia">
+              <img src="{{BASE}}assets/media/prova/caso-07.jpg"
+                   alt="Cliente da SOS Direito gravando seu depoimento" loading="lazy" decoding="async">
             </div>
             <div class="caso__corpo">
               <p class="caso__feedback">“Não tenho palavras para agradecer o que fizeram pela gente.”</p>
@@ -106,8 +113,9 @@ head_extra: <link rel="stylesheet" href="../assets/css/pages/casos.css?v={{VER}}
         </li>
         <li>
           <article class="caso" data-perfil="empresario">
-            <div class="caso__midia midia-pendente">
-              <span class="midia-pendente__rotulo">Mídia pendente</span>
+            <div class="caso__midia">
+              <img src="{{BASE}}assets/media/prova/caso-08.jpg"
+                   alt="Casal cliente da SOS Direito gravando seu depoimento" loading="lazy" decoding="async">
             </div>
             <div class="caso__corpo">
               <p class="caso__feedback">“Hoje sigo expandindo meu negócio nos Estados Unidos, e tudo começou aqui.”</p>
@@ -116,8 +124,9 @@ head_extra: <link rel="stylesheet" href="../assets/css/pages/casos.css?v={{VER}}
         </li>
         <li>
           <article class="caso caso--alto" data-perfil="pessoaComum">
-            <div class="caso__midia midia-pendente">
-              <span class="midia-pendente__rotulo">Mídia pendente</span>
+            <div class="caso__midia">
+              <img src="{{BASE}}assets/media/prova/caso-09.jpg"
+                   alt="Família cliente da SOS Direito nos Estados Unidos" loading="lazy" decoding="async">
             </div>
             <div class="caso__corpo">
               <p class="caso__feedback">“Me senti mais seguro em cada decisão, sabendo que estava em boas mãos.”</p>

@@ -1120,17 +1120,19 @@
   width: 100%; height: 100%;
   object-fit: cover;
 }
+/* O vídeo usa os controles nativos, que ocupam a base. Por isso o véu
+   escurece o topo, e não o pé como antes: é lá que o rótulo agora fica. */
 .caso__midia--video::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(29,46,64,0.34), transparent 46%);
+  background: linear-gradient(to bottom, rgba(29,46,64,0.38), transparent 46%);
   pointer-events: none;
 }
 .caso__play {
   position: absolute;
   left: var(--sp-4);
-  bottom: var(--sp-4);
+  top: var(--sp-4);
   display: inline-flex;
   align-items: center;
   gap: 0.45em;
