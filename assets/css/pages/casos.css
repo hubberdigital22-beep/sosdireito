@@ -1,13 +1,45 @@
 /* ============================================================
    SOS DIREITO — Casos de Sucesso
-   Portfólio visual. Arranjo livre, sem categorias visíveis.
+   Galeria com todo o material cedido pelos clientes: depoimentos
+   em vídeo e fotos dos momentos de aprovação.
    ============================================================ */
 
-/* Masonry por colunas em vez de grid: com cards de alturas diferentes,
-   o grid deixa buracos entre as fileiras e quebra o efeito de mural.
-   A ordem de leitura desce cada coluna, mas aqui não há ordem
-   semântica — é uma parede de agradecimentos, não uma lista. */
-.secao-mural .mural {
+/* ---- Filtros ----
+   Com 30 itens, um filtro evita que quem só quer ver depoimentos
+   tenha que garimpar no meio das fotos. São botões de verdade
+   (aria-pressed), não links — não mudam de página. */
+.galeria__filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-7);
+}
+.galeria__filtro {
+  padding: 0.5rem 1.1rem;
+  font-size: var(--fs-sm);
+  font-weight: var(--peso-corpo);
+  color: var(--texto-suave);
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: color var(--dur-rapida) var(--ease-suave),
+              background var(--dur-rapida) var(--ease-suave),
+              border-color var(--dur-rapida) var(--ease-suave);
+}
+.galeria__filtro:hover { color: var(--principal); border-color: var(--principal); }
+.galeria__filtro[aria-pressed="true"] {
+  color: var(--marfim);
+  background: var(--principal);
+  border-color: var(--principal);
+}
+
+/* ---- Mural ----
+   Masonry por colunas em vez de grid: com peças de alturas
+   diferentes, o grid deixa buracos entre as fileiras. A ordem de
+   leitura desce cada coluna, mas aqui não há ordem semântica —
+   é uma parede de agradecimentos, não uma lista. */
+.galeria {
   display: block;
   list-style: none;
   padding: 0;
@@ -15,20 +47,111 @@
   columns: 4;
   column-gap: clamp(1rem, 2vw, 1.5rem);
 }
-.secao-mural .mural > li {
+.galeria__item {
   break-inside: avoid;
   margin-bottom: clamp(1rem, 2vw, 1.5rem);
 }
+.galeria__item[hidden] { display: none; }
 
-@media (max-width: 1099px) { .secao-mural .mural { columns: 3; } }
-@media (max-width: 780px)  { .secao-mural .mural { columns: 2; } }
-@media (max-width: 480px)  { .secao-mural .mural { columns: 1; } }
+@media (max-width: 1099px) { .galeria { columns: 3; } }
+@media (max-width: 780px)  { .galeria { columns: 2; } }
+@media (max-width: 480px)  { .galeria { columns: 1; } }
 
-/* Alturas alternadas quebram a régua e reforçam o mural.
-   As classes vêm do campo `formato` em data/casos.js. */
-.mural .caso--alto  .caso__midia { aspect-ratio: 3 / 5; }
-.mural .caso--baixo .caso__midia { aspect-ratio: 1 / 1; }
+/* ---- Peça ---- */
+.peca {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  background: var(--marfim-050);
+  border: 1px solid var(--hairline-suave);
+  border-radius: var(--r-lg);
+  transition: transform var(--dur-media) var(--ease-saida),
+              box-shadow var(--dur-media) var(--ease-suave);
+}
+.peca:hover { transform: translateY(-3px); box-shadow: var(--sh-2); }
 
-/* Sem contexto explicativo, o feedback é o único texto do card:
-   ele merece um pouco mais de presença que o corpo padrão. */
-.mural .caso__feedback { font-size: var(--fs-body); }
+.peca__img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* Alturas alternadas quebram a régua e reforçam o mural. Sem isto,
+   as fotos verticais do WhatsApp deixariam a parede toda no mesmo
+   ritmo. object-fit recorta sem distorcer. */
+.peca--alto  .peca__img { aspect-ratio: 3 / 5; object-fit: cover; }
+.peca--baixo .peca__img { aspect-ratio: 1 / 1; object-fit: cover; }
+
+/* ---- Acionador de vídeo ----
+   É um <button> de verdade: chega pelo Tab e responde a Enter. O
+   <video> nasce só no clique (galeria.js). */
+.peca__acionar {
+  display: block;
+  position: relative;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+.peca__acionar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(29,46,64,0.42), transparent 42%);
+  pointer-events: none;
+}
+.peca__play {
+  position: absolute;
+  left: var(--sp-4);
+  top: var(--sp-4);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.4em 0.85em;
+  font-size: var(--fs-xs);
+  font-weight: var(--peso-corpo);
+  color: var(--marfim);
+  background: color-mix(in srgb, var(--principal) 82%, transparent);
+  backdrop-filter: blur(4px);
+  border-radius: var(--r-pill);
+}
+.peca__acionar:hover .peca__play,
+.peca__acionar:focus-visible .peca__play { background: var(--apoio); }
+
+/* O vídeo entra no lugar do botão, herdando a mesma caixa. */
+.peca video {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--principal-900);
+}
+
+/* ---- Legenda ----
+   Transcrição do que a pessoa diz no vídeo. Sem aspas decorativas
+   no CSS: as aspas já vêm no texto, curvas e corretas. */
+.peca__legenda {
+  padding: var(--sp-4) var(--sp-5) var(--sp-5);
+}
+.peca__fala {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-media);
+  color: var(--texto);
+}
+.peca__autor {
+  display: block;
+  margin-top: var(--sp-3);
+  font-size: var(--fs-xs);
+  font-style: normal;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--apoio);
+}
+
+.galeria__vazio {
+  color: var(--texto-suave);
+  text-align: center;
+  padding-block: var(--sp-8);
+}

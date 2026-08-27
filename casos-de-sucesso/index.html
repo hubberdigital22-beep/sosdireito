@@ -36,11 +36,11 @@
 </script>
 <link rel="preload" href="../assets/fonts/sweet-sans-medium.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/roses-bolero.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="../assets/css/tokens.css?v=6a8eee83">
-<link rel="stylesheet" href="../assets/css/base.css?v=6a8eee83">
-<link rel="stylesheet" href="../assets/css/layout.css?v=6a8eee83">
-<link rel="stylesheet" href="../assets/css/components.css?v=6a8eee83">
-<link rel="stylesheet" href="../assets/css/pages/casos.css?v=6a8eee83">
+<link rel="stylesheet" href="../assets/css/tokens.css?v=6a90879f">
+<link rel="stylesheet" href="../assets/css/base.css?v=6a90879f">
+<link rel="stylesheet" href="../assets/css/layout.css?v=6a90879f">
+<link rel="stylesheet" href="../assets/css/components.css?v=6a90879f">
+<link rel="stylesheet" href="../assets/css/pages/casos.css?v=6a90879f">
 </head>
 <body>
 <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
@@ -216,95 +216,350 @@
   </div>
 </section>
 
-<!-- ============================ MURAL ============================
-     Funciona como portfólio, não como vitrine explicativa. Grid único,
-     sem separar em blocos ou categorias. Cada card traz só a mídia e um
-     trecho curto de feedback — sem explicar tipo de caso, sem contexto
-     adicional. O efeito é simbólico, quase um mural de gratidão.
+<!-- ======================== GALERIA ========================
+     Todo o material cedido pelos clientes: 17 depoimentos em vídeo e
+     13 fotos. Os vídeos entram como pôster + botão; o <video> só é
+     criado no clique (assets/js/components/galeria.js), então a página
+     não baixa nenhum mp4 antes da interação — são 31 MB no total.
 
-     Os textos vêm do banco de feedback em assets/js/data/casos.js.
-     A mídia já está em assets/media/prova/. Ninguém é identificado pelo
-     nome, e nenhuma imagem mostra documento: boa parte do material
-     original trazia green cards legíveis e ficou de fora por isso. -->
-<section class="secao secao--sem-topo secao-mural">
+     As falas são transcrição literal do que cada pessoa diz no próprio
+     vídeo. Só quem se identifica pelo nome na gravação é nomeado.
+     Nenhuma mídia exibe documento legível. -->
+<section class="secao secao--sem-topo secao-galeria">
   <div class="container">
-    <ul class="mural" role="list" data-revelar="grupo">
-        <li>
-          <article class="caso caso--alto" data-perfil="empresario">
-            <div class="caso__midia">
-              <img src="../assets/media/prova/caso-01.jpg"
-                   alt="Casal cliente da SOS Direito em comemoração" loading="lazy" decoding="async">
-            </div>
-          </article>
+
+    <div class="galeria__filtros" role="group" aria-label="Filtrar a galeria">
+      <button class="galeria__filtro" type="button" data-filtro="tudo" aria-pressed="true">Tudo</button>
+      <button class="galeria__filtro" type="button" data-filtro="video" aria-pressed="false">Depoimentos em vídeo</button>
+      <button class="galeria__filtro" type="button" data-filtro="foto" aria-pressed="false">Momentos</button>
+    </div>
+
+    <ul class="galeria" role="list" data-galeria>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca peca--alto">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-01.mp4"
+                  aria-label="Assistir ao depoimento: Família cliente da SOS Direito gravando agradecimento em vídeo">
+            <img class="peca__img" src="../assets/media/prova/dep-01.jpg" alt="Família cliente da SOS Direito gravando agradecimento em vídeo" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“Estamos aqui para agradecer. Nosso processo, graças a Deus, tudo aprovado.”</blockquote>
+          </figcaption>
+          </figure>
         </li>
-        <li>
-          <article class="caso caso--baixo" data-perfil="pessoaComum">
-            <div class="caso__midia">
-              <img src="../assets/media/prova/caso-02.jpg"
-                   alt="Casal cliente da SOS Direito" loading="lazy" decoding="async">
-            </div>
-          </article>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-02.mp4"
+                  aria-label="Assistir ao depoimento: Cliente da SOS Direito comemorando em casa a aprovação do processo">
+            <img class="peca__img" src="../assets/media/prova/dep-02.jpg" alt="Cliente da SOS Direito comemorando em casa a aprovação do processo" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“Estamos em festa aqui em casa… finalmente a gente chegou no tão sonhado.”</blockquote>
+          </figcaption>
+          </figure>
         </li>
-        <li>
-          <article class="caso" data-perfil="pessoaComum">
-            <div class="caso__midia">
-              <img src="../assets/media/prova/caso-03.jpg"
-                   alt="Casal cliente da SOS Direito nos Estados Unidos" loading="lazy" decoding="async">
-            </div>
-          </article>
+        <li class="galeria__item" data-tipo="foto">
+          <figure class="peca peca--baixo">
+          <img class="peca__img" src="../assets/media/prova/foto-01.jpg" alt="Três clientes da SOS Direito com os guias de boas-vindas da imigração americana" loading="lazy" decoding="async">
+          </figure>
         </li>
-        <li>
-          <article class="caso" data-perfil="pessoaComum">
-            <div class="caso__midia">
-              <img src="../assets/media/prova/caso-04.jpg"
-                   alt="Ana, cliente da SOS Direito, ao gravar seu depoimento" loading="lazy" decoding="async">
-            </div>
-            <div class="caso__corpo">
-              <p class="caso__feedback">“Eu acabei de ter o meu processo aprovado, sem palavras para agradecer… o meu momento chegou.”</p>
-            </div>
-          </article>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-03.mp4"
+                  aria-label="Assistir ao depoimento: Ana, cliente da SOS Direito, gravando seu depoimento">
+            <img class="peca__img" src="../assets/media/prova/dep-03.jpg" alt="Ana, cliente da SOS Direito, gravando seu depoimento" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“Meu nome é Ana. Eu acabei de ter o meu processo aprovado, sem palavras para agradecer.”</blockquote>
+            <cite class="peca__autor">Ana</cite>
+          </figcaption>
+          </figure>
         </li>
-        <li>
-          <article class="caso caso--alto" data-perfil="familia">
-            <div class="caso__midia">
-              <img src="../assets/media/prova/caso-05.jpg"
-                   alt="Família cliente da SOS Direito com o bebê, mostrando os green cards" loading="lazy" decoding="async">
-            </div>
-          </article>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca peca--alto">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-04.mp4"
+                  aria-label="Assistir ao depoimento: Família cliente da SOS Direito reunida à mesa gravando depoimento">
+            <img class="peca__img" src="../assets/media/prova/dep-04.jpg" alt="Família cliente da SOS Direito reunida à mesa gravando depoimento" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“Chegou o tão esperado dia. A nossa família está transbordando de alegria.”</blockquote>
+          </figcaption>
+          </figure>
         </li>
-        <li>
-          <article class="caso caso--baixo" data-perfil="familia">
-            <div class="caso__midia">
-              <img src="../assets/media/prova/caso-06.jpg"
-                   alt="Família de cinco clientes da SOS Direito em frente à casa nova, com os green cards" loading="lazy" decoding="async">
-            </div>
-          </article>
+        <li class="galeria__item" data-tipo="foto">
+          <figure class="peca peca--baixo">
+          <img class="peca__img" src="../assets/media/prova/foto-02.jpg" alt="Quatro familiares clientes da SOS Direito comemorando a residência em casa" loading="lazy" decoding="async">
+          </figure>
         </li>
-        <li>
-          <article class="caso caso--baixo" data-perfil="familia">
-            <div class="caso__midia">
-              <img src="../assets/media/prova/caso-07.jpg"
-                   alt="Família cliente da SOS Direito com a filha nos ombros do pai, mostrando os green cards" loading="lazy" decoding="async">
-            </div>
-          </article>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca peca--alto">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-05.mp4"
+                  aria-label="Assistir ao depoimento: Casal cliente da SOS Direito gravando depoimento em casa">
+            <img class="peca__img" src="../assets/media/prova/dep-05.jpg" alt="Casal cliente da SOS Direito gravando depoimento em casa" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“Chegou hoje na nossa caixinha de correio, de nós três, chegou junto.”</blockquote>
+          </figcaption>
+          </figure>
         </li>
-        <li>
-          <article class="caso" data-perfil="familia">
-            <div class="caso__midia">
-              <img src="../assets/media/prova/caso-08.jpg"
-                   alt="Família cliente da SOS Direito com os kits de boas-vindas da imigração americana" loading="lazy" decoding="async">
-            </div>
-          </article>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-06.mp4"
+                  aria-label="Assistir ao depoimento: Casal cliente da SOS Direito gravando depoimento ao ar livre">
+            <img class="peca__img" src="../assets/media/prova/dep-06.jpg" alt="Casal cliente da SOS Direito gravando depoimento ao ar livre" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“Foram sete anos de luta e, no oitavo ano, quando você entrou na nossa vida, tudo mudou.”</blockquote>
+          </figcaption>
+          </figure>
         </li>
-        <li>
-          <article class="caso caso--alto" data-perfil="pessoaComum">
-            <div class="caso__midia">
-              <img src="../assets/media/prova/caso-09.jpg"
-                   alt="Casal cliente da SOS Direito mostrando o green card recém-chegado" loading="lazy" decoding="async">
-            </div>
-          </article>
+        <li class="galeria__item" data-tipo="foto">
+          <figure class="peca peca--baixo">
+          <img class="peca__img" src="../assets/media/prova/foto-03.jpg" alt="Mãe e filha clientes da SOS Direito com as cartas oficiais da imigração" loading="lazy" decoding="async">
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-07.mp4"
+                  aria-label="Assistir ao depoimento: Raquel, cliente da SOS Direito, gravando seu depoimento">
+            <img class="peca__img" src="../assets/media/prova/dep-07.jpg" alt="Raquel, cliente da SOS Direito, gravando seu depoimento" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“Outro advogado falou que eu não tinha chance alguma. E eu consegui: em um ano meu green card saiu, tempo recorde.”</blockquote>
+            <cite class="peca__autor">Raquel</cite>
+          </figcaption>
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca peca--alto">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-08.mp4"
+                  aria-label="Assistir ao depoimento: Cliente da SOS Direito gravando depoimento em casa">
+            <img class="peca__img" src="../assets/media/prova/dep-08.jpg" alt="Cliente da SOS Direito gravando depoimento em casa" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“A gente procurou vários advogados e não sentiu segurança. Aí Deus colocou você no nosso caminho.”</blockquote>
+          </figcaption>
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="foto">
+          <figure class="peca peca--baixo">
+          <img class="peca__img" src="../assets/media/prova/foto-04.jpg" alt="Casal com o filho pequeno comemorando a residência permanente" loading="lazy" decoding="async">
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca peca--alto">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-09.mp4"
+                  aria-label="Assistir ao depoimento: Cliente da SOS Direito gravando depoimento à beira de um lago">
+            <img class="peca__img" src="../assets/media/prova/dep-09.jpg" alt="Cliente da SOS Direito gravando depoimento à beira de um lago" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“Fiquei aqui 10 anos sem ter documento. Hoje eu sou cidadão americano.”</blockquote>
+          </figcaption>
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-10.mp4"
+                  aria-label="Assistir ao depoimento: Casal cliente da SOS Direito brindando a aprovação do processo">
+            <img class="peca__img" src="../assets/media/prova/dep-10.jpg" alt="Casal cliente da SOS Direito brindando a aprovação do processo" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“São 5 anos esperando por essa aprovação. Você não tem noção da nossa felicidade.”</blockquote>
+          </figcaption>
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="foto">
+          <figure class="peca peca--baixo">
+          <img class="peca__img" src="../assets/media/prova/foto-05.jpg" alt="Casal ao ar livre com a filha nos ombros, celebrando a aprovação" loading="lazy" decoding="async">
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-11.mp4"
+                  aria-label="Assistir ao depoimento: Família cliente da SOS Direito em parque nos Estados Unidos">
+            <img class="peca__img" src="../assets/media/prova/dep-11.jpg" alt="Família cliente da SOS Direito em parque nos Estados Unidos" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“A gente achou que era um processo que não tinha jeito mais. E aí nós conhecemos a Diana.”</blockquote>
+          </figcaption>
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca peca--alto">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-12.mp4"
+                  aria-label="Assistir ao depoimento: Cliente da SOS Direito reagindo à notícia da aprovação">
+            <img class="peca__img" src="../assets/media/prova/dep-12.jpg" alt="Cliente da SOS Direito reagindo à notícia da aprovação" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“Glória a Deus! Muito obrigado, viu?”</blockquote>
+          </figcaption>
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="foto">
+          <figure class="peca peca--baixo">
+          <img class="peca__img" src="../assets/media/prova/foto-06.jpg" alt="Família de três abraçada em uma calçada arborizada nos Estados Unidos" loading="lazy" decoding="async">
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca peca--alto">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-13.mp4"
+                  aria-label="Assistir ao depoimento: Clientes da SOS Direito reagindo à notícia da aprovação">
+            <img class="peca__img" src="../assets/media/prova/dep-13.jpg" alt="Clientes da SOS Direito reagindo à notícia da aprovação" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“Sério? De verdade? Ah, valeu demais!”</blockquote>
+          </figcaption>
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-14.mp4"
+                  aria-label="Assistir ao depoimento: Cliente da SOS Direito mostrando a chegada do envelope da imigração">
+            <img class="peca__img" src="../assets/media/prova/dep-14.jpg" alt="Cliente da SOS Direito mostrando a chegada do envelope da imigração" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“O envelope mais desejado de todos os tempos.”</blockquote>
+          </figcaption>
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="foto">
+          <figure class="peca peca--baixo">
+          <img class="peca__img" src="../assets/media/prova/foto-07.jpg" alt="Casal cliente da SOS Direito comemorando a residência permanente" loading="lazy" decoding="async">
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-15.mp4"
+                  aria-label="Assistir ao depoimento: Clientes da SOS Direito comemorando o resultado do processo">
+            <img class="peca__img" src="../assets/media/prova/dep-15.jpg" alt="Clientes da SOS Direito comemorando o resultado do processo" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“Foi um sucesso. É demais!”</blockquote>
+          </figcaption>
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca peca--alto">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-16.mp4"
+                  aria-label="Assistir ao depoimento: Cliente da SOS Direito gravando agradecimento em vídeo">
+            <img class="peca__img" src="../assets/media/prova/dep-16.jpg" alt="Cliente da SOS Direito gravando agradecimento em vídeo" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“Estou aqui para agradecer o carinho, agradecer o empenho para ter nos ajudado.”</blockquote>
+          </figcaption>
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="foto">
+          <figure class="peca peca--baixo">
+          <img class="peca__img" src="../assets/media/prova/foto-08.jpg" alt="Casal cliente da SOS Direito comemorando em casa a chegada do documento" loading="lazy" decoding="async">
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="video">
+          <figure class="peca peca--alto">
+          <button class="peca__acionar" type="button"
+                  data-video="../assets/media/prova/dep-17.mp4"
+                  aria-label="Assistir ao depoimento: Cliente da SOS Direito gravando agradecimento em vídeo">
+            <img class="peca__img" src="../assets/media/prova/dep-17.jpg" alt="Cliente da SOS Direito gravando agradecimento em vídeo" loading="lazy" decoding="async">
+            <span class="peca__play" aria-hidden="true">
+              <svg width="13" height="13"><use href="#i-play"></use></svg>Depoimento
+            </span>
+          </button>
+          <figcaption class="peca__legenda">
+            <blockquote class="peca__fala">“Tô aqui pra agradecer você pelo carinho, por ajudar nós aqui.”</blockquote>
+          </figcaption>
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="foto">
+          <figure class="peca">
+          <img class="peca__img" src="../assets/media/prova/foto-09.jpg" alt="Casal com o bebê no colo à beira-mar, vestindo camisas dos Estados Unidos" loading="lazy" decoding="async">
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="foto">
+          <figure class="peca peca--baixo">
+          <img class="peca__img" src="../assets/media/prova/foto-10.jpg" alt="Família de cinco em frente à casa nova, com camisas da seleção dos Estados Unidos" loading="lazy" decoding="async">
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="foto">
+          <figure class="peca">
+          <img class="peca__img" src="../assets/media/prova/foto-11.jpg" alt="Clientes da SOS Direito em viagem, depois do processo concluído" loading="lazy" decoding="async">
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="foto">
+          <figure class="peca peca--alto">
+          <img class="peca__img" src="../assets/media/prova/foto-12.jpg" alt="Casal cliente da SOS Direito nos Estados Unidos" loading="lazy" decoding="async">
+          </figure>
+        </li>
+        <li class="galeria__item" data-tipo="foto">
+          <figure class="peca peca--baixo">
+          <img class="peca__img" src="../assets/media/prova/foto-13.jpg" alt="Casal cliente da SOS Direito abraçado, depois da aprovação" loading="lazy" decoding="async">
+          </figure>
         </li>
     </ul>
+
+    <p class="galeria__vazio" hidden>Nenhum item nesse filtro.</p>
   </div>
 </section>
 
@@ -370,17 +625,18 @@
   </div>
 </footer>
 
-<script src="../assets/js/vendor/gsap.min.js?v=6a8eee83" defer></script>
-<script src="../assets/js/vendor/ScrollTrigger.min.js?v=6a8eee83" defer></script>
-<script src="../assets/js/config.js?v=6a8eee83" defer></script>
-<script src="../assets/js/motion.js?v=6a8eee83" defer></script>
-<script src="../assets/js/components/nav.js?v=6a8eee83" defer></script>
-<script src="../assets/js/components/accordion.js?v=6a8eee83" defer></script>
-<script src="../assets/js/components/trilha.js?v=6a8eee83" defer></script>
-<script src="../assets/js/components/timeline.js?v=6a8eee83" defer></script>
-<script src="../assets/js/components/carrossel.js?v=6a8eee83" defer></script>
-<script src="../assets/js/components/decor.js?v=6a8eee83" defer></script>
-<script src="../assets/js/components/form.js?v=6a8eee83" defer></script>
+<script src="../assets/js/vendor/gsap.min.js?v=6a90879f" defer></script>
+<script src="../assets/js/vendor/ScrollTrigger.min.js?v=6a90879f" defer></script>
+<script src="../assets/js/config.js?v=6a90879f" defer></script>
+<script src="../assets/js/motion.js?v=6a90879f" defer></script>
+<script src="../assets/js/components/nav.js?v=6a90879f" defer></script>
+<script src="../assets/js/components/accordion.js?v=6a90879f" defer></script>
+<script src="../assets/js/components/trilha.js?v=6a90879f" defer></script>
+<script src="../assets/js/components/timeline.js?v=6a90879f" defer></script>
+<script src="../assets/js/components/carrossel.js?v=6a90879f" defer></script>
+<script src="../assets/js/components/decor.js?v=6a90879f" defer></script>
+<script src="../assets/js/components/form.js?v=6a90879f" defer></script>
+<script src="../assets/js/components/galeria.js?v=6a90879f" defer></script>
 
 </body>
 </html>
