@@ -75,11 +75,11 @@
   width: 100%;
   height: auto;
 }
-/* Alturas alternadas quebram a régua e reforçam o mural. Sem isto,
-   as fotos verticais do WhatsApp deixariam a parede toda no mesmo
-   ritmo. object-fit recorta sem distorcer. */
-.peca--alto  .peca__img { aspect-ratio: 3 / 5; object-fit: cover; }
-.peca--baixo .peca__img { aspect-ratio: 1 / 1; object-fit: cover; }
+/* Sem proporção forçada: cada mídia entra na altura natural dela.
+   Num mural em colunas é a variedade real de enquadramento que dá o
+   ritmo — forçar 1/1 nas verticais do WhatsApp descartava 44% da foto
+   no recorte, cortando cabeça e deixando o quadro no colo das pessoas.
+   Medido item a item antes de tirar. */
 
 /* ---- Acionador de vídeo ----
    É um <button> de verdade: chega pelo Tab e responde a Enter. O
