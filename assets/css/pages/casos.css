@@ -1,7 +1,14 @@
 /* ============================================================
    SOS DIREITO — Casos de Sucesso
-   Galeria com todo o material cedido pelos clientes: depoimentos
-   em vídeo e fotos dos momentos de aprovação.
+   Mural de prova: 17 depoimentos em vídeo e 13 fotos cedidas pelos
+   clientes, numa parede única servida em lotes.
+
+   REGRA QUE MANDA NESTE ARQUIVO: nada é recortado. Cada peça recebe
+   a classe do formato que corresponde à proporção REAL do arquivo
+   (--9x16, --3x4, --16x9…), e a grade está calibrada para a caixa
+   ficar a menos de 3% dessa proporção. Foi decisão tomada olhando
+   foto a foto: forçar 1/1 nas verticais de celular descartava 44%
+   da imagem e deixava o quadro no colo das pessoas.
    ============================================================ */
 
 /* ---- Filtros ----
@@ -34,52 +41,121 @@
   border-color: var(--principal);
 }
 
-/* ---- Mural ----
-   Masonry por colunas em vez de grid: com peças de alturas
-   diferentes, o grid deixa buracos entre as fileiras. A ordem de
-   leitura desce cada coluna, mas aqui não há ordem semântica —
-   é uma parede de agradecimentos, não uma lista. */
+/* ============================================================
+   MURAL
+   ============================================================ */
+
+/* Container de consulta da grade. SEM padding: a conta de --passo
+   assume que esta caixa tem exatamente a largura das colunas.
+   `container-type` contém layout/estilo só aqui dentro — o <header>
+   não é descendente, então o position:sticky dele não é tocado
+   (ver o aviso no topo do base.css). */
+.galeria__area { container-type: inline-size; }
+
+/* Grade com spans, e não `columns`. Duas razões concretas:
+
+   1) `columns` REDISTRIBUI todos os itens a cada mudança — filtrar
+      ou revelar um lote fazia a peça que a pessoa estava olhando
+      pular de coluna. Na grade a colocação segue a ordem do DOM:
+      item colocado não se move mais e o mural só cresce para baixo.
+
+   2) A altura de cada peça passa a ser previsível, e é isso que
+      permite a fala entrar SOBRE a imagem sem estourar a caixa nem
+      ser truncada.
+
+   GEOMETRIA. `--passo` é a distância entre duas colunas (coluna +
+   vão). A linha da grade vale --passo/12, logo:
+
+       largura(C colunas) = C * --passo - --gap
+       altura (R linhas)  = R * --passo/12 - --gap
+
+   ou seja, a proporção de uma peça é ~ 12C/R. É daí que saem os
+   spans de cada formato, todos conferidos contra os pixels reais
+   dos arquivos. Desvio máximo medido: 2,6%.
+
+   A coluna fica em ~165-195px em TODOS os cortes: o que muda com a
+   largura da tela é o número de colunas, não o tamanho da peça. */
 .galeria {
-  display: block;
+  --cols: 6;
+  --gap: clamp(0.5rem, 0.9vw, 0.875rem);
+
+  /* Reserva para navegador sem container queries: a largura útil do
+     .container é exatamente esta conta. Abaixo de 1320px erra pela
+     barra de rolagem clássica do desktop (~1%), o que é invisível. */
+  --passo: calc((min(100vw, var(--container)) - 2 * var(--gutter) + var(--gap)) / var(--cols));
+  /* Medida de verdade, sem barra de rolagem. Sobrescreve a de cima
+     onde @container existe. */
+  --passo: calc((100cqw + var(--gap)) / var(--cols));
+
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  /* max() é trava de segurança: se o vão algum dia crescer a ponto de
+     passar --passo/12, a altura de linha iria a zero e o mural inteiro
+     colapsaria. Hoje há folga de 1,3x no corte mais apertado. */
+  grid-auto-rows: max(1px, calc(var(--passo) / 12 - var(--gap)));
+  grid-auto-flow: row dense;
+  gap: var(--gap);
   list-style: none;
   padding: 0;
   margin: 0;
-  columns: 4;
-  column-gap: clamp(1rem, 2vw, 1.5rem);
 }
-.galeria__item {
-  break-inside: avoid;
-  margin-bottom: clamp(1rem, 2vw, 1.5rem);
-}
+
+/* minmax(0, 1fr) nas colunas já impede estouro por imagem larga;
+   os cortes só trocam a contagem. */
+@media (max-width: 1199px) { .galeria { --cols: 5; } }
+@media (max-width:  989px) { .galeria { --cols: 4; } }
+@media (max-width:  769px) { .galeria { --cols: 3; } }
+@media (max-width:  559px) { .galeria { --cols: 2; } }
+
+/* ---- Formatos ----
+   O nome É a proporção do arquivo. Peça nova: rodar
+   `sips -g pixelWidth -g pixelHeight arquivo.jpg` e usar a classe
+   que bater. Nunca escolher por gosto — é isso que mantém o mural
+   sem recorte. O comentário traz a proporção da caixa e a do
+   arquivo, nessa ordem. */
+.galeria__item--9x16 { grid-row: span 21; }                      /* 0,559 · 0,563 */
+.galeria__item--2x3  { grid-row: span 18; }                      /* 0,655 · 0,667 */
+.galeria__item--3x4  { grid-row: span 16; }                      /* 0,740 · 0,750 */
+.galeria__item--1x1  { grid-row: span 12; }                      /* 1,000 · 1,027 */
+.galeria__item--4x3  { grid-column: span 2; grid-row: span 18; } /* 1,345 · 1,331 */
+.galeria__item--16x9 { grid-column: span 2; grid-row: span 14; } /* 1,747 · 1,757 */
+
 .galeria__item[hidden] { display: none; }
+.galeria__item:focus-visible {
+  outline: var(--foco);
+  outline-offset: var(--foco-offset);
+  border-radius: var(--r-md);
+}
 
-@media (max-width: 1099px) { .galeria { columns: 3; } }
-@media (max-width: 780px)  { .galeria { columns: 2; } }
-@media (max-width: 480px)  { .galeria { columns: 1; } }
-
-/* ---- Peça ---- */
+/* ---- Peça ----
+   Sem casca: numa parede densa a moldura vira ruído, a mídia é o
+   card. A peça preenche a célula, e a célula é que tem a proporção. */
 .peca {
   position: relative;
-  overflow: hidden;
+  height: 100%;
   margin: 0;
-  background: var(--marfim-050);
+  overflow: hidden;
+  background: var(--marfim-200);   /* fundo enquanto a imagem não chega */
   border: 1px solid var(--hairline-suave);
-  border-radius: var(--r-lg);
-  transition: transform var(--dur-media) var(--ease-saida),
-              box-shadow var(--dur-media) var(--ease-suave);
+  border-radius: var(--r-md);
 }
-.peca:hover { transform: translateY(-3px); box-shadow: var(--sh-2); }
 
-.peca__img {
+.peca__img,
+.peca video {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
 }
-/* Sem proporção forçada: cada mídia entra na altura natural dela.
-   Num mural em colunas é a variedade real de enquadramento que dá o
-   ritmo — forçar 1/1 nas verticais do WhatsApp descartava 44% da foto
-   no recorte, cortando cabeça e deixando o quadro no colo das pessoas.
-   Medido item a item antes de tirar. */
+/* A caixa está a menos de 3% da proporção do arquivo: o `cover` aqui
+   ajusta fração de pixel, não enquadramento. */
+.peca__img { object-fit: cover; }
+/* Já o vídeo entra `contain`: tocando, nada pode ser cortado. */
+.peca video { object-fit: contain; background: var(--principal-900); }
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .peca__img { transition: transform var(--dur-lenta) var(--ease-saida); }
+  .peca:hover .peca__img { transform: scale(1.045); }
+}
 
 /* ---- Acionador de vídeo ----
    É um <button> de verdade: chega pelo Tab e responde a Enter. O
@@ -88,30 +164,47 @@
   display: block;
   position: relative;
   width: 100%;
+  height: 100%;
   padding: 0;
   border: 0;
   background: none;
   cursor: pointer;
   color: inherit;
 }
+/* Véu de topo: dá contraste ao selo sobre pôster claro. */
 .peca__acionar::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(29,46,64,0.42), transparent 42%);
+  background: linear-gradient(to bottom, rgba(29, 46, 64, 0.38), transparent 38%);
   pointer-events: none;
 }
+/* O anel de foco vai POR DENTRO: a peça corta o transbordo, e um
+   outline com offset positivo seria comido pela borda. Dois tons
+   para aparecer tanto sobre foto clara quanto sobre foto escura. */
+.peca__acionar:focus-visible { outline: none; }
+.peca__acionar:focus-visible::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: var(--r-md);
+  box-shadow: inset 0 0 0 3px var(--marfim), inset 0 0 0 6px var(--principal);
+  pointer-events: none;
+}
+
 .peca__play {
   position: absolute;
-  left: var(--sp-4);
-  top: var(--sp-4);
+  left: var(--sp-3);
+  top: var(--sp-3);
   z-index: 2;
   display: inline-flex;
   align-items: center;
-  gap: 0.45em;
-  padding: 0.4em 0.85em;
+  gap: 0.4em;
+  padding: 0.4em 0.8em;
   font-size: var(--fs-xs);
   font-weight: var(--peso-corpo);
+  line-height: 1;                  /* o 1,68 do corpo incharia o selo */
   color: var(--marfim);
   background: color-mix(in srgb, var(--principal) 82%, transparent);
   backdrop-filter: blur(4px);
@@ -120,34 +213,94 @@
 .peca__acionar:hover .peca__play,
 .peca__acionar:focus-visible .peca__play { background: var(--apoio); }
 
-/* O vídeo entra no lugar do botão, herdando a mesma caixa. */
-.peca video {
-  display: block;
-  width: 100%;
-  height: auto;
-  background: var(--principal-900);
-}
+/* ---- Fala ----
+   Transcrição literal do vídeo. Entra SOBRE a imagem, não embaixo:
+   a altura da peça é fixada pela grade, e uma legenda de duas a seis
+   linhas embaixo ou seria truncada ou deixaria vão. Sobreposta, ela
+   só ocupa véu — nada da foto se perde.
 
-/* ---- Legenda ----
-   Transcrição do que a pessoa diz no vídeo. Sem aspas decorativas
-   no CSS: as aspas já vêm no texto, curvas e corretas. */
+   pointer-events: none deixa o clique atravessar até o botão.
+   O texto fica na faixa de 88-94% do véu, o que dá contraste acima
+   de 9:1 sobre qualquer pôster; o text-shadow é rede de segurança. */
 .peca__legenda {
-  padding: var(--sp-4) var(--sp-5) var(--sp-5);
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 3;
+  /* O recuo de topo é só a zona de esmaecimento do véu — nenhuma
+     letra cai nele. Foi apertado depois de medir: a 44px, a fala mais
+     longa da página tomava 57% da peça; a 30px, 44%. */
+  padding: clamp(1.125rem, 2.4vw, 1.875rem) clamp(0.625rem, 1vw, 0.875rem) var(--sp-3);
+  pointer-events: none;
+  background: linear-gradient(to top,
+    color-mix(in srgb, var(--principal-900) 94%, transparent) 0%,
+    color-mix(in srgb, var(--principal-900) 88%, transparent) 58%,
+    color-mix(in srgb, var(--principal-900) 45%, transparent) 82%,
+    transparent 100%);
 }
+/* Sem aspas decorativas no CSS: as aspas já vêm no texto, curvas e
+   corretas. A peça mede ~180px em qualquer corte, então o corpo é
+   fixo; só as peças de duas colunas comportam um tamanho acima. */
 .peca__fala {
   margin: 0;
-  font-size: var(--fs-sm);
-  line-height: var(--lh-media);
-  color: var(--texto);
+  font-size: var(--fs-xs);
+  /* Um pouco mais apertado que --lh-media: numa medida de ~21
+     caracteres, 1,45 abre vãos que fazem a fala parecer maior do que é. */
+  line-height: 1.38;
+  color: var(--marfim);
+  text-wrap: pretty;
+  text-shadow: 0 1px 2px rgba(20, 33, 48, 0.55);
 }
+.galeria__item--16x9 .peca__fala,
+.galeria__item--4x3 .peca__fala { font-size: var(--fs-sm); }
+
 .peca__autor {
   display: block;
-  margin-top: var(--sp-3);
+  margin-top: var(--sp-2);
   font-size: var(--fs-xs);
   font-style: normal;
+  line-height: 1.2;
   letter-spacing: var(--ls-eyebrow);
   text-transform: uppercase;
-  color: var(--apoio);
+  /* O vinho sólido desaparece no véu escuro; o tom claro do par
+     mantém o papel de acento e passa de 6:1 de contraste. */
+  color: var(--apoio-300);
+  text-shadow: 0 1px 2px rgba(20, 33, 48, 0.55);
+}
+
+/* Com o vídeo no ar a fala sai de cena: sobreposta, cobriria os
+   controles nativos. */
+.peca--tocando .peca__legenda { display: none; }
+
+/* ---- Corte progressivo ----
+   Nasce hidden na marcação: sem JS o mural inteiro aparece e não há
+   lote a revelar. galeria.js tira o hidden e assume o controle. */
+.galeria__mais {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-top: clamp(1.75rem, 3.5vw, 2.75rem);
+}
+.galeria__mais[hidden],
+.galeria__mais .btn[hidden] { display: none; }   /* .btn é inline-flex */
+
+.galeria__conta {
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+/* Entrada só do lote que acabou de chegar — quem já estava na tela
+   não pisca. O --i vem do galeria.js. */
+@media (prefers-reduced-motion: no-preference) {
+  .galeria__item--novo {
+    animation: peca-entra var(--dur-lenta) var(--ease-saida) both;
+    animation-delay: calc(var(--i, 0) * 40ms);
+  }
+}
+@keyframes peca-entra {
+  from { opacity: 0; transform: translateY(12px); }
 }
 
 .galeria__vazio {
