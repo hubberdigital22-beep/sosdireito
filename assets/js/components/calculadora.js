@@ -89,20 +89,29 @@
       'Faixa estimada de honorários profissionais, taxas, impostos e tarifas imigratórios e impostos federais.',
       protocolo]);
 
+    /* Consular: sem ajuste de status, não entra no total (igual à produção,
+       que troca o valor por "N/A - Processo Consular" e some com a linha
+       opcional de Honorários de Ajuste de Status). */
     var ajuste = 0;
     if (processo === 'ajuste') {
       ajuste = Math.max(1, adultos) * T.ajusteEB1.adulto + criancas * T.ajusteEB1.crianca;
+      linhas.push(['Ajuste de Status',
+        'Valor estimado, podendo ser alterado a qualquer momento pelo USCIS sem aviso prévio.',
+        ajuste]);
+    } else {
+      linhas.push(['Ajuste de Status', null, 'N/A — Processo Consular']);
     }
-    linhas.push(['Ajuste de Status',
-      'Valor estimado, podendo ser alterado a qualquer momento pelo USCIS sem aviso prévio.',
-      ajuste]);
 
     linhas.push(['Na aprovação eletrônica da I-140',
       'Valor estimado de honorários profissionais.', h.aprovacao]);
 
     total = h.assinatura + T.composicoes.ebCheques + h.impressao + protocolo + ajuste + h.aprovacao;
 
-    return { total: total, linhas: linhas, opcional: true, tabelas: ['eb', 'ajuste'] };
+    return {
+      total: total, linhas: linhas,
+      opcional: processo === 'ajuste',
+      tabelas: ['eb', 'ajuste']
+    };
   }
 
   function calcularEB2(adultos, criancas) {
@@ -196,7 +205,10 @@
     saida.total.textContent = dinheiro(r.total);
 
     saida.linhas.innerHTML = r.linhas.map(function (l) {
-      var valor = l[2] === null ? '<span class="calc-linha__na">Não incluído</span>' : dinheiro(l[2]);
+      var valor;
+      if (typeof l[2] === 'string') valor = '<span class="calc-linha__na">' + l[2] + '</span>';
+      else if (l[2] === null) valor = '<span class="calc-linha__na">Não incluído</span>';
+      else valor = dinheiro(l[2]);
       return '<div class="calc-linha">' +
         '<div><p class="calc-linha__rotulo">' + l[0] + '</p>' +
         (l[1] ? '<p class="calc-linha__nota">' + l[1] + '</p>' : '') + '</div>' +
