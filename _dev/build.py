@@ -137,6 +137,9 @@ def conferir_whatsapp():
     e entregou os leads num DDD errado — de um desconhecido. Não houve
     erro em lugar nenhum, nem no console. A checagem tem que ser aqui,
     antes de publicar, porque em runtime já é tarde.
+
+    Aceita os dois países onde a banca atende: Brasil (55 + DDD + 8 ou 9
+    dígitos) e Estados Unidos (1 + código de área + 7 dígitos).
     """
     caminho = os.path.join(RAIZ, 'assets', 'js', 'config.js')
     if not os.path.exists(caminho):
@@ -147,16 +150,32 @@ def conferir_whatsapp():
     n = m.group(1)
     if not n:
         return ['config.js: WHATSAPP.numero vazio — o formulário não tem destino']
-    if not n.startswith('55'):
-        return ['config.js: WHATSAPP.numero não começa com 55 (%s)' % n]
-    # 55 + DDD(2) + 8 ou 9 dígitos
-    if len(n) not in (12, 13):
-        return ['config.js: WHATSAPP.numero tem %d dígitos; celular brasileiro '
-                'tem 12 ou 13 (55 + DDD + 8 ou 9). Valor: %s' % (len(n), n)]
-    ddd = int(n[2:4])
-    if not (11 <= ddd <= 99):
-        return ['config.js: DDD inválido (%s) em %s' % (n[2:4], n)]
-    return []
+    if n.startswith('55'):
+        # 55 + DDD(2) + 8 ou 9 dígitos
+        if len(n) not in (12, 13):
+            return ['config.js: WHATSAPP.numero tem %d dígitos; celular brasileiro '
+                    'tem 12 ou 13 (55 + DDD + 8 ou 9). Valor: %s' % (len(n), n)]
+        ddd = int(n[2:4])
+        if not (11 <= ddd <= 99):
+            return ['config.js: DDD inválido (%s) em %s' % (n[2:4], n)]
+        return []
+
+    if n.startswith('1'):
+        # 1 + área(3) + central(3) + 4 dígitos
+        if len(n) != 11:
+            return ['config.js: WHATSAPP.numero tem %d dígitos; número dos EUA '
+                    'tem 11 (1 + área + 7). Valor: %s' % (len(n), n)]
+        area, central = n[1:4], n[4:7]
+        if area[0] in '01' or central[0] in '01':
+            return ['config.js: área ou central não pode começar com 0 nem 1 '
+                    '(%s-%s) em %s' % (area, central, n)]
+        if area[1] == area[2] == '1':
+            return ['config.js: %s é código de serviço (N11), não código de '
+                    'área, em %s' % (area, n)]
+        return []
+
+    return ['config.js: WHATSAPP.numero não começa com 55 (Brasil) nem com 1 '
+            '(EUA). Valor: %s' % n]
 
 
 def main():

@@ -32,10 +32,11 @@ window.SOS.config = {
      O destino do formulário é o WhatsApp: os campos viram uma mensagem
      pronta em wa.me, aberta no submit. Não há backend.
 
-     ATENÇÃO: o número abaixo é de TESTE. Trocar pelo oficial antes de
-     subir — é o único lugar do site onde ele aparece. */
+     Número oficial da banca, o mesmo de empresa.telefoneLink. É o
+     único lugar do site onde o destino do lead aparece: se mudar,
+     muda aqui. O build recusa gerar o site com número inválido. */
   WHATSAPP: {
-    numero: '5549988875550',
+    numero: '17863013817',
     saudacao: 'Olá! Vim pelo site da SOS Direito.'
   },
 
