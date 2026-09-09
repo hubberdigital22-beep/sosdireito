@@ -29,9 +29,18 @@ window.SOS.config = {
   },
 
   /* ---- Formulário ----
-     Trocar FORM_ENDPOINT pela URL do serviço (Formspree, Netlify,
-     backend próprio). Com null, o envio é simulado e o estado de
-     sucesso aparece, para o fluxo ser testável em desenvolvimento. */
+     O destino do formulário é o WhatsApp: os campos viram uma mensagem
+     pronta em wa.me, aberta no submit. Não há backend.
+
+     ATENÇÃO: o número abaixo é de TESTE. Trocar pelo oficial antes de
+     subir — é o único lugar do site onde ele aparece. */
+  WHATSAPP: {
+    numero: '55499888875550',
+    saudacao: 'Olá! Vim pelo site da SOS Direito.'
+  },
+
+  /* Só entra em cena se WHATSAPP.numero ficar vazio. Mantido para o
+     caso de o destino virar um backend no futuro. */
   FORM_ENDPOINT: null,
   FORM_METODO: 'POST'
 };

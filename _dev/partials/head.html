@@ -1,6 +1,99 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<!-- charset ANTES de tudo, inclusive dos blocos de rastreio. O HTML exige
+     a declaração dentro dos primeiros 1024 bytes; com os scripts na frente
+     ela caía por volta do byte 3700, o navegador não a encontrava a tempo
+     e todos os acentos da página quebravam. Não conflita com o documento
+     de rastreio: o Bloco 1 tem que ser o primeiro SCRIPT do <head>, e
+     <meta> não é script. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Bloco 1 — Consent Mode v2. Tem que ser o primeiro script do <head>,
+     antes do GTM: sem isso o Google restringe dados de anúncio e a conta
+     perde sinal de conversão. -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('consent', 'default', {
+  'ad_storage': 'denied',
+  'ad_user_data': 'denied',
+  'ad_personalization': 'denied',
+  'analytics_storage': 'denied',
+  'functionality_storage': 'granted',
+  'security_storage': 'granted',
+  'wait_for_update': 500
+});
+gtag('set', 'ads_data_redaction', true);
+gtag('set', 'url_passthrough', true);
+try {
+  if (localStorage.getItem('sd_consent') === 'granted') {
+    gtag('consent', 'update', {
+      'ad_storage': 'granted',
+      'ad_user_data': 'granted',
+      'ad_personalization': 'granted',
+      'analytics_storage': 'granted'
+    });
+  }
+} catch (e) {}
+</script>
+
+<!-- Bloco 2A — Google Tag Manager. Analytics e Google Ads já vivem dentro
+     do container: não colar gtag.js separado, ou cada visita e cada
+     conversão contam duas vezes. -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-PQ4QP24M');</script>
+
+<!-- Bloco 3 — captura gclid/UTMs por 90 dias (localStorage + cookie) e
+     preenche sozinho qualquer input[name="gclid"|"utm_*"] da página. -->
+<script>
+(function () {
+  var KEYS = ['gclid','gbraid','wbraid','utm_source','utm_medium',
+              'utm_campaign','utm_term','utm_content'];
+  var TTL = 90 * 24 * 60 * 60 * 1000;
+  var q = new URLSearchParams(window.location.search);
+
+  KEYS.forEach(function (k) {
+    var v = q.get(k);
+    if (!v) return;
+    try { localStorage.setItem('sd_' + k, JSON.stringify({ v: v, exp: Date.now() + TTL })); } catch (e) {}
+    document.cookie = 'sd_' + k + '=' + encodeURIComponent(v) +
+      ';path=/;max-age=' + (TTL / 1000) + ';SameSite=Lax';
+  });
+
+  window.sdAttr = function () {
+    var out = {};
+    KEYS.forEach(function (k) {
+      var val = '';
+      try {
+        var raw = localStorage.getItem('sd_' + k);
+        if (raw) { var o = JSON.parse(raw); if (o.exp > Date.now()) val = o.v; }
+      } catch (e) {}
+      if (!val) {
+        var m = document.cookie.match('(^|; )sd_' + k + '=([^;]*)');
+        if (m) val = decodeURIComponent(m[2]);
+      }
+      out[k] = val;
+    });
+    return out;
+  };
+
+  function preencher() {
+    var a = window.sdAttr();
+    Object.keys(a).forEach(function (k) {
+      var els = document.querySelectorAll('input[name="' + k + '"]');
+      for (var i = 0; i < els.length; i++) { els[i].value = a[k]; }
+    });
+  }
+  if (document.readyState !== 'loading') { preencher(); }
+  else { document.addEventListener('DOMContentLoaded', preencher); }
+})();
+</script>
+
 <!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s)
@@ -18,8 +111,6 @@ fbq('track', 'PageView');
 src="https://www.facebook.com/tr?id=1792448998446153&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{TITLE}}</title>
 <meta name="description" content="{{DESC}}">
 <link rel="canonical" href="https://sosdireito.com.br{{URL}}">
@@ -71,5 +162,8 @@ src="https://www.facebook.com/tr?id=1792448998446153&ev=PageView&noscript=1"
 {{HEAD_EXTRA}}
 </head>
 <body{{BODY_ATTR}}>
+<!-- Bloco 2B — GTM noscript. Tem que ser a primeira coisa depois do <body>. -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PQ4QP24M"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
 {{SPRITE}}

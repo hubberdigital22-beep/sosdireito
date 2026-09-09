@@ -17,6 +17,56 @@
 
   var RE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
+  /* ---- Destino WhatsApp ----
+     O formulário não tem backend: os campos viram uma mensagem pronta
+     em wa.me. A ordem abaixo é a ordem em que a mensagem é lida no
+     celular — nome e telefone primeiro, texto livre por último. */
+  var ROTULOS = {
+    nome: 'Nome',
+    email: 'E-mail',
+    telefone: 'Telefone',
+    tempo_de_atividade: 'Tempo de atividade da empresa',
+    funcionarios_clt: 'Funcionários CLT',
+    mensagem: 'Mensagem'
+  };
+  var ORDEM = ['nome', 'email', 'telefone', 'tempo_de_atividade',
+               'funcionarios_clt', 'mensagem'];
+
+  function montarMensagem(form) {
+    var wa = cfg.WHATSAPP || {};
+    var linhas = [wa.saudacao || 'Olá! Vim pelo site da SOS Direito.', ''];
+
+    ORDEM.forEach(function (nome) {
+      var el = form.elements[nome];
+      if (!el) return;
+      var v = (el.value || '').trim();
+      if (!v) return;
+      if (nome === 'mensagem') {
+        /* Texto livre por último e com teto: URL muito longa quebra em
+           parte dos aparelhos. */
+        linhas.push('', ROTULOS[nome] + ':', v.slice(0, 600));
+      } else {
+        linhas.push(ROTULOS[nome] + ': ' + v);
+      }
+    });
+
+    /* Atribuição no fim da mensagem. O marcador [ref: ...] é o mesmo que
+       o Bloco 4 procura antes de injetar o gclid, então o link de
+       fallback não recebe o gclid duas vezes. */
+    var a = (window.sdAttr ? window.sdAttr() : {}) || {};
+    var origem = [a.utm_source, a.utm_medium, a.utm_campaign].filter(Boolean).join(' / ');
+    if (origem) linhas.push('', 'Origem: ' + origem);
+    if (a.gclid) linhas.push((origem ? '' : '\n') + '[ref: ' + a.gclid + ']');
+
+    return linhas.join('\n');
+  }
+
+  function linkWhatsapp(form) {
+    var numero = (((cfg.WHATSAPP || {}).numero) || '').replace(/\D/g, '');
+    if (!numero) return '';
+    return 'https://wa.me/' + numero + '?text=' + encodeURIComponent(montarMensagem(form));
+  }
+
   /* ---- Máscara de telefone ----
      Aceita número brasileiro (com ou sem DDI) e internacional.
      Nunca bloqueia a digitação: formata o que dá e deixa passar. */
@@ -137,12 +187,24 @@
       if (ok) form.reset();
     }
 
-    /* Sem endpoint configurado, simula o envio.
-       Trocar SOS.config.FORM_ENDPOINT liga o envio real. */
+    /* Caminho normal: abre o WhatsApp com a mensagem montada.
+       O window.open acontece dentro do gesto de submit, senão o
+       bloqueador de pop-up mata a aba. Se ainda assim for bloqueado,
+       o estado de sucesso traz o link para abrir na mão. */
+    var url = linkWhatsapp(form);
+    if (url) {
+      var link = sucesso && sucesso.querySelector('[data-form-whatsapp]');
+      if (link) link.href = url;
+      window.open(url, '_blank', 'noopener');
+      concluir(true);
+      return;
+    }
+
+    /* Sem número de WhatsApp e sem endpoint, não há para onde mandar:
+       mostra a falha em vez de fingir sucesso. */
     if (!cfg.FORM_ENDPOINT) {
-      console.info('[SOS] FORM_ENDPOINT não configurado — envio simulado.',
-                   Object.fromEntries(dados.entries()));
-      window.setTimeout(function () { concluir(true); }, 700);
+      console.error('[SOS] Sem WHATSAPP.numero e sem FORM_ENDPOINT — o lead não tem destino.');
+      concluir(false);
       return;
     }
 

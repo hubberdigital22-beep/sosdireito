@@ -1,6 +1,99 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<!-- charset ANTES de tudo, inclusive dos blocos de rastreio. O HTML exige
+     a declaração dentro dos primeiros 1024 bytes; com os scripts na frente
+     ela caía por volta do byte 3700, o navegador não a encontrava a tempo
+     e todos os acentos da página quebravam. Não conflita com o documento
+     de rastreio: o Bloco 1 tem que ser o primeiro SCRIPT do <head>, e
+     <meta> não é script. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Bloco 1 — Consent Mode v2. Tem que ser o primeiro script do <head>,
+     antes do GTM: sem isso o Google restringe dados de anúncio e a conta
+     perde sinal de conversão. -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('consent', 'default', {
+  'ad_storage': 'denied',
+  'ad_user_data': 'denied',
+  'ad_personalization': 'denied',
+  'analytics_storage': 'denied',
+  'functionality_storage': 'granted',
+  'security_storage': 'granted',
+  'wait_for_update': 500
+});
+gtag('set', 'ads_data_redaction', true);
+gtag('set', 'url_passthrough', true);
+try {
+  if (localStorage.getItem('sd_consent') === 'granted') {
+    gtag('consent', 'update', {
+      'ad_storage': 'granted',
+      'ad_user_data': 'granted',
+      'ad_personalization': 'granted',
+      'analytics_storage': 'granted'
+    });
+  }
+} catch (e) {}
+</script>
+
+<!-- Bloco 2A — Google Tag Manager. Analytics e Google Ads já vivem dentro
+     do container: não colar gtag.js separado, ou cada visita e cada
+     conversão contam duas vezes. -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-PQ4QP24M');</script>
+
+<!-- Bloco 3 — captura gclid/UTMs por 90 dias (localStorage + cookie) e
+     preenche sozinho qualquer input[name="gclid"|"utm_*"] da página. -->
+<script>
+(function () {
+  var KEYS = ['gclid','gbraid','wbraid','utm_source','utm_medium',
+              'utm_campaign','utm_term','utm_content'];
+  var TTL = 90 * 24 * 60 * 60 * 1000;
+  var q = new URLSearchParams(window.location.search);
+
+  KEYS.forEach(function (k) {
+    var v = q.get(k);
+    if (!v) return;
+    try { localStorage.setItem('sd_' + k, JSON.stringify({ v: v, exp: Date.now() + TTL })); } catch (e) {}
+    document.cookie = 'sd_' + k + '=' + encodeURIComponent(v) +
+      ';path=/;max-age=' + (TTL / 1000) + ';SameSite=Lax';
+  });
+
+  window.sdAttr = function () {
+    var out = {};
+    KEYS.forEach(function (k) {
+      var val = '';
+      try {
+        var raw = localStorage.getItem('sd_' + k);
+        if (raw) { var o = JSON.parse(raw); if (o.exp > Date.now()) val = o.v; }
+      } catch (e) {}
+      if (!val) {
+        var m = document.cookie.match('(^|; )sd_' + k + '=([^;]*)');
+        if (m) val = decodeURIComponent(m[2]);
+      }
+      out[k] = val;
+    });
+    return out;
+  };
+
+  function preencher() {
+    var a = window.sdAttr();
+    Object.keys(a).forEach(function (k) {
+      var els = document.querySelectorAll('input[name="' + k + '"]');
+      for (var i = 0; i < els.length; i++) { els[i].value = a[k]; }
+    });
+  }
+  if (document.readyState !== 'loading') { preencher(); }
+  else { document.addEventListener('DOMContentLoaded', preencher); }
+})();
+</script>
+
 <!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s)
@@ -18,8 +111,6 @@ fbq('track', 'PageView');
 src="https://www.facebook.com/tr?id=1792448998446153&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tipos de Visto para Empresários e Executivos nos EUA | SOS Direito</title>
 <meta name="description" content="Conheça os caminhos de imigração para os Estados Unidos voltados a empresários e executivos, com foco no L-1A, conduzidos pela SOS Direito.">
 <link rel="canonical" href="https://sosdireito.com.br/vistos/">
@@ -64,13 +155,16 @@ src="https://www.facebook.com/tr?id=1792448998446153&ev=PageView&noscript=1"
 </script>
 <link rel="preload" href="../assets/fonts/sweet-sans-medium.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/roses-bolero.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="../assets/css/tokens.css?v=6a991d34">
-<link rel="stylesheet" href="../assets/css/base.css?v=6a991d34">
-<link rel="stylesheet" href="../assets/css/layout.css?v=6a991d34">
-<link rel="stylesheet" href="../assets/css/components.css?v=6a991d34">
-<link rel="stylesheet" href="../assets/css/pages/vistos.css?v=6a991d34">
+<link rel="stylesheet" href="../assets/css/tokens.css?v=6aa0a0f4">
+<link rel="stylesheet" href="../assets/css/base.css?v=6aa0a0f4">
+<link rel="stylesheet" href="../assets/css/layout.css?v=6aa0a0f4">
+<link rel="stylesheet" href="../assets/css/components.css?v=6aa0a0f4">
+<link rel="stylesheet" href="../assets/css/pages/vistos.css?v=6aa0a0f4">
 </head>
 <body>
+<!-- Bloco 2B — GTM noscript. Tem que ser a primeira coisa depois do <body>. -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PQ4QP24M"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
 <svg xmlns="http://www.w3.org/2000/svg" id="sos-sprite" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
 <!-- Ícones lineares próprios. Sem bandeira, avião, balança ou martelo (R8).
@@ -409,23 +503,128 @@ src="https://www.facebook.com/tr?id=1792448998446153&ev=PageView&noscript=1"
 
     <div class="rodape__base">
       <p class="rodape__disclaimer">SOS Direito é uma assessoria imigratória. Não prestamos serviços advocatícios.</p>
-      <p class="rodape__copy">SOS Direito | Imigração Estratégica</p>
+      <p class="rodape__copy">
+        <a href="../politica-de-privacidade/">Política de Privacidade</a>
+        · SOS Direito | Imigração Estratégica
+      </p>
     </div>
   </div>
 </footer>
 
-<script src="../assets/js/vendor/gsap.min.js?v=6a991d34" defer></script>
-<script src="../assets/js/vendor/ScrollTrigger.min.js?v=6a991d34" defer></script>
-<script src="../assets/js/config.js?v=6a991d34" defer></script>
-<script src="../assets/js/motion.js?v=6a991d34" defer></script>
-<script src="../assets/js/components/nav.js?v=6a991d34" defer></script>
-<script src="../assets/js/components/accordion.js?v=6a991d34" defer></script>
-<script src="../assets/js/components/trilha.js?v=6a991d34" defer></script>
-<script src="../assets/js/components/timeline.js?v=6a991d34" defer></script>
-<script src="../assets/js/components/carrossel.js?v=6a991d34" defer></script>
-<script src="../assets/js/components/decor.js?v=6a991d34" defer></script>
-<script src="../assets/js/components/form.js?v=6a991d34" defer></script>
-<script src="../assets/js/components/galeria.js?v=6a991d34" defer></script>
+<script src="../assets/js/vendor/gsap.min.js?v=6aa0a0f4" defer></script>
+<script src="../assets/js/vendor/ScrollTrigger.min.js?v=6aa0a0f4" defer></script>
+<script src="../assets/js/config.js?v=6aa0a0f4" defer></script>
+<script src="../assets/js/motion.js?v=6aa0a0f4" defer></script>
+<script src="../assets/js/components/nav.js?v=6aa0a0f4" defer></script>
+<script src="../assets/js/components/accordion.js?v=6aa0a0f4" defer></script>
+<script src="../assets/js/components/trilha.js?v=6aa0a0f4" defer></script>
+<script src="../assets/js/components/timeline.js?v=6aa0a0f4" defer></script>
+<script src="../assets/js/components/carrossel.js?v=6aa0a0f4" defer></script>
+<script src="../assets/js/components/decor.js?v=6aa0a0f4" defer></script>
+<script src="../assets/js/components/form.js?v=6aa0a0f4" defer></script>
+<script src="../assets/js/components/galeria.js?v=6aa0a0f4" defer></script>
 
+
+<!-- Bloco 4 — eventos de clique (telefone, WhatsApp, calculadora).
+     Delegado no document: funciona em qualquer página, mesmo sem os
+     elementos correspondentes (cada handler checa se o alvo existe). -->
+<script>
+(function () {
+  window.dataLayer = window.dataLayer || [];
+
+  document.addEventListener('click', function (ev) {
+    if (!ev.target || !ev.target.closest) return;
+    var el = ev.target.closest('a[href*="wa.me"], a[href*="api.whatsapp.com"], [data-sd="whatsapp"]');
+    if (!el) return;
+    try {
+      if (el.tagName === 'A' && el.href.indexOf('http') === 0) {
+        var u = new URL(el.href);
+        var attr = window.sdAttr ? window.sdAttr() : {};
+        if (attr.gclid) {
+          var t = u.searchParams.get('text') || 'Ola! Quero informacoes sobre o visto L-1A.';
+          if (t.indexOf('[ref:') === -1) { u.searchParams.set('text', t + ' [ref: ' + attr.gclid + ']'); }
+          el.href = u.toString();
+        }
+      }
+    } catch (e) {}
+    window.dataLayer.push({
+      event: 'sd_whatsapp_click',
+      link_url: el.href || '',
+      page_path: location.pathname,
+      attribution: window.sdAttr ? window.sdAttr() : {}
+    });
+  }, true);
+
+  document.addEventListener('click', function (ev) {
+    if (!ev.target || !ev.target.closest) return;
+    var el = ev.target.closest('a[href^="tel:"]');
+    if (!el) return;
+    window.dataLayer.push({
+      event: 'sd_call_click',
+      phone: el.getAttribute('href').replace('tel:', '')
+    });
+  }, true);
+
+  document.addEventListener('click', function (ev) {
+    if (!ev.target || !ev.target.closest) return;
+    var el = ev.target.closest('button, .btn, input[type="button"], input[type="submit"]');
+    if (!el) return;
+    var label = (el.textContent || el.value || '').trim();
+    if (!/^calcular$/i.test(label)) return;
+    var sel = document.getElementById('calc-visto');
+    setTimeout(function () {
+      var total = document.getElementById('calc-total');
+      window.dataLayer.push({
+        event: 'sd_calc_complete',
+        visa_type: sel ? sel.value : '',
+        valor_estimado: total ? total.textContent.replace(/[^0-9.]/g, '') : ''
+      });
+    }, 300);
+  }, true);
+})();
+</script>
+
+<!-- Bloco 6 — banner de consentimento (LGPD). CSS inline de propósito,
+     pra não depender do tema. -->
+<div id="sd-lgpd" hidden style="position:fixed;left:16px;right:16px;bottom:16px;z-index:99999;
+  max-width:640px;margin:0 auto;background:#111821;color:#E7EDF4;border-radius:8px;
+  padding:18px 20px;box-shadow:0 10px 40px rgba(0,0,0,.35);font:14px/1.55 system-ui,sans-serif">
+  <p style="margin:0 0 12px">
+    Usamos cookies para medir a performance do site e melhorar a sua experiência.
+    Você pode aceitar ou continuar apenas com o essencial.
+    <a href="../politica-de-privacidade/" style="color:#9CC2F2">Política de privacidade</a>.
+  </p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button type="button" id="sd-lgpd-ok"
+      style="background:#2E6FBF;color:#fff;border:0;border-radius:5px;padding:9px 18px;
+             font-weight:600;cursor:pointer">Aceitar</button>
+    <button type="button" id="sd-lgpd-no"
+      style="background:transparent;color:#E7EDF4;border:1px solid #3B4956;border-radius:5px;
+             padding:9px 18px;cursor:pointer">Só o essencial</button>
+  </div>
+</div>
+<script>
+(function () {
+  var box = document.getElementById('sd-lgpd');
+  var salvo = null;
+  try { salvo = localStorage.getItem('sd_consent'); } catch (e) {}
+  if (!salvo) { box.hidden = false; }
+
+  function decidir(valor) {
+    try { localStorage.setItem('sd_consent', valor); } catch (e) {}
+    if (valor === 'granted') {
+      gtag('consent', 'update', {
+        'ad_storage': 'granted',
+        'ad_user_data': 'granted',
+        'ad_personalization': 'granted',
+        'analytics_storage': 'granted'
+      });
+    }
+    box.hidden = true;
+  }
+  document.getElementById('sd-lgpd-ok').addEventListener('click', function () { decidir('granted'); });
+  document.getElementById('sd-lgpd-no').addEventListener('click', function () { decidir('denied'); });
+})();
+</script>
 </body>
 </html>

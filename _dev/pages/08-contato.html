@@ -3,6 +3,7 @@ nav: contato
 title: Fale com a SOS Direito | Assessoria Imigratória
 desc: Entre em contato com a SOS Direito e descubra o caminho certo para levar sua empresa ou sua carreira para os Estados Unidos.
 head_extra: <link rel="stylesheet" href="../assets/css/pages/contato.css?v={{VER}}">
+scripts_extra: <script src="../assets/js/components/lead-tracking.js?v={{VER}}" defer></script>
 ---
 
 <section class="hero hero--interno secao--marfim">
@@ -69,6 +70,17 @@ head_extra: <link rel="stylesheet" href="../assets/css/pages/contato.css?v={{VER
         </div>
 
         <form class="form" data-form novalidate data-revelar>
+          <!-- Atribuicao: preenchidos sozinhos pelo Bloco 3 (head). Sem eles o
+               gclid/UTM nunca chega junto com o lead, so no dataLayer. -->
+          <input type="hidden" name="gclid" value="">
+          <input type="hidden" name="gbraid" value="">
+          <input type="hidden" name="wbraid" value="">
+          <input type="hidden" name="utm_source" value="">
+          <input type="hidden" name="utm_medium" value="">
+          <input type="hidden" name="utm_campaign" value="">
+          <input type="hidden" name="utm_term" value="">
+          <input type="hidden" name="utm_content" value="">
+
           <div class="campo-duplo">
             <div class="campo">
               <label class="campo__rotulo" for="c-nome">Nome</label>
@@ -141,12 +153,17 @@ head_extra: <link rel="stylesheet" href="../assets/css/pages/contato.css?v={{VER
           </div>
 
           <div class="form__estado form__estado--sucesso" data-form-sucesso data-visivel="false">
-            <strong>Mensagem enviada.</strong>
-            Nossa equipe retorna com os próximos passos do seu caso.
+            <strong>Tudo certo.</strong>
+            Abrimos o WhatsApp com os seus dados já preenchidos — é só tocar em enviar.
+            <a data-form-whatsapp href="#" target="_blank" rel="noopener"
+               style="display:inline-block;margin-top:var(--sp-3);font-weight:600">
+              Não abriu? Abrir o WhatsApp
+            </a>
           </div>
           <div class="form__estado form__estado--erro" data-form-erro data-visivel="false">
-            <strong>Não foi possível enviar.</strong>
-            Tente novamente em instantes, ou escreva direto para info@sosdireito.com.br.
+            <strong>Não foi possível abrir o WhatsApp.</strong>
+            Fale com a gente pelo <a href="tel:+17863013817">+1 (786) 301-3817</a> ou
+            escreva para <a href="mailto:info@sosdireito.com.br">info@sosdireito.com.br</a>.
           </div>
         </form>
       </div>

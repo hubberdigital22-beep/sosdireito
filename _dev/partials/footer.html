@@ -46,7 +46,10 @@
 
     <div class="rodape__base">
       <p class="rodape__disclaimer">SOS Direito é uma assessoria imigratória. Não prestamos serviços advocatícios.</p>
-      <p class="rodape__copy">SOS Direito | Imigração Estratégica</p>
+      <p class="rodape__copy">
+        <a href="{{BASE}}politica-de-privacidade/">Política de Privacidade</a>
+        · SOS Direito | Imigração Estratégica
+      </p>
     </div>
   </div>
 </footer>
@@ -64,5 +67,107 @@
 <script src="{{BASE}}assets/js/components/form.js?v={{VER}}" defer></script>
 <script src="{{BASE}}assets/js/components/galeria.js?v={{VER}}" defer></script>
 {{SCRIPTS_EXTRA}}
+
+<!-- Bloco 4 — eventos de clique (telefone, WhatsApp, calculadora).
+     Delegado no document: funciona em qualquer página, mesmo sem os
+     elementos correspondentes (cada handler checa se o alvo existe). -->
+<script>
+(function () {
+  window.dataLayer = window.dataLayer || [];
+
+  document.addEventListener('click', function (ev) {
+    if (!ev.target || !ev.target.closest) return;
+    var el = ev.target.closest('a[href*="wa.me"], a[href*="api.whatsapp.com"], [data-sd="whatsapp"]');
+    if (!el) return;
+    try {
+      if (el.tagName === 'A' && el.href.indexOf('http') === 0) {
+        var u = new URL(el.href);
+        var attr = window.sdAttr ? window.sdAttr() : {};
+        if (attr.gclid) {
+          var t = u.searchParams.get('text') || 'Ola! Quero informacoes sobre o visto L-1A.';
+          if (t.indexOf('[ref:') === -1) { u.searchParams.set('text', t + ' [ref: ' + attr.gclid + ']'); }
+          el.href = u.toString();
+        }
+      }
+    } catch (e) {}
+    window.dataLayer.push({
+      event: 'sd_whatsapp_click',
+      link_url: el.href || '',
+      page_path: location.pathname,
+      attribution: window.sdAttr ? window.sdAttr() : {}
+    });
+  }, true);
+
+  document.addEventListener('click', function (ev) {
+    if (!ev.target || !ev.target.closest) return;
+    var el = ev.target.closest('a[href^="tel:"]');
+    if (!el) return;
+    window.dataLayer.push({
+      event: 'sd_call_click',
+      phone: el.getAttribute('href').replace('tel:', '')
+    });
+  }, true);
+
+  document.addEventListener('click', function (ev) {
+    if (!ev.target || !ev.target.closest) return;
+    var el = ev.target.closest('button, .btn, input[type="button"], input[type="submit"]');
+    if (!el) return;
+    var label = (el.textContent || el.value || '').trim();
+    if (!/^calcular$/i.test(label)) return;
+    var sel = document.getElementById('calc-visto');
+    setTimeout(function () {
+      var total = document.getElementById('calc-total');
+      window.dataLayer.push({
+        event: 'sd_calc_complete',
+        visa_type: sel ? sel.value : '',
+        valor_estimado: total ? total.textContent.replace(/[^0-9.]/g, '') : ''
+      });
+    }, 300);
+  }, true);
+})();
+</script>
+
+<!-- Bloco 6 — banner de consentimento (LGPD). CSS inline de propósito,
+     pra não depender do tema. -->
+<div id="sd-lgpd" hidden style="position:fixed;left:16px;right:16px;bottom:16px;z-index:99999;
+  max-width:640px;margin:0 auto;background:#111821;color:#E7EDF4;border-radius:8px;
+  padding:18px 20px;box-shadow:0 10px 40px rgba(0,0,0,.35);font:14px/1.55 system-ui,sans-serif">
+  <p style="margin:0 0 12px">
+    Usamos cookies para medir a performance do site e melhorar a sua experiência.
+    Você pode aceitar ou continuar apenas com o essencial.
+    <a href="{{BASE}}politica-de-privacidade/" style="color:#9CC2F2">Política de privacidade</a>.
+  </p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button type="button" id="sd-lgpd-ok"
+      style="background:#2E6FBF;color:#fff;border:0;border-radius:5px;padding:9px 18px;
+             font-weight:600;cursor:pointer">Aceitar</button>
+    <button type="button" id="sd-lgpd-no"
+      style="background:transparent;color:#E7EDF4;border:1px solid #3B4956;border-radius:5px;
+             padding:9px 18px;cursor:pointer">Só o essencial</button>
+  </div>
+</div>
+<script>
+(function () {
+  var box = document.getElementById('sd-lgpd');
+  var salvo = null;
+  try { salvo = localStorage.getItem('sd_consent'); } catch (e) {}
+  if (!salvo) { box.hidden = false; }
+
+  function decidir(valor) {
+    try { localStorage.setItem('sd_consent', valor); } catch (e) {}
+    if (valor === 'granted') {
+      gtag('consent', 'update', {
+        'ad_storage': 'granted',
+        'ad_user_data': 'granted',
+        'ad_personalization': 'granted',
+        'analytics_storage': 'granted'
+      });
+    }
+    box.hidden = true;
+  }
+  document.getElementById('sd-lgpd-ok').addEventListener('click', function () { decidir('granted'); });
+  document.getElementById('sd-lgpd-no').addEventListener('click', function () { decidir('denied'); });
+})();
+</script>
 </body>
 </html>
