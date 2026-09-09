@@ -1,6 +1,31 @@
 {
   "redirects": [
-    { "source": "/w", "destination": "/", "permanent": true },
-    { "source": "/w/", "destination": "/", "permanent": true }
+    { "source": "/w/about-us(/)?", "destination": "/sobre/", "permanent": true },
+    { "source": "/w/services(/)?", "destination": "/vistos/", "permanent": true },
+    { "source": "/w/hire-us(/)?", "destination": "/contato/", "permanent": true },
+    { "source": "/w/contato(/)?", "destination": "/contato/", "permanent": true },
+    { "source": "/w/timeline-do-greencard(/)?", "destination": "/como-funciona/", "permanent": true },
+
+    { "source": "/w/calculadoras(/)?", "destination": "/calculadora/", "permanent": true },
+    { "source": "/w/calculadora-de-eb2(/)?", "destination": "/calculadora/", "permanent": true },
+    { "source": "/w/calculadora-de-l1(/)?", "destination": "/calculadora/", "permanent": true },
+
+    { "source": "/w/blog(/)?", "destination": "/blog/", "permanent": true },
+    { "source": "/w/como-solicitar-o-i-94-um-guia-passo-a-passo-para-viajantes(/)?", "destination": "/blog/", "permanent": true },
+    { "source": "/w/como-validar-seu-diploma-atraves-da-ece-um-guia-passo-a-passo(/)?", "destination": "/blog/", "permanent": true },
+    { "source": "/w/dhs-realizou-mais-de-12-milhao-de-expulsoes-e-deportacoes-de-imigrantes-em-2023(/)?", "destination": "/blog/", "permanent": true },
+    { "source": "/w/como-mudar-o-endereco-no-processo-da-uscis(/)?", "destination": "/blog/", "permanent": true },
+    { "source": "/w/o-que-e-interfiling-da-i-485(/)?", "destination": "/blog/", "permanent": true },
+    { "source": "/w/o-que-e-visa-bulletin(/)?", "destination": "/blog/", "permanent": true },
+    { "source": "/w/o-que-e-uma-noid(/)?", "destination": "/blog/", "permanent": true },
+    { "source": "/w/por-que-recebi-uma-rfe(/)?", "destination": "/blog/", "permanent": true },
+    { "source": "/w/links-uteis(/)?", "destination": "/blog/", "permanent": true },
+
+    { "source": "/w/category/tutoriais(/)?", "destination": "/blog/", "permanent": true },
+    { "source": "/w/category/news(/)?", "destination": "/blog/", "permanent": true },
+    { "source": "/w/category/info(/)?", "destination": "/blog/", "permanent": true },
+    { "source": "/w/author/admin(/)?", "destination": "/blog/", "permanent": true },
+
+    { "source": "/w(/)?", "destination": "/", "permanent": true }
   ]
 }
