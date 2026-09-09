@@ -1,0 +1,6 @@
+{
+  "redirects": [
+    { "source": "/w", "destination": "/", "permanent": true },
+    { "source": "/w/", "destination": "/", "permanent": true }
+  ]
+}
