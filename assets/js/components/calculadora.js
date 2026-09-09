@@ -1,12 +1,13 @@
 /* ============================================================
    SOS DIREITO — Calculadora
 
-   Réplica funcional da calculadora do site atual (Opção B do
-   documento: total estimado exposto). As fórmulas abaixo
-   reproduzem exatamente as do calculadora2.html em produção —
-   qualquer combinação de entradas gera o mesmo total.
+   As fórmulas são as mesmas do calculadora2.html em produção.
+   Os totais, porém, divergem de propósito em dois pontos liberados
+   pela Dra. Diana em 08/09/2026: a I-907 reajustada e o ajuste de
+   status do menor de 14 anos. Ver CORREÇÕES em taxas.js.
 
-   Os valores vivem em assets/js/data/taxas.js.
+   Os valores vivem em assets/js/data/taxas.js — nenhum número
+   fica embutido aqui.
    ============================================================ */
 (function () {
   'use strict';
@@ -290,7 +291,7 @@
       out += tabela('Cheques, money orders ou débito (ACH)', nota, [
         [f.i907.rotulo, f.i907.valor],
         [f.i140.rotulo, f.i140.valor],
-        [f.asilo.rotulo, 600]
+        [f.asilo.rotulo, c.asiloEB]
       ], c.ebCheques);
     }
 
