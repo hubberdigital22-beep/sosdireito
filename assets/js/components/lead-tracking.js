@@ -4,19 +4,27 @@
    adaptado do site antigo (formulário do CRM dentro de um <iframe>)
    para o formulário próprio deste site.
 
-   O que muda em relação ao documento e por quê:
+   ⚠️  REGRA QUE NÃO PODE SER QUEBRADA
+   O documento é explícito: status imigratório, data de entrada nos
+   EUA e validade da I-94 são categoria sensível na política do Google
+   e NÃO podem ser enviados. Esses campos existem no formulário e vão
+   para o WhatsApp — que é o lead chegando na equipe — mas nunca entram
+   no dataLayer. O texto livre também fica de fora: a pessoa pode
+   descrever a própria situação imigratória ali dentro.
 
-   - Não há iframe nem CRM. O alvo observado deixa de ser
-     #success-message dentro do iframe e passa a ser o
-     [data-form-sucesso] do próprio formulário.
+   O que sobe é só a lista abaixo, que é exatamente a do documento:
+   pais, origem_declarada, area_atuacao, graduacao, horario_contato.
+
+   O que muda em relação ao documento:
+   - Não há iframe nem CRM. O alvo observado é o [data-form-sucesso]
+     do próprio formulário.
    - O destino do lead é o WhatsApp. Não existe confirmação de
      servidor: o momento mais próximo de "o lead aconteceu" é o
      handoff, depois da validação, quando o WhatsApp é aberto com a
      mensagem montada. É esse momento que acende o estado de sucesso.
-   - Os campos qualificadores deste formulário são outros
-     (tempo_de_atividade, funcionarios_clt no lugar de pais,
-     area_atuacao, graduacao...). O nome do evento, lead_value,
-     currency e user_data seguem iguais aos do documento.
+   - E-mail e telefone são opcionais neste formulário (como no CRM),
+     então user_data pode ir vazio — as chaves sem valor são omitidas
+     em vez de subirem como string vazia.
 
    O que NÃO muda: a conversão só dispara quando o estado de sucesso
    aparece — nunca no clique do botão. Disparar no clique conta
@@ -50,8 +58,11 @@
     snapshot = {
       email: val('email').toLowerCase(),
       telefone: normalizaTelefone(val('telefone')),
-      tempo_de_atividade: val('tempo_de_atividade'),
-      funcionarios_clt: val('funcionarios_clt')
+      pais: val('pais'),
+      origem_declarada: val('origem'),
+      area_atuacao: val('area_atuacao'),
+      graduacao: val('graduacao'),
+      horario_contato: val('melhor_horario')
     };
   }, true);
 
@@ -60,19 +71,26 @@
     if (sucesso.getAttribute('data-visivel') !== 'true') return;
     jaEnviou = true;
 
-    window.dataLayer.push({
+    var evento = {
       event: 'sd_lead_submit',
       form_name: 'contato',
       lead_value: 200,
       currency: 'USD',
-      tempo_de_atividade: snapshot.tempo_de_atividade,
-      funcionarios_clt: snapshot.funcionarios_clt,
-      user_data: { // conversoes aprimoradas
-        email_address: snapshot.email,
-        phone_number: snapshot.telefone
-      },
+      pais: snapshot.pais,
+      origem_declarada: snapshot.origem_declarada,
+      area_atuacao: snapshot.area_atuacao,
+      graduacao: snapshot.graduacao,
+      horario_contato: snapshot.horario_contato,
       attribution: window.sdAttr ? window.sdAttr() : {}
-    });
+    };
+
+    /* Conversões aprimoradas: só entra o que a pessoa preencheu. */
+    var user = {};
+    if (snapshot.email) user.email_address = snapshot.email;
+    if (snapshot.telefone) user.phone_number = snapshot.telefone;
+    if (user.email_address || user.phone_number) evento.user_data = user;
+
+    window.dataLayer.push(evento);
     snapshot = null;
     obs.disconnect();
   });

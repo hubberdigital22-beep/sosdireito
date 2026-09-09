@@ -1,8 +1,11 @@
 /* ============================================================
    SOS DIREITO — Formulário
-   Validação, máscara de telefone e estados de envio.
-   O destino sai de SOS.config.FORM_ENDPOINT: sem endpoint
-   configurado, o envio é simulado para o fluxo ser testável.
+   Validação, máscaras e estados de envio.
+
+   Os campos reproduzem o formulário do CRM em produção. O destino,
+   porém, é o WhatsApp: os campos viram uma mensagem pronta em wa.me,
+   aberta no submit. FORM_ENDPOINT só entra se o número do WhatsApp
+   ficar vazio.
    ============================================================ */
 (function () {
   'use strict';
@@ -12,7 +15,10 @@
   var MENSAGENS = {
     obrigatorio: 'Este campo é obrigatório.',
     email: 'Informe um e-mail válido.',
-    telefone: 'Informe um telefone válido, com DDD.'
+    telefone: 'Informe um telefone válido, com DDD.',
+    ano: 'Informe o ano com 4 dígitos.',
+    anoFuturo: 'O ano não pode ser no futuro.',
+    data: 'Informe uma data válida.'
   };
 
   var RE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -25,12 +31,42 @@
     nome: 'Nome',
     email: 'E-mail',
     telefone: 'Telefone',
-    tempo_de_atividade: 'Tempo de atividade da empresa',
-    funcionarios_clt: 'Funcionários CLT',
-    mensagem: 'Mensagem'
+    pais: 'País',
+    origem: 'Como nos conheceu',
+    area_atuacao: 'Área de atuação',
+    graduacao: 'Graduação',
+    ano_graduacao: 'Ano de conclusão',
+    melhor_horario: 'Melhor horário para contato',
+    ultima_entrada_eua: 'Última entrada nos EUA',
+    expiracao_i94: 'Expiração da I-94',
+    status_imigratorio: 'Status imigratório nos EUA',
+    servico_procurado: 'Serviço procurado'
   };
-  var ORDEM = ['nome', 'email', 'telefone', 'tempo_de_atividade',
-               'funcionarios_clt', 'mensagem'];
+  var ORDEM = ['nome', 'email', 'telefone', 'pais', 'origem',
+               'area_atuacao', 'graduacao', 'ano_graduacao', 'melhor_horario',
+               'ultima_entrada_eua', 'expiracao_i94', 'status_imigratorio',
+               'servico_procurado'];
+
+  /* Campos que o form.js trata como data (input[type=date]): o valor
+     nativo vem AAAA-MM-DD e vai para a mensagem em DD/MM/AAAA. */
+  var DATAS = ['ultima_entrada_eua', 'expiracao_i94'];
+
+  function formatarData(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return m ? m[3] + '/' + m[2] + '/' + m[1] : (iso || '');
+  }
+
+  /* Em <select>, o value existe para o CRM ("Brazil", "direct visit");
+     quem lê a mensagem no WhatsApp precisa do texto da opção. */
+  function valorLegivel(el, nome) {
+    if (!el) return '';
+    if (el.tagName === 'SELECT') {
+      var o = el.options[el.selectedIndex];
+      return o && o.value ? (o.textContent || '').trim() : '';
+    }
+    var v = (el.value || '').trim();
+    return DATAS.indexOf(nome) > -1 ? formatarData(v) : v;
+  }
 
   function montarMensagem(form) {
     var wa = cfg.WHATSAPP || {};
@@ -39,9 +75,9 @@
     ORDEM.forEach(function (nome) {
       var el = form.elements[nome];
       if (!el) return;
-      var v = (el.value || '').trim();
+      var v = valorLegivel(el, nome);
       if (!v) return;
-      if (nome === 'mensagem') {
+      if (nome === 'servico_procurado') {
         /* Texto livre por último e com teto: URL muito longa quebra em
            parte dos aparelhos. */
         linhas.push('', ROTULOS[nome] + ':', v.slice(0, 600));
@@ -112,6 +148,13 @@
     } else if (valor && controle.getAttribute('data-mascara') === 'telefone') {
       var digitos = valor.replace(/\D/g, '').length;
       if (digitos < 10) erro = MENSAGENS.telefone;
+    } else if (valor && controle.getAttribute('data-mascara') === 'ano') {
+      if (!/^\d{4}$/.test(valor)) erro = MENSAGENS.ano;
+      else if (+valor > new Date().getFullYear()) erro = MENSAGENS.anoFuturo;
+    } else if (valor && controle.type === 'date') {
+      /* O navegador já barra data impossível, mas em campo type=date sem
+         suporte nativo o valor chega como texto solto. */
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(valor)) erro = MENSAGENS.data;
     }
 
     campo.setAttribute('data-invalido', String(!!erro));
@@ -125,6 +168,28 @@
     var sucesso   = form.querySelector('[data-form-sucesso]');
     var falha     = form.querySelector('[data-form-erro]');
     var controles = form.querySelectorAll('.campo__controle');
+
+    /* País: 253 opções vindas de assets/js/data/paises.js. Ficam fora do
+       HTML porque a lista é longa e é dado, não marcação. */
+    form.querySelectorAll('[data-paises]').forEach(function (sel) {
+      var lista = (window.SOS && window.SOS.paises) || [];
+      if (!lista.length) return;
+      var frag = document.createDocumentFragment();
+      lista.forEach(function (nome) {
+        var o = document.createElement('option');
+        o.value = nome;
+        o.textContent = nome;
+        frag.appendChild(o);
+      });
+      sel.appendChild(frag);
+    });
+
+    /* Ano: só dígitos, no máximo 4 */
+    form.querySelectorAll('[data-mascara="ano"]').forEach(function (input) {
+      input.addEventListener('input', function () {
+        input.value = input.value.replace(/\D/g, '').slice(0, 4);
+      });
+    });
 
     /* Máscara de telefone conforme digita */
     form.querySelectorAll('[data-mascara="telefone"]').forEach(function (input) {

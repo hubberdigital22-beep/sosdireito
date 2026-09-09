@@ -1436,6 +1436,17 @@ select.campo__controle {
 .form__disclaimer strong { color: var(--principal); font-weight: var(--peso-corpo); }
 
 /* Estados de envio */
+/* Marcador de campo opcional: o formulário é longo e quase tudo é
+   obrigatório, então o que NÃO é precisa ficar visível — senão a pessoa
+   preenche por obrigação e a fricção sobe à toa. */
+.campo__opcional {
+  font-weight: var(--peso-corpo);
+  font-size: var(--fs-xs);
+  color: var(--texto-suave);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 .form__estado {
   display: none;
   padding: var(--sp-5);

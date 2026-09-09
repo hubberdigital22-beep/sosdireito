@@ -129,7 +129,44 @@ def montar(meta, corpo, partials, ver):
     raise ValueError('placeholders não estabilizaram — referência circular?')
 
 
+def conferir_whatsapp():
+    """Valida o número do WhatsApp em config.js antes de gerar o site.
+
+    Existe por causa de um erro real: um número com um dígito a mais foi
+    para produção e o WhatsApp, em vez de recusar, reinterpretou sozinho
+    e entregou os leads num DDD errado — de um desconhecido. Não houve
+    erro em lugar nenhum, nem no console. A checagem tem que ser aqui,
+    antes de publicar, porque em runtime já é tarde.
+    """
+    caminho = os.path.join(RAIZ, 'assets', 'js', 'config.js')
+    if not os.path.exists(caminho):
+        return []
+    m = re.search(r"numero:\s*'(\d*)'", ler(caminho))
+    if not m:
+        return ['config.js: WHATSAPP.numero não encontrado']
+    n = m.group(1)
+    if not n:
+        return ['config.js: WHATSAPP.numero vazio — o formulário não tem destino']
+    if not n.startswith('55'):
+        return ['config.js: WHATSAPP.numero não começa com 55 (%s)' % n]
+    # 55 + DDD(2) + 8 ou 9 dígitos
+    if len(n) not in (12, 13):
+        return ['config.js: WHATSAPP.numero tem %d dígitos; celular brasileiro '
+                'tem 12 ou 13 (55 + DDD + 8 ou 9). Valor: %s' % (len(n), n)]
+    ddd = int(n[2:4])
+    if not (11 <= ddd <= 99):
+        return ['config.js: DDD inválido (%s) em %s' % (n[2:4], n)]
+    return []
+
+
 def main():
+    problemas = conferir_whatsapp()
+    if problemas:
+        for p in problemas:
+            print('ERRO: %s' % p)
+        print('\nNada foi gerado. Corrija o número antes de publicar.')
+        return 1
+
     partials = {
         'head': ler(os.path.join(PARTIALS, 'head.html')),
         'header': ler(os.path.join(PARTIALS, 'header.html')),

@@ -155,11 +155,11 @@ src="https://www.facebook.com/tr?id=1792448998446153&ev=PageView&noscript=1"
 </script>
 <link rel="preload" href="../assets/fonts/sweet-sans-medium.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/roses-bolero.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="../assets/css/tokens.css?v=6aa0a60e">
-<link rel="stylesheet" href="../assets/css/base.css?v=6aa0a60e">
-<link rel="stylesheet" href="../assets/css/layout.css?v=6aa0a60e">
-<link rel="stylesheet" href="../assets/css/components.css?v=6aa0a60e">
-<link rel="stylesheet" href="../assets/css/pages/contato.css?v=6aa0a60e">
+<link rel="stylesheet" href="../assets/css/tokens.css?v=6aa0ac3f">
+<link rel="stylesheet" href="../assets/css/base.css?v=6aa0ac3f">
+<link rel="stylesheet" href="../assets/css/layout.css?v=6aa0ac3f">
+<link rel="stylesheet" href="../assets/css/components.css?v=6aa0ac3f">
+<link rel="stylesheet" href="../assets/css/pages/contato.css?v=6aa0ac3f"> <script src="../assets/js/data/paises.js?v=6aa0ac3f" defer></script>
 </head>
 <body>
 <!-- Bloco 2B — GTM noscript. Tem que ser a primeira coisa depois do <body>. -->
@@ -397,6 +397,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <input type="hidden" name="utm_term" value="">
           <input type="hidden" name="utm_content" value="">
 
+          <!-- Os campos abaixo reproduzem, um a um, o formulário do CRM em
+               produção (form.html → iframe /escritorio/public/lead-form/).
+               Mesma pergunta, mesma obrigatoriedade, mesmas opções. O que
+               muda é a marcação (design do site) e a validação (form.js).
+               O nome do campo no CRM está anotado em cada bloco, para o dia
+               em que o destino voltar a ser o CRM. -->
+
           <div class="campo-duplo">
             <div class="campo">
               <label class="campo__rotulo" for="c-nome">Nome</label>
@@ -405,56 +412,119 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <span class="campo__erro" aria-live="polite"></span>
             </div>
             <div class="campo">
-              <label class="campo__rotulo" for="c-email">E-mail</label>
+              <!-- CRM: email — opcional no original, mantido opcional -->
+              <label class="campo__rotulo" for="c-email">E-mail <span class="campo__opcional">(opcional)</span></label>
               <input class="campo__controle" type="email" id="c-email" name="email"
-                     autocomplete="email" required>
+                     autocomplete="email">
+              <span class="campo__erro" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <div class="campo-duplo">
+            <div class="campo">
+              <!-- CRM: mobile — opcional no original -->
+              <label class="campo__rotulo" for="c-telefone">Telefone <span class="campo__opcional">(opcional)</span></label>
+              <input class="campo__controle" type="tel" id="c-telefone" name="telefone"
+                     autocomplete="tel" data-mascara="telefone" placeholder="(11) 99999-9999">
+              <span class="campo__erro" aria-live="polite"></span>
+            </div>
+            <div class="campo">
+              <!-- CRM: country — populado por assets/js/data/paises.js -->
+              <label class="campo__rotulo" for="c-pais">País <span class="campo__opcional">(opcional)</span></label>
+              <select class="campo__controle" id="c-pais" name="pais" data-paises>
+                <option value="">Selecione</option>
+              </select>
               <span class="campo__erro" aria-live="polite"></span>
             </div>
           </div>
 
           <div class="campo">
-            <label class="campo__rotulo" for="c-telefone">Telefone</label>
-            <input class="campo__controle" type="tel" id="c-telefone" name="telefone"
-                   autocomplete="tel" data-mascara="telefone" placeholder="(11) 99999-9999" required>
+            <!-- CRM: source -->
+            <label class="campo__rotulo" for="c-origem">Como nos conheceu <span class="campo__opcional">(opcional)</span></label>
+            <select class="campo__controle" id="c-origem" name="origem">
+              <option value="">Selecione</option>
+              <option value="email">E-mail</option>
+              <option value="google">Google</option>
+              <option value="facebook">Facebook</option>
+              <option value="friend">Indicação de um amigo</option>
+              <option value="direct visit">Acesso direto ao site</option>
+              <option value="tv ad">Anúncio de TV</option>
+            </select>
             <span class="campo__erro" aria-live="polite"></span>
           </div>
 
           <div class="campo-duplo">
             <div class="campo">
-              <label class="campo__rotulo" for="c-atividade">Tempo de atividade da empresa</label>
-              <select class="campo__controle" id="c-atividade" name="tempo_de_atividade" required>
-                <option value="">Selecione</option>
-                <option>Menos de 1 ano</option>
-                <option>Entre 1 e 3 anos</option>
-                <option>Entre 3 e 5 anos</option>
-                <option>Mais de 5 anos</option>
-                <option>Não tenho empresa</option>
-              </select>
+              <!-- CRM: custom_fields_data[qual-a-sua-area-de-atuacao_1] -->
+              <label class="campo__rotulo" for="c-area">Qual a sua área de atuação?</label>
+              <input class="campo__controle" type="text" id="c-area" name="area_atuacao" required>
               <span class="campo__erro" aria-live="polite"></span>
             </div>
             <div class="campo">
-              <label class="campo__rotulo" for="c-clt">Número de funcionários CLT</label>
-              <select class="campo__controle" id="c-clt" name="funcionarios_clt" required>
-                <option value="">Selecione</option>
-                <option>Nenhum</option>
-                <option>De 1 a 5</option>
-                <option>De 6 a 20</option>
-                <option>De 21 a 50</option>
-                <option>Mais de 50</option>
-              </select>
+              <!-- CRM: custom_fields_data[qual-a-sua-graduacao_2] -->
+              <label class="campo__rotulo" for="c-graduacao">Qual a sua graduação?</label>
+              <input class="campo__controle" type="text" id="c-graduacao" name="graduacao" required>
+              <span class="campo__erro" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <div class="campo-duplo">
+            <div class="campo">
+              <!-- CRM: custom_fields_data[qual-o-ano-da-conclusao-da-sua-graduacao_3] -->
+              <label class="campo__rotulo" for="c-ano">Ano de conclusão da graduação</label>
+              <input class="campo__controle" type="text" id="c-ano" name="ano_graduacao"
+                     inputmode="numeric" placeholder="AAAA" data-mascara="ano" maxlength="4" required>
+              <span class="campo__erro" aria-live="polite"></span>
+            </div>
+            <div class="campo">
+              <!-- CRM: custom_fields_data[qual-o-melhor-horario-para-contato_7] -->
+              <label class="campo__rotulo" for="c-horario">Melhor horário para contato</label>
+              <input class="campo__controle" type="text" id="c-horario" name="melhor_horario"
+                     placeholder="Ex.: manhã, ou depois das 18h" required>
+              <span class="campo__erro" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <div class="campo-duplo">
+            <div class="campo">
+              <!-- CRM: custom_fields_data[data-da-sua-ultima-entrada-nos-eua_4] -->
+              <label class="campo__rotulo" for="c-entrada">Data da sua última entrada nos EUA</label>
+              <input class="campo__controle" type="date" id="c-entrada" name="ultima_entrada_eua" required>
+              <span class="campo__erro" aria-live="polite"></span>
+            </div>
+            <div class="campo">
+              <!-- CRM: custom_fields_data[data-de-expiracao-da-sua-i-94_5] -->
+              <label class="campo__rotulo" for="c-i94">Data de expiração da sua I-94</label>
+              <input class="campo__controle" type="date" id="c-i94" name="expiracao_i94" required>
               <span class="campo__erro" aria-live="polite"></span>
             </div>
           </div>
 
           <div class="campo">
-            <label class="campo__rotulo" for="c-mensagem">
-              Sobre o seu momento <span class="opcional">(opcional)</span>
-            </label>
-            <textarea class="campo__controle" id="c-mensagem" name="mensagem" rows="4"
-                      placeholder="Conte brevemente onde você está hoje e para onde quer ir."></textarea>
+            <!-- CRM: custom_fields_data[qual-o-seu-status-imigratorio-nos-eua_6] -->
+            <label class="campo__rotulo" for="c-status">Qual o seu status imigratório nos EUA?</label>
+            <select class="campo__controle" id="c-status" name="status_imigratorio" required>
+              <option value="">Selecione</option>
+              <option value="Turista">Turista</option>
+              <option value="Estudante">Estudante</option>
+              <option value="Visto de Trabalho">Visto de Trabalho</option>
+              <option value="Extensão do Visto de Turista">Extensão do Visto de Turista</option>
+              <option value="Outro">Outro</option>
+            </select>
+            <span class="campo__erro" aria-live="polite"></span>
           </div>
 
-          <!-- Compliance: o disclaimer aparece de novo, em destaque,
+          <div class="campo">
+            <!-- CRM: custom_fields_data[descreva-qual-servico-de-imigracao-voce-esta-procurando_8] -->
+            <label class="campo__rotulo" for="c-servico">
+              Descreva qual serviço de imigração você está procurando
+            </label>
+            <textarea class="campo__controle" id="c-servico" name="servico_procurado" rows="4"
+                      placeholder="Conte brevemente onde você está hoje e para onde quer ir." required></textarea>
+            <span class="campo__erro" aria-live="polite"></span>
+          </div>
+
+<!-- Compliance: o disclaimer aparece de novo, em destaque,
                perto do botão de envio. -->
           <p class="form__disclaimer">
             <svg aria-hidden="true"><use href="#i-escudo"></use></svg>
@@ -566,19 +636,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </footer>
 
-<script src="../assets/js/vendor/gsap.min.js?v=6aa0a60e" defer></script>
-<script src="../assets/js/vendor/ScrollTrigger.min.js?v=6aa0a60e" defer></script>
-<script src="../assets/js/config.js?v=6aa0a60e" defer></script>
-<script src="../assets/js/motion.js?v=6aa0a60e" defer></script>
-<script src="../assets/js/components/nav.js?v=6aa0a60e" defer></script>
-<script src="../assets/js/components/accordion.js?v=6aa0a60e" defer></script>
-<script src="../assets/js/components/trilha.js?v=6aa0a60e" defer></script>
-<script src="../assets/js/components/timeline.js?v=6aa0a60e" defer></script>
-<script src="../assets/js/components/carrossel.js?v=6aa0a60e" defer></script>
-<script src="../assets/js/components/decor.js?v=6aa0a60e" defer></script>
-<script src="../assets/js/components/form.js?v=6aa0a60e" defer></script>
-<script src="../assets/js/components/galeria.js?v=6aa0a60e" defer></script>
-<script src="../assets/js/components/lead-tracking.js?v=6aa0a60e" defer></script>
+<script src="../assets/js/vendor/gsap.min.js?v=6aa0ac3f" defer></script>
+<script src="../assets/js/vendor/ScrollTrigger.min.js?v=6aa0ac3f" defer></script>
+<script src="../assets/js/config.js?v=6aa0ac3f" defer></script>
+<script src="../assets/js/motion.js?v=6aa0ac3f" defer></script>
+<script src="../assets/js/components/nav.js?v=6aa0ac3f" defer></script>
+<script src="../assets/js/components/accordion.js?v=6aa0ac3f" defer></script>
+<script src="../assets/js/components/trilha.js?v=6aa0ac3f" defer></script>
+<script src="../assets/js/components/timeline.js?v=6aa0ac3f" defer></script>
+<script src="../assets/js/components/carrossel.js?v=6aa0ac3f" defer></script>
+<script src="../assets/js/components/decor.js?v=6aa0ac3f" defer></script>
+<script src="../assets/js/components/form.js?v=6aa0ac3f" defer></script>
+<script src="../assets/js/components/galeria.js?v=6aa0ac3f" defer></script>
+<script src="../assets/js/components/lead-tracking.js?v=6aa0ac3f" defer></script>
 
 <!-- Bloco 4 — eventos de clique (telefone, WhatsApp, calculadora).
      Delegado no document: funciona em qualquer página, mesmo sem os

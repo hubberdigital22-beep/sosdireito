@@ -35,7 +35,7 @@ window.SOS.config = {
      ATENÇÃO: o número abaixo é de TESTE. Trocar pelo oficial antes de
      subir — é o único lugar do site onde ele aparece. */
   WHATSAPP: {
-    numero: '55499888875550',
+    numero: '5549988875550',
     saudacao: 'Olá! Vim pelo site da SOS Direito.'
   },
 
