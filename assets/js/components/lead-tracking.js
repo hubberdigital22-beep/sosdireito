@@ -30,6 +30,15 @@
    aparece — nunca no clique do botão. Disparar no clique conta
    tentativa que falhou como conversão e faz o Google Ads otimizar
    pra gente que não virou lead.
+
+   Meta Pixel: ele NÃO está dentro do GTM (é carregado direto no
+   head.html), então nenhum gatilho do container chega à Meta. O Lead
+   sai daqui, no mesmo instante e com a mesma trava do sd_lead_submit,
+   para Google e Meta contarem exatamente os mesmos leads. Para a Meta
+   vai só o valor do lead: área, graduação e horário são texto livre,
+   onde a pessoa pode ter escrito qualquer coisa. Se o Pixel um dia for
+   para dentro do GTM, esta chamada tem que sair daqui — senão o Lead
+   conta duas vezes.
    ============================================================ */
 (function () {
   'use strict';
@@ -91,6 +100,15 @@
     if (user.email_address || user.phone_number) evento.user_data = user;
 
     window.dataLayer.push(evento);
+
+    if (typeof window.fbq === 'function') {
+      window.fbq('track', 'Lead', {
+        content_name: evento.form_name,
+        value: evento.lead_value,
+        currency: evento.currency
+      });
+    }
+
     snapshot = null;
     obs.disconnect();
   });
