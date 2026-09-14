@@ -4,11 +4,13 @@
     { "source": "/w/services(/)?", "destination": "/vistos/", "permanent": true },
     { "source": "/w/hire-us(/)?", "destination": "/contato/", "permanent": true },
     { "source": "/w/contato(/)?", "destination": "/contato/", "permanent": true },
+    { "source": "/form.html", "destination": "/contato/", "permanent": true },
     { "source": "/w/timeline-do-greencard(/)?", "destination": "/como-funciona/", "permanent": true },
 
     { "source": "/w/calculadoras(/)?", "destination": "/calculadora/", "permanent": true },
     { "source": "/w/calculadora-de-eb2(/)?", "destination": "/calculadora/", "permanent": true },
     { "source": "/w/calculadora-de-l1(/)?", "destination": "/calculadora/", "permanent": true },
+    { "source": "/calculadora2.html", "destination": "/calculadora/", "permanent": true },
 
     { "source": "/w/blog(/)?", "destination": "/blog/", "permanent": true },
     { "source": "/w/como-solicitar-o-i-94-um-guia-passo-a-passo-para-viajantes(/)?", "destination": "/blog/", "permanent": true },
