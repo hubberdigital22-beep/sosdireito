@@ -104,6 +104,10 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
+/* O site não é SPA. Sem isto o Pixel trata cada mudança de URL por
+   âncora (#formulario, #conteudo) como página nova e manda outro
+   PageView, com outro ID de evento — a Meta conta duas visitas. */
+fbq.disablePushState = true;
 fbq('init', '1792448998446153');
 fbq('track', 'PageView');
 </script>
