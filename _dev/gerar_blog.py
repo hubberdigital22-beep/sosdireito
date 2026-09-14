@@ -39,7 +39,7 @@ def gerar_post(p):
         "articleSection": p['categoria'],
         "inLanguage": "pt-BR",
         "publisher": {"@type": "Organization", "name": "SOS Direito"},
-        "mainEntityOfPage": "https://sosdireito.com.br/blog/%s/" % p['slug'],
+        "mainEntityOfPage": "https://www.sosdireito.com.br/blog/%s/" % p['slug'],
     }
     aviso = AVISO.format(extra=EXTRA_VALIDAR if p['validar'] else '')
 

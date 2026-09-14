@@ -15,7 +15,7 @@ window.SOS.config = {
     telefoneLink: '+17863013817',
     email: 'info@sosdireito.com.br',
     horario: 'Segunda a sexta: 10h às 18h · Sábado e domingo: fechado',
-    site: 'https://sosdireito.com.br'
+    site: 'https://www.sosdireito.com.br'
   },
 
   /* ---- Compliance: texto obrigatório, não alterar ---- */
