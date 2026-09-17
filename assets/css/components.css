@@ -1692,3 +1692,45 @@ select.campo__controle {
   border: 1px dashed var(--marfim-300);
   border-radius: var(--r-pill);
 }
+
+/* ============================================================
+   BOTÃO FLUTUANTE DE WHATSAPP
+   Na cor principal do site (azul-tinta), não no verde do WhatsApp: o
+   glifo já identifica o canal e o verde brigaria com a paleta. Mesma
+   cor e mesmo raio do .btn, então lê como botão do site. Fica acima do conteúdo e abaixo do
+   banner de consentimento, que é fixo no rodapé com z-index próprio.
+   No celular some o rótulo e fica só o ícone, pra não cobrir texto.
+   ============================================================ */
+.wa-flutuante {
+  position: fixed;
+  right: clamp(1rem, 2.5vw, 2rem);
+  bottom: clamp(1rem, 2.5vw, 2rem);
+  z-index: var(--z-modal);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0.8rem 1.15rem;
+  font-size: var(--fs-sm);
+  font-weight: var(--peso-corpo);
+  line-height: 1.2;
+  text-decoration: none;
+  color: var(--marfim);
+  background: var(--principal);
+  border: 1px solid var(--principal);
+  border-radius: var(--r-pill);
+  box-shadow: 0 10px 30px rgba(29, 46, 64, 0.28);
+  transition: transform var(--dur-media) var(--ease-suave),
+              box-shadow var(--dur-media) var(--ease-suave);
+}
+.wa-flutuante:hover,
+.wa-flutuante:focus-visible {
+  color: var(--marfim);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(29, 46, 64, 0.34);
+}
+.wa-flutuante__icone { width: 1.35rem; height: 1.35rem; flex: none; }
+
+@media (max-width: 40rem) {
+  .wa-flutuante { padding: 0.85rem; }
+  .wa-flutuante__rotulo { display: none; }
+}

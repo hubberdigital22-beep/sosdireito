@@ -70,7 +70,7 @@ def base_de(url):
     return '../' * profundidade
 
 
-def montar(meta, corpo, partials, ver):
+def montar(meta, corpo, partials, ver, wa_numero=''):
     url = meta.get('url', '/')
     base = meta['base'] if 'base' in meta else base_de(url)
 
@@ -98,6 +98,10 @@ def montar(meta, corpo, partials, ver):
         'HEAD_EXTRA': meta.get('head_extra', ''),
         'SCRIPTS_EXTRA': meta.get('scripts_extra', ''),
         'SPRITE': partials['sprite'].strip(),
+        # Número do WhatsApp validado acima, injetado no HTML para o
+        # botão flutuante. Mantém o config.js como fonte única: um
+        # número errado trava o build antes de ir ao ar.
+        'WA_NUMERO': wa_numero,
         'LOGO': logo_recuado,
         'LOGO_VERTICAL': logo_vertical_recuado,
         'LOGO_MONOGRAMA': logo_monograma_recuado,
@@ -143,43 +147,43 @@ def conferir_whatsapp():
     """
     caminho = os.path.join(RAIZ, 'assets', 'js', 'config.js')
     if not os.path.exists(caminho):
-        return []
+        return [], ''
     m = re.search(r"numero:\s*'(\d*)'", ler(caminho))
     if not m:
-        return ['config.js: WHATSAPP.numero não encontrado']
+        return ['config.js: WHATSAPP.numero não encontrado'], ''
     n = m.group(1)
     if not n:
-        return ['config.js: WHATSAPP.numero vazio — o formulário não tem destino']
+        return ['config.js: WHATSAPP.numero vazio — o formulário não tem destino'], ''
     if n.startswith('55'):
         # 55 + DDD(2) + 8 ou 9 dígitos
         if len(n) not in (12, 13):
             return ['config.js: WHATSAPP.numero tem %d dígitos; celular brasileiro '
-                    'tem 12 ou 13 (55 + DDD + 8 ou 9). Valor: %s' % (len(n), n)]
+                    'tem 12 ou 13 (55 + DDD + 8 ou 9). Valor: %s' % (len(n), n)], ''
         ddd = int(n[2:4])
         if not (11 <= ddd <= 99):
-            return ['config.js: DDD inválido (%s) em %s' % (n[2:4], n)]
-        return []
+            return ['config.js: DDD inválido (%s) em %s' % (n[2:4], n)], ''
+        return [], n
 
     if n.startswith('1'):
         # 1 + área(3) + central(3) + 4 dígitos
         if len(n) != 11:
             return ['config.js: WHATSAPP.numero tem %d dígitos; número dos EUA '
-                    'tem 11 (1 + área + 7). Valor: %s' % (len(n), n)]
+                    'tem 11 (1 + área + 7). Valor: %s' % (len(n), n)], ''
         area, central = n[1:4], n[4:7]
         if area[0] in '01' or central[0] in '01':
             return ['config.js: área ou central não pode começar com 0 nem 1 '
-                    '(%s-%s) em %s' % (area, central, n)]
+                    '(%s-%s) em %s' % (area, central, n)], ''
         if area[1] == area[2] == '1':
             return ['config.js: %s é código de serviço (N11), não código de '
-                    'área, em %s' % (area, n)]
-        return []
+                    'área, em %s' % (area, n)], ''
+        return [], n
 
     return ['config.js: WHATSAPP.numero não começa com 55 (Brasil) nem com 1 '
-            '(EUA). Valor: %s' % n]
+            '(EUA). Valor: %s' % n], ''
 
 
 def main():
-    problemas = conferir_whatsapp()
+    problemas, wa_numero = conferir_whatsapp()
     if problemas:
         for p in problemas:
             print('ERRO: %s' % p)
@@ -210,7 +214,7 @@ def main():
         texto = ler(os.path.join(PAGES, nome))
         try:
             meta, corpo = parse_fonte(texto)
-            html = montar(meta, corpo, partials, ver)
+            html = montar(meta, corpo, partials, ver, wa_numero)
         except ValueError as e:
             print('ERRO em %s: %s' % (nome, e), file=sys.stderr)
             return 1

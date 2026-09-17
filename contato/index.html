@@ -108,12 +108,23 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
    âncora (#formulario, #conteudo) como página nova e manda outro
    PageView, com outro ID de evento — a Meta conta duas visitas. */
 fbq.disablePushState = true;
+/* O Pixel passa a respeitar o banner, igual ao Google. Antes disto ele
+   disparava PageView mesmo com "Só o essencial", enquanto a política de
+   privacidade diz que o aviso decide esses cookies. O revoke vem ANTES
+   do init: a Meta guarda os eventos numa fila e só os envia quando o
+   grant chega, no clique em Aceitar (footer.html). Se o localStorage
+   estiver bloqueado, o padrão é não medir. */
+try {
+  if (localStorage.getItem('sd_consent') !== 'granted') { fbq('consent', 'revoke'); }
+} catch (e) { fbq('consent', 'revoke'); }
 fbq('init', '1792448998446153');
 fbq('track', 'PageView');
 </script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=1792448998446153&ev=PageView&noscript=1"
-/></noscript>
+<!-- Sem <noscript> de propósito: aquela imagem mandava PageView direto,
+     sem passar pelo fbq, e sem JavaScript não existe banner nenhum para
+     a pessoa aceitar — era o único caminho que sobrava medindo quem não
+     consentiu. Custa o PageView de quem navega sem JS, que é justamente
+     quem não pôde escolher. -->
 <!-- End Meta Pixel Code -->
 <title>Fale com a SOS Direito | Assessoria Imigratória</title>
 <meta name="description" content="Entre em contato com a SOS Direito e descubra o caminho certo para levar sua empresa ou sua carreira para os Estados Unidos.">
@@ -159,11 +170,11 @@ src="https://www.facebook.com/tr?id=1792448998446153&ev=PageView&noscript=1"
 </script>
 <link rel="preload" href="../assets/fonts/sweet-sans-medium.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/roses-bolero.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="../assets/css/tokens.css?v=6aa816a8">
-<link rel="stylesheet" href="../assets/css/base.css?v=6aa816a8">
-<link rel="stylesheet" href="../assets/css/layout.css?v=6aa816a8">
-<link rel="stylesheet" href="../assets/css/components.css?v=6aa816a8">
-<link rel="stylesheet" href="../assets/css/pages/contato.css?v=6aa816a8"> <script src="../assets/js/data/paises.js?v=6aa816a8" defer></script>
+<link rel="stylesheet" href="../assets/css/tokens.css?v=6aac4c63">
+<link rel="stylesheet" href="../assets/css/base.css?v=6aac4c63">
+<link rel="stylesheet" href="../assets/css/layout.css?v=6aac4c63">
+<link rel="stylesheet" href="../assets/css/components.css?v=6aac4c63">
+<link rel="stylesheet" href="../assets/css/pages/contato.css?v=6aac4c63"> <script src="../assets/js/data/paises.js?v=6aac4c63" defer></script>
 </head>
 <body>
 <!-- Bloco 2B — GTM noscript. Tem que ser a primeira coisa depois do <body>. -->
@@ -281,6 +292,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.8v14.4L19 12z"/></symbol>
 
 <!-- ===== Sociais: lineares, na cor do site (nunca a cor da marca) ===== -->
+<symbol id="i-whatsapp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M20.5 11.8a8.5 8.5 0 0 1-12.7 7.4l-4.3 1.3 1.3-4.3A8.5 8.5 0 1 1 20.5 11.8Z"/>
+  <path d="M9.6 8.9a1 1 0 0 1 1.3.3l.7 1a1 1 0 0 1-.1 1.2l-.4.4a7 7 0 0 0 2.1 2.1l.4-.4a1 1 0 0 1 1.2-.1l1 .7a1 1 0 0 1 .3 1.3c-.4.7-1.2 1-2 .8a9 9 0 0 1-6.3-6.3c-.2-.8.1-1.6.8-2Z"/>
+</symbol>
 <symbol id="i-instagram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
   <rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/>
   <path d="M17.2 6.8h.01"/>
@@ -621,6 +636,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <p>323 Sunny Isles Blvd, 7º andar<br>Sunny Isles, FL 33160, EUA</p>
           <p><a href="tel:+17863013817">+1 (786) 301-3817</a></p>
           <p><a href="mailto:info@sosdireito.com.br">info@sosdireito.com.br</a></p>
+          <p><a href="https://wa.me/17863013817?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20SOS%20Direito%20e%20quero%20informa%C3%A7%C3%B5es%20sobre%20o%20visto%20L-1A." target="_blank" rel="noopener noreferrer">WhatsApp</a></p>
         </div>
         <ul class="sociais" style="margin-top:var(--sp-5)">
           <li><a href="https://www.instagram.com/sosdireito/" target="_blank" rel="noopener noreferrer" aria-label="Instagram da SOS Direito"><svg aria-hidden="true"><use href="#i-instagram"></use></svg></a></li>
@@ -640,19 +656,33 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </footer>
 
-<script src="../assets/js/vendor/gsap.min.js?v=6aa816a8" defer></script>
-<script src="../assets/js/vendor/ScrollTrigger.min.js?v=6aa816a8" defer></script>
-<script src="../assets/js/config.js?v=6aa816a8" defer></script>
-<script src="../assets/js/motion.js?v=6aa816a8" defer></script>
-<script src="../assets/js/components/nav.js?v=6aa816a8" defer></script>
-<script src="../assets/js/components/accordion.js?v=6aa816a8" defer></script>
-<script src="../assets/js/components/trilha.js?v=6aa816a8" defer></script>
-<script src="../assets/js/components/timeline.js?v=6aa816a8" defer></script>
-<script src="../assets/js/components/carrossel.js?v=6aa816a8" defer></script>
-<script src="../assets/js/components/decor.js?v=6aa816a8" defer></script>
-<script src="../assets/js/components/form.js?v=6aa816a8" defer></script>
-<script src="../assets/js/components/galeria.js?v=6aa816a8" defer></script>
-<script src="../assets/js/components/lead-tracking.js?v=6aa816a8" defer></script>
+<!-- Botão de WhatsApp. O número sai do config.js pelo build (17863013817),
+     que recusa gerar o site com número inválido — foi assim que um lead já
+     foi entregue no DDD errado, sem erro em lugar nenhum. O clique cai no
+     sd_whatsapp_click do Bloco 4, que até 17/09/2026 não tinha nenhum botão
+     para medir: o seletor existia e o site não tinha WhatsApp em página
+     nenhuma. -->
+<a class="wa-flutuante"
+   href="https://wa.me/17863013817?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20SOS%20Direito%20e%20quero%20informa%C3%A7%C3%B5es%20sobre%20o%20visto%20L-1A."
+   target="_blank" rel="noopener noreferrer"
+   aria-label="Falar com a SOS Direito no WhatsApp">
+  <svg class="wa-flutuante__icone" aria-hidden="true"><use href="#i-whatsapp"></use></svg>
+  <span class="wa-flutuante__rotulo">WhatsApp</span>
+</a>
+
+<script src="../assets/js/vendor/gsap.min.js?v=6aac4c63" defer></script>
+<script src="../assets/js/vendor/ScrollTrigger.min.js?v=6aac4c63" defer></script>
+<script src="../assets/js/config.js?v=6aac4c63" defer></script>
+<script src="../assets/js/motion.js?v=6aac4c63" defer></script>
+<script src="../assets/js/components/nav.js?v=6aac4c63" defer></script>
+<script src="../assets/js/components/accordion.js?v=6aac4c63" defer></script>
+<script src="../assets/js/components/trilha.js?v=6aac4c63" defer></script>
+<script src="../assets/js/components/timeline.js?v=6aac4c63" defer></script>
+<script src="../assets/js/components/carrossel.js?v=6aac4c63" defer></script>
+<script src="../assets/js/components/decor.js?v=6aac4c63" defer></script>
+<script src="../assets/js/components/form.js?v=6aac4c63" defer></script>
+<script src="../assets/js/components/galeria.js?v=6aac4c63" defer></script>
+<script src="../assets/js/components/lead-tracking.js?v=6aac4c63" defer></script>
 
 <!-- Bloco 4 — eventos de clique (telefone, e-mail, WhatsApp, calculadora).
      Delegado no document: funciona em qualquer página, mesmo sem os
@@ -780,6 +810,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         'ad_personalization': 'granted',
         'analytics_storage': 'granted'
       });
+    }
+
+    /* O Pixel da Meta está fora do GTM, então o consentimento tem que ser
+       dito a ele direto — o Consent Mode do Google não o alcança. O grant
+       libera a fila que o revoke do head.html segurou, inclusive o
+       PageView desta visita. */
+    if (typeof window.fbq === 'function') {
+      window.fbq('consent', valor === 'granted' ? 'grant' : 'revoke');
     }
 
     /* Taxa de consentimento. Sem medir isso, uma campanha com conversão

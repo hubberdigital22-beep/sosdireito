@@ -35,6 +35,7 @@
           <p>323 Sunny Isles Blvd, 7º andar<br>Sunny Isles, FL 33160, EUA</p>
           <p><a href="tel:+17863013817">+1 (786) 301-3817</a></p>
           <p><a href="mailto:info@sosdireito.com.br">info@sosdireito.com.br</a></p>
+          <p><a href="https://wa.me/{{WA_NUMERO}}?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20SOS%20Direito%20e%20quero%20informa%C3%A7%C3%B5es%20sobre%20o%20visto%20L-1A." target="_blank" rel="noopener noreferrer">WhatsApp</a></p>
         </div>
         <ul class="sociais" style="margin-top:var(--sp-5)">
           <li><a href="https://www.instagram.com/sosdireito/" target="_blank" rel="noopener noreferrer" aria-label="Instagram da SOS Direito"><svg aria-hidden="true"><use href="#i-instagram"></use></svg></a></li>
@@ -53,6 +54,20 @@
     </div>
   </div>
 </footer>
+
+<!-- Botão de WhatsApp. O número sai do config.js pelo build ({{WA_NUMERO}}),
+     que recusa gerar o site com número inválido — foi assim que um lead já
+     foi entregue no DDD errado, sem erro em lugar nenhum. O clique cai no
+     sd_whatsapp_click do Bloco 4, que até 17/09/2026 não tinha nenhum botão
+     para medir: o seletor existia e o site não tinha WhatsApp em página
+     nenhuma. -->
+<a class="wa-flutuante"
+   href="https://wa.me/{{WA_NUMERO}}?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20SOS%20Direito%20e%20quero%20informa%C3%A7%C3%B5es%20sobre%20o%20visto%20L-1A."
+   target="_blank" rel="noopener noreferrer"
+   aria-label="Falar com a SOS Direito no WhatsApp">
+  <svg class="wa-flutuante__icone" aria-hidden="true"><use href="#i-whatsapp"></use></svg>
+  <span class="wa-flutuante__rotulo">WhatsApp</span>
+</a>
 
 <script src="{{BASE}}assets/js/vendor/gsap.min.js?v={{VER}}" defer></script>
 <script src="{{BASE}}assets/js/vendor/ScrollTrigger.min.js?v={{VER}}" defer></script>
@@ -194,6 +209,14 @@
         'ad_personalization': 'granted',
         'analytics_storage': 'granted'
       });
+    }
+
+    /* O Pixel da Meta está fora do GTM, então o consentimento tem que ser
+       dito a ele direto — o Consent Mode do Google não o alcança. O grant
+       libera a fila que o revoke do head.html segurou, inclusive o
+       PageView desta visita. */
+    if (typeof window.fbq === 'function') {
+      window.fbq('consent', valor === 'granted' ? 'grant' : 'revoke');
     }
 
     /* Taxa de consentimento. Sem medir isso, uma campanha com conversão

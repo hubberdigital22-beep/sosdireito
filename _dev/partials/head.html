@@ -108,12 +108,23 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
    âncora (#formulario, #conteudo) como página nova e manda outro
    PageView, com outro ID de evento — a Meta conta duas visitas. */
 fbq.disablePushState = true;
+/* O Pixel passa a respeitar o banner, igual ao Google. Antes disto ele
+   disparava PageView mesmo com "Só o essencial", enquanto a política de
+   privacidade diz que o aviso decide esses cookies. O revoke vem ANTES
+   do init: a Meta guarda os eventos numa fila e só os envia quando o
+   grant chega, no clique em Aceitar (footer.html). Se o localStorage
+   estiver bloqueado, o padrão é não medir. */
+try {
+  if (localStorage.getItem('sd_consent') !== 'granted') { fbq('consent', 'revoke'); }
+} catch (e) { fbq('consent', 'revoke'); }
 fbq('init', '1792448998446153');
 fbq('track', 'PageView');
 </script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=1792448998446153&ev=PageView&noscript=1"
-/></noscript>
+<!-- Sem <noscript> de propósito: aquela imagem mandava PageView direto,
+     sem passar pelo fbq, e sem JavaScript não existe banner nenhum para
+     a pessoa aceitar — era o único caminho que sobrava medindo quem não
+     consentiu. Custa o PageView de quem navega sem JS, que é justamente
+     quem não pôde escolher. -->
 <!-- End Meta Pixel Code -->
 <title>{{TITLE}}</title>
 <meta name="description" content="{{DESC}}">
