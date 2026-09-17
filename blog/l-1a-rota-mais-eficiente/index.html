@@ -494,7 +494,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script src="../../assets/js/components/galeria.js?v=6aa816a8" defer></script>
 
 
-<!-- Bloco 4 — eventos de clique (telefone, WhatsApp, calculadora).
+<!-- Bloco 4 — eventos de clique (telefone, e-mail, WhatsApp, calculadora).
      Delegado no document: funciona em qualquer página, mesmo sem os
      elementos correspondentes (cada handler checa se o alvo existe). -->
 <script>
@@ -534,6 +534,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     });
   }, true);
 
+  /* O e-mail é o terceiro canal de contato do site (info@, em todas as
+     páginas) e era o único sem evento: telefone e WhatsApp tinham, ele
+     não. Precisa de gatilho no GTM para virar relatório. */
+  document.addEventListener('click', function (ev) {
+    if (!ev.target || !ev.target.closest) return;
+    var el = ev.target.closest('a[href^="mailto:"]');
+    if (!el) return;
+    window.dataLayer.push({
+      event: 'sd_email_click',
+      email: el.getAttribute('href').replace('mailto:', '').split('?')[0],
+      page_path: location.pathname
+    });
+  }, true);
+
   document.addEventListener('click', function (ev) {
     if (!ev.target || !ev.target.closest) return;
     var el = ev.target.closest('button, .btn, input[type="button"], input[type="submit"]');
@@ -541,7 +555,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     var label = (el.textContent || el.value || '').trim();
     if (!/^calcular$/i.test(label)) return;
     var sel = document.getElementById('calc-visto');
+    /* Estado ANTES do clique: mexer em qualquer campo apaga o resultado
+       e volta a bandeira para false, então "false antes" é o que
+       distingue um cálculo novo de um segundo clique em Calcular com os
+       mesmos dados, que repintava o mesmo total e contava de novo. */
+    var raizAntes = document.querySelector('[data-calculadora]');
+    var jaEstavaCalculado = raizAntes && raizAntes.getAttribute('data-calculado') === 'true';
     setTimeout(function () {
+      /* Só conta se a calculadora realmente calculou. Clicar em Calcular
+         com o tipo de visto em branco para na validação e não gera
+         resultado nenhum: sem esta trava o evento subia com visa_type
+         vazio e valor "000" — e no container sd_calc_complete é
+         conversão do Google Ads, então cada clique perdido virava
+         conversão. A bandeira é a mesma que calculadora.js acende
+         quando pinta o resultado. */
+      var raiz = document.querySelector('[data-calculadora]');
+      if (!raiz || raiz.getAttribute('data-calculado') !== 'true') return;
+      if (jaEstavaCalculado) return;
       var total = document.getElementById('calc-total');
       window.dataLayer.push({
         event: 'sd_calc_complete',
