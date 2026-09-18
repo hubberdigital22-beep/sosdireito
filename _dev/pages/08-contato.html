@@ -97,20 +97,28 @@ scripts_extra: <script src="../assets/js/components/lead-tracking.js?v={{VER}}" 
               <span class="campo__erro" aria-live="polite"></span>
             </div>
             <div class="campo">
-              <!-- CRM: email — opcional no original, mantido opcional -->
-              <label class="campo__rotulo" for="c-email">E-mail <span class="campo__opcional">(opcional)</span></label>
+              <!-- CRM: email — opcional no original. Desde 18/09/2026 forma
+                   par com o telefone: nenhum dos dois é exigido sozinho, mas
+                   o envio pede pelo menos um. Um lead sem e-mail e sem
+                   telefone só tem um caminho de volta, a mensagem do
+                   WhatsApp — e ela depende de a pessoa apertar enviar lá
+                   dentro, coisa que nem todo mundo faz. A regra do par vive
+                   em form.js, presa a este data-contato. -->
+              <label class="campo__rotulo" for="c-email">E-mail <span class="campo__opcional">(ou telefone)</span></label>
               <input class="campo__controle" type="email" id="c-email" name="email"
-                     autocomplete="email">
+                     autocomplete="email" data-contato>
               <span class="campo__erro" aria-live="polite"></span>
             </div>
           </div>
 
           <div class="campo-duplo">
             <div class="campo">
-              <!-- CRM: mobile — opcional no original -->
-              <label class="campo__rotulo" for="c-telefone">Telefone <span class="campo__opcional">(opcional)</span></label>
+              <!-- CRM: mobile — opcional no original. A outra metade do par
+                   do e-mail (ver acima). É também o que alimenta o user_data
+                   da conversão aprimorada, junto com o e-mail. -->
+              <label class="campo__rotulo" for="c-telefone">Telefone <span class="campo__opcional">(ou e-mail)</span></label>
               <input class="campo__controle" type="tel" id="c-telefone" name="telefone"
-                     autocomplete="tel" data-mascara="telefone" placeholder="(11) 99999-9999">
+                     autocomplete="tel" data-mascara="telefone" placeholder="(11) 99999-9999" data-contato>
               <span class="campo__erro" aria-live="polite"></span>
             </div>
             <div class="campo">

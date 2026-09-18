@@ -56,9 +56,9 @@ _dev/          Fontes de autoria. NÃO é necessário para publicar.
 | Arquivos de fonte | `assets/fonts/*.woff2` + `@font-face` em `tokens.css` |
 | Logo | `assets/img/logo-*.svg` e `_dev/partials/logo*.html` |
 | Endereço, telefone, e-mail, redes sociais | `assets/js/config.js` **e** `_dev/partials/footer.html` |
-| Destino do formulário de contato | `FORM_ENDPOINT` em `assets/js/config.js` |
+| Destino do formulário de contato | `WHATSAPP.numero` em `assets/js/config.js` |
 | Valores e taxas da calculadora | `assets/js/data/taxas.js` |
-| Banco de feedback dos Casos de Sucesso | `assets/js/data/casos.js` |
+| Depoimentos e galeria dos Casos de Sucesso | `_dev/pages/06-casos.html` |
 | Conteúdo dos posts | `_dev/conteudo/posts.py`, depois rodar o gerador |
 
 ### Formulário de contato

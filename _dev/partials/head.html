@@ -132,6 +132,15 @@ fbq('track', 'PageView');
 {{ROBOTS}}
 <meta name="theme-color" content="#570615">
 
+<!-- Verificação de domínio da Meta. Declara ao Business Manager que este
+     domínio é da banca; sem isso a conta não configura os eventos
+     agregados do domínio nem controla quem mais pode usá-lo em anúncios.
+     Não é rastreio: não carrega nada, não põe cookie e não depende do
+     banner de consentimento — é uma declaração de propriedade que a Meta
+     lê do HTML. Tem que sair na página inicial do domínio verificado
+     (www.sosdireito.com.br), e o build coloca nas 19. -->
+<meta name="facebook-domain-verification" content="y4dwlzr0trr40xrvn3xbdzmoc27kxv">
+
 <link rel="icon" href="{{BASE}}assets/favicons/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="{{BASE}}assets/favicons/favicon.ico" sizes="any">
 <link rel="icon" href="{{BASE}}assets/favicons/favicon-32x32.png" sizes="32x32" type="image/png">

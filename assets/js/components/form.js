@@ -18,7 +18,8 @@
     telefone: 'Informe um telefone válido, com DDD.',
     ano: 'Informe o ano com 4 dígitos.',
     anoFuturo: 'O ano não pode ser no futuro.',
-    data: 'Informe uma data válida.'
+    data: 'Informe uma data válida.',
+    contato: 'Informe pelo menos um: e-mail ou telefone.'
   };
 
   var RE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -163,6 +164,46 @@
     return !erro;
   }
 
+  /* ---- E-mail OU telefone ----
+     Nenhum dos dois é exigido sozinho: pedir os dois afasta gente à toa,
+     e não pedir nenhum deixa passar lead sem caminho de volta — o envio
+     só abre o WhatsApp com a mensagem pronta, e quem não aperta enviar
+     lá dentro não deixou contato nenhum. Os campos do par carregam
+     data-contato no HTML.
+
+     `apenasLimpar` existe para o evento input: enquanto a pessoa digita,
+     preencher um dos dois desfaz o erro do outro, mas esvaziar os dois
+     não acusa nada antes de ela tentar enviar. */
+  function validarContato(form, apenasLimpar) {
+    var par = Array.prototype.slice.call(form.querySelectorAll('[data-contato]'));
+    if (!par.length) return true;
+
+    var algum = par.some(function (c) { return (c.value || '').trim(); });
+    if (!algum && apenasLimpar) return false;
+
+    par.forEach(function (c) {
+      var campo = c.closest('.campo');
+      if (!campo) return;
+      var erroEl = campo.querySelector('.campo__erro');
+
+      if (!algum) {
+        if (erroEl) erroEl.textContent = MENSAGENS.contato;
+        campo.setAttribute('data-invalido', 'true');
+        c.setAttribute('aria-invalid', 'true');
+        return;
+      }
+      /* Limpa só o erro DESTE par. Um e-mail malformado continua
+         marcado pelo validarCampo, que roda antes. */
+      if (erroEl && erroEl.textContent === MENSAGENS.contato) {
+        erroEl.textContent = '';
+        campo.setAttribute('data-invalido', 'false');
+        c.setAttribute('aria-invalid', 'false');
+      }
+    });
+
+    return algum;
+  }
+
   document.querySelectorAll('[data-form]').forEach(function (form) {
     var botao     = form.querySelector('[type="submit"]');
     var sucesso   = form.querySelector('[data-form-sucesso]');
@@ -206,6 +247,7 @@
       c.addEventListener('input', function () {
         var campo = c.closest('.campo');
         if (campo && campo.getAttribute('data-invalido') === 'true') validarCampo(c);
+        if (c.hasAttribute('data-contato')) validarContato(form, true);
       });
     });
 
@@ -223,6 +265,11 @@
           if (!primeiroInvalido) primeiroInvalido = c;
         }
       });
+
+      if (!validarContato(form)) {
+        valido = false;
+        if (!primeiroInvalido) primeiroInvalido = form.querySelector('[data-contato]');
+      }
 
       if (!valido) {
         if (primeiroInvalido) {
