@@ -1,5 +1,7 @@
 {
   "redirects": [
+    { "source": "/:path(.*)", "has": [{ "type": "host", "value": "sosdireito.vercel.app" }], "destination": "https://www.sosdireito.com.br/:path", "permanent": true },
+
     { "source": "/w/about-us(/)?", "destination": "/sobre/", "permanent": true },
     { "source": "/w/services(/)?", "destination": "/vistos/", "permanent": true },
     { "source": "/w/hire-us(/)?", "destination": "/contato/", "permanent": true },
