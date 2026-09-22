@@ -740,7 +740,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <p class="rodape__titulo">Contato</p>
         <div class="rodape__contato">
           <p>323 Sunny Isles Blvd, 7º andar<br>Sunny Isles, FL 33160, EUA</p>
-          <p><a href="tel:+17863013817">+1 (786) 301-3817</a></p>
           <p><a href="mailto:info@sosdireito.com.br">info@sosdireito.com.br</a></p>
           <p><a href="https://wa.me/17863013817?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20SOS%20Direito%20e%20quero%20informa%C3%A7%C3%B5es%20sobre%20o%20visto%20L-1A." target="_blank" rel="noopener noreferrer">WhatsApp</a></p>
         </div>
@@ -790,7 +789,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script src="../assets/js/components/galeria.js?v=6aacefea" defer></script>
 
 
-<!-- Bloco 4 — eventos de clique (telefone, e-mail, WhatsApp, calculadora).
+<!-- Bloco 4 — eventos de clique (e-mail, WhatsApp, calculadora).
      Delegado no document: funciona em qualquer página, mesmo sem os
      elementos correspondentes (cada handler checa se o alvo existe). -->
 <script>
@@ -820,19 +819,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     });
   }, true);
 
-  document.addEventListener('click', function (ev) {
-    if (!ev.target || !ev.target.closest) return;
-    var el = ev.target.closest('a[href^="tel:"]');
-    if (!el) return;
-    window.dataLayer.push({
-      event: 'sd_call_click',
-      phone: el.getAttribute('href').replace('tel:', '')
-    });
-  }, true);
-
-  /* O e-mail é o terceiro canal de contato do site (info@, em todas as
-     páginas) e era o único sem evento: telefone e WhatsApp tinham, ele
-     não. Precisa de gatilho no GTM para virar relatório. */
+  /* O e-mail (info@, em todas as páginas) é canal de contato junto com o
+     formulário e o WhatsApp. O telefone saiu do site a pedido do cliente
+     em 22/09/2026, e com ele o sd_call_click. Precisa de gatilho no GTM
+     para virar relatório. */
   document.addEventListener('click', function (ev) {
     if (!ev.target || !ev.target.closest) return;
     var el = ev.target.closest('a[href^="mailto:"]');
