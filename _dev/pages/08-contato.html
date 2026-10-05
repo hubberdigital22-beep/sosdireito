@@ -4,7 +4,7 @@ title: Fale com a SOS Direito | Assessoria Imigratória
 desc: Entre em contato com a SOS Direito e descubra o caminho certo para levar sua empresa ou sua carreira para os Estados Unidos.
 head_extra: <link rel="stylesheet" href="../assets/css/pages/contato.css?v={{VER}}">
  <script src="../assets/js/data/paises.js?v={{VER}}" defer></script>
-scripts_extra: <script src="../assets/js/components/lead-tracking.js?v={{VER}}" defer></script>
+scripts_extra: <script src="../assets/js/components/lead-tracking.js?v={{VER}}" defer></script> <script src="../assets/js/components/lead-crm.js?v={{VER}}" defer></script>
 ---
 
 <section class="hero hero--interno secao--marfim">
@@ -215,6 +215,16 @@ scripts_extra: <script src="../assets/js/components/lead-tracking.js?v={{VER}}" 
             <span><strong>SOS Direito é uma assessoria imigratória.</strong> Não prestamos
             serviços advocatícios.</span>
           </p>
+
+          <!-- Isca para robô: pessoa não vê nem alcança por teclado. Fora de
+               .campo__controle de propósito, para o form.js não validar nem
+               levar para a mensagem do WhatsApp. O servidor trata preenchida
+               como robô e responde sucesso sem entregar nada. -->
+          <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden">
+            <label>Não preencha este campo
+              <input type="text" name="site_extra" tabindex="-1" autocomplete="off">
+            </label>
+          </div>
 
           <div>
             <button class="btn btn--grande" type="submit">

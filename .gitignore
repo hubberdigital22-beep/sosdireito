@@ -8,3 +8,8 @@ __pycache__/
 # Editores
 .vscode/
 .idea/
+
+# Node (funções em api/) e segredos locais da Vercel
+node_modules/
+.env*
+.vercel/

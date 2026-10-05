@@ -182,12 +182,87 @@ def conferir_whatsapp():
             '(EUA). Valor: %s' % n], ''
 
 
+def conferir_lead():
+    """Trava o build se o formulário e o servidor de leads divergirem.
+
+    A rota api/lead.js traduz o valor de cada <option> de "Como nos
+    conheceu" para o texto que a equipe lê no card. Se alguém acrescentar ou
+    renomear uma opção no HTML e esquecer api/_lead.js, o card sai com o
+    valor cru, sem erro em lugar nenhum. O status imigratório segue a mesma
+    lista, para a descrição do card e a mensagem do WhatsApp dizerem a mesma
+    coisa.
+
+    Confere também que a URL do webhook do JSYNQ não foi parar no repositório:
+    ela é a única credencial do webhook e só pode viver na variável de
+    ambiente da Vercel.
+    """
+    problemas = []
+    pagina = os.path.join(PAGES, '08-contato.html')
+    lead_js = os.path.join(RAIZ, 'api', '_lead.js')
+
+    if os.path.exists(pagina) and os.path.exists(lead_js):
+        html, js = ler(pagina), ler(lead_js)
+
+        def opcoes_html(nome):
+            m = re.search(r'<select[^>]*name="%s"[^>]*>(.*?)</select>' % nome, html, re.S)
+            if not m:
+                return None
+            return [(v, re.sub(r'\s+', ' ', t).strip())
+                    for v, t in re.findall(r'<option value="([^"]*)"[^>]*>(.*?)</option>', m.group(1), re.S)
+                    if v]
+
+        m = re.search(r'export const ORIGENS = \{(.*?)\};', js, re.S)
+        origens_js = re.findall(r"'([^']+)':\s*'([^']*)'", m.group(1)) if m else None
+        origens_html = opcoes_html('origem')
+        if origens_js is None:
+            problemas.append('api/_lead.js: ORIGENS não encontrado')
+        elif origens_html is None:
+            problemas.append('08-contato.html: select name="origem" não encontrado')
+        elif sorted(origens_js) != sorted(origens_html):
+            problemas.append('"Como nos conheceu" diverge entre 08-contato.html %s e api/_lead.js ORIGENS %s'
+                             % (origens_html, origens_js))
+
+        m = re.search(r'export const STATUS = \[(.*?)\];', js, re.S)
+        status_js = re.findall(r"'([^']+)'", m.group(1)) if m else None
+        status_html = opcoes_html('status_imigratorio')
+        if status_js is None:
+            problemas.append('api/_lead.js: STATUS não encontrado')
+        elif status_html is None:
+            problemas.append('08-contato.html: select name="status_imigratorio" não encontrado')
+        elif sorted(status_js) != sorted(v for v, _ in status_html):
+            problemas.append('status imigratório diverge entre 08-contato.html %s e api/_lead.js STATUS %s'
+                             % ([v for v, _ in status_html], status_js))
+
+    # Montada por partes para este arquivo não casar com a própria busca.
+    agulha = 'workflow' + '-hooks'
+    for pasta, dirs, arquivos in os.walk(RAIZ):
+        dirs[:] = [d for d in dirs if d not in ('.git', 'node_modules', '.claude', '__pycache__', '.vercel')]
+        for a in arquivos:
+            if not a.endswith(('.js', '.mjs', '.html', '.md', '.json', '.py', '.txt', '.css', '.xml')):
+                continue
+            caminho = os.path.join(pasta, a)
+            try:
+                if agulha in ler(caminho):
+                    problemas.append('%s contém a URL do webhook do JSYNQ; ela só pode ficar em '
+                                     'JSYNQ_WEBHOOK_URL, na Vercel' % os.path.relpath(caminho, RAIZ))
+            except (UnicodeDecodeError, OSError):
+                continue
+    return problemas
+
+
 def main():
     problemas, wa_numero = conferir_whatsapp()
     if problemas:
         for p in problemas:
             print('ERRO: %s' % p)
         print('\nNada foi gerado. Corrija o número antes de publicar.')
+        return 1
+
+    problemas = conferir_lead()
+    if problemas:
+        for p in problemas:
+            print('ERRO: %s' % p)
+        print('\nNada foi gerado. Corrija o formulário ou api/_lead.js antes de publicar.')
         return 1
 
     partials = {
