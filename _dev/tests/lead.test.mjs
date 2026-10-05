@@ -50,10 +50,10 @@ test('lead completo: normaliza e não devolve problemas', () => {
   assert.deepEqual(lead.attribution, { gclid: 'abc123def456', utm_source: 'google', utm_medium: 'cpc', utm_campaign: 'l1a' });
 });
 
-test('só e-mail passa; só telefone passa; nenhum dos dois não', () => {
-  assert.deepEqual(validarLead(com({ telefone: '' })).problemas, []);
-  assert.deepEqual(validarLead(com({ email: '' })).problemas, []);
-  assert.deepEqual(validarLead(com({ email: '', telefone: '' })).problemas, ['contato']);
+test('nome, e-mail e telefone são obrigatórios: o JSYNQ não cria card sem o e-mail', () => {
+  assert.deepEqual(validarLead(com({ telefone: '' })).problemas, ['telefone']);
+  assert.deepEqual(validarLead(com({ email: '' })).problemas, ['email']);
+  assert.deepEqual(validarLead(com({ email: '', telefone: '' })).problemas, ['email', 'telefone']);
 });
 
 test('nome é obrigatório', () => {
@@ -61,20 +61,20 @@ test('nome é obrigatório', () => {
   assert.deepEqual(validarLead(com({ nome: undefined })).problemas, ['nome']);
 });
 
-test('e-mail malformado e telefone curto ou longo são apontados, sem cair em "contato"', () => {
-  assert.deepEqual(validarLead(com({ email: 'maria@', telefone: '' })).problemas, ['email']);
-  assert.deepEqual(validarLead(com({ email: '', telefone: '(11) 9999' })).problemas, ['telefone']);
-  assert.deepEqual(validarLead(com({ email: '', telefone: '1'.repeat(16) })).problemas, ['telefone']);
+test('e-mail malformado e telefone curto ou longo são apontados', () => {
+  assert.deepEqual(validarLead(com({ email: 'maria@' })).problemas, ['email']);
+  assert.deepEqual(validarLead(com({ telefone: '(11) 9999' })).problemas, ['telefone']);
+  assert.deepEqual(validarLead(com({ telefone: '1'.repeat(16) })).problemas, ['telefone']);
 });
 
 test('internacional: número dos EUA e do Brasil com DDI passam', () => {
-  assert.deepEqual(validarLead(com({ email: '', telefone: '+1 786 301 3817' })).problemas, []);
-  assert.deepEqual(validarLead(com({ email: '', telefone: '+55 (11) 99999-9999' })).problemas, []);
+  assert.deepEqual(validarLead(com({ telefone: '+1 786 301 3817' })).problemas, []);
+  assert.deepEqual(validarLead(com({ telefone: '+55 (11) 99999-9999' })).problemas, []);
 });
 
 test('o servidor NÃO é mais rígido que o formulário: campos opcionais e valores estranhos passam', () => {
   const { lead, problemas } = validarLead({
-    nome: 'Ana', email: 'ana@exemplo.com',
+    nome: 'Ana', email: 'ana@exemplo.com', telefone: '(11) 99999-9999',
     status_imigratorio: 'Opção nova que o servidor não conhece',
     origem: 'podcast',
     ultima_entrada_eua: 'ontem',
@@ -104,9 +104,9 @@ test('caracteres de controle saem e o texto livre mantém as quebras de linha', 
   assert.equal(lead.servico_procurado, 'a\nbc');
 });
 
-test('corpo que não é objeto vira "nome" e "contato", sem exceção', () => {
+test('corpo que não é objeto vira "nome", "email" e "telefone", sem exceção', () => {
   for (const ruim of [null, undefined, 'texto', 42, []]) {
-    assert.deepEqual(validarLead(ruim).problemas, ['nome', 'contato']);
+    assert.deepEqual(validarLead(ruim).problemas, ['nome', 'email', 'telefone']);
   }
 });
 
@@ -464,7 +464,7 @@ test('rota: lead inválido dá 422 com a lista de campos e não guarda nada', as
   const r = res();
   await h(req({ body: com({ email: '', telefone: '' }) }), r);
   assert.equal(r.codigo, 422);
-  assert.deepEqual(r.corpo, { ok: false, error: 'validation', campos: ['contato'] });
+  assert.deepEqual(r.corpo, { ok: false, error: 'validation', campos: ['email', 'telefone'] });
   assert.deepEqual(fila.ordem, []);
 });
 

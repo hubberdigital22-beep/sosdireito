@@ -22,9 +22,9 @@
      servidor: o momento mais próximo de "o lead aconteceu" é o
      handoff, depois da validação, quando o WhatsApp é aberto com a
      mensagem montada. É esse momento que acende o estado de sucesso.
-   - E-mail e telefone são opcionais neste formulário (como no CRM),
-     então user_data pode ir vazio — as chaves sem valor são omitidas
-     em vez de subirem como string vazia.
+   - E-mail e telefone são obrigatórios neste formulário desde
+     05/10/2026, então user_data sai com os dois. O código ainda omite
+     chave sem valor em vez de subir string vazia, por segurança.
 
    O que NÃO muda: a conversão só dispara quando o estado de sucesso
    aparece — nunca no clique do botão. Disparar no clique conta

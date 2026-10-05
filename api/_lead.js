@@ -3,13 +3,15 @@
  * do JSYNQ. Só funções puras: nada aqui lê ambiente, rede ou relógio, para o
  * teste rodar sem nenhum dos três.
  *
- * O servidor exige o mínimo para o lead ter caminho de volta (nome e e-mail
- * ou telefone) e aceita o resto como veio. Quem impõe as regras do formulário
- * é o form.js. Se o servidor fosse mais rígido, qualquer mudança no formulário
- * (campo que deixa de ser obrigatório, opção nova) faria o CRM recusar os
- * leads sem erro visível, porque o WhatsApp abre do mesmo jeito. Perder o
- * lead do CRM é justamente o que esta camada existe para evitar. Por isso
- * texto acima do limite é cortado, não recusado.
+ * O servidor exige só o que o CRM da SOS (JSYNQ) exige para criar o card: nome,
+ * e-mail e telefone. Sem o e-mail o JSYNQ responde sucesso e não cria card, então
+ * aceitar um lead assim seria perdê-lo em silêncio; recusar com 422 deixa o
+ * motivo no log. O resto o servidor aceita como veio, e quem impõe as demais
+ * regras do formulário é o form.js. Se o servidor fosse mais rígido, qualquer
+ * mudança no formulário (campo que deixa de ser obrigatório, opção nova) faria
+ * o CRM recusar os leads sem erro visível, porque o WhatsApp abre do mesmo jeito.
+ * Perder o lead do CRM é justamente o que esta camada existe para evitar. Por
+ * isso texto acima do limite é cortado, não recusado.
  *
  * Os rótulos e a ordem de ROTULOS/ORDEM são os do form.js: o teste em
  * _dev/tests confere as duas listas contra ele. ORIGENS e STATUS reproduzem as
@@ -121,9 +123,9 @@ function atribuicao(a) {
 /**
  * Corpo do POST → { lead, problemas }.
  *
- * `problemas` só tem o que impede o lead de ter caminho de volta: 'nome',
- * 'email' (malformado), 'telefone' (curto ou longo demais) e 'contato'
- * (nenhum dos dois). Quando vazio, `lead` está pronto para guardar e entregar.
+ * `problemas` só tem o que impede o CRM de criar o card: 'nome', 'email' e
+ * 'telefone', cada um ausente ou inválido (e-mail malformado, telefone curto ou
+ * longo demais). Quando vazio, `lead` está pronto para guardar e entregar.
  */
 export function validarLead(corpo, { campos = CAMPOS_NO_CRM } = {}) {
   const b = corpo && typeof corpo === 'object' ? corpo : {};
@@ -134,18 +136,11 @@ export function validarLead(corpo, { campos = CAMPOS_NO_CRM } = {}) {
   if (nome) lead.nome = nome; else problemas.push('nome');
 
   const email = linha(b.email, LIMITE.email).toLowerCase();
-  if (email) {
-    if (RE_EMAIL.test(email)) lead.email = email; else problemas.push('email');
-  }
+  if (RE_EMAIL.test(email)) lead.email = email; else problemas.push('email');
 
   const tel = telefone(b.telefone);
-  if (tel.valor) {
-    if (tel.digitos >= 10 && tel.digitos <= 15) lead.telefone = tel.valor;
-    else problemas.push('telefone');
-  }
-
-  // Sem nenhum dos dois: se um veio malformado, o problema já é dele.
-  if (!email && !tel.valor) problemas.push('contato');
+  if (tel.digitos >= 10 && tel.digitos <= 15) lead.telefone = tel.valor;
+  else problemas.push('telefone');
 
   for (const nomeCampo of ORDEM) {
     if (ESSENCIAIS.includes(nomeCampo) || !campos.includes(nomeCampo)) continue;

@@ -88,28 +88,24 @@ scripts_extra: <script src="../assets/js/components/lead-tracking.js?v={{VER}}" 
               <span class="campo__erro" aria-live="polite"></span>
             </div>
             <div class="campo">
-              <!-- CRM: email — opcional no original. Desde 18/09/2026 forma
-                   par com o telefone: nenhum dos dois é exigido sozinho, mas
-                   o envio pede pelo menos um. Um lead sem e-mail e sem
-                   telefone só tem um caminho de volta, a mensagem do
-                   WhatsApp — e ela depende de a pessoa apertar enviar lá
-                   dentro, coisa que nem todo mundo faz. A regra do par vive
-                   em form.js, presa a este data-contato. -->
-              <label class="campo__rotulo" for="c-email">E-mail <span class="campo__opcional">(ou telefone)</span></label>
+              <!-- CRM: email — obrigatório. Entre 18/09 e 05/10/2026 foi "e-mail ou
+                   telefone", mas o CRM da SOS (JSYNQ) só cria o card quando o
+                   e-mail vem: lead só com telefone era aceito e sumia sem erro.
+                   Por isso voltou a ser exigido, junto com o telefone. -->
+              <label class="campo__rotulo" for="c-email">E-mail</label>
               <input class="campo__controle" type="email" id="c-email" name="email"
-                     autocomplete="email" data-contato>
+                     autocomplete="email" required>
               <span class="campo__erro" aria-live="polite"></span>
             </div>
           </div>
 
           <div class="campo-duplo">
             <div class="campo">
-              <!-- CRM: mobile — opcional no original. A outra metade do par
-                   do e-mail (ver acima). É também o que alimenta o user_data
+              <!-- CRM: mobile — obrigatório. É também o que alimenta o user_data
                    da conversão aprimorada, junto com o e-mail. -->
-              <label class="campo__rotulo" for="c-telefone">Telefone <span class="campo__opcional">(ou e-mail)</span></label>
+              <label class="campo__rotulo" for="c-telefone">Telefone</label>
               <input class="campo__controle" type="tel" id="c-telefone" name="telefone"
-                     autocomplete="tel" data-mascara="telefone" placeholder="(11) 99999-9999" data-contato>
+                     autocomplete="tel" data-mascara="telefone" placeholder="(11) 99999-9999" required>
               <span class="campo__erro" aria-live="polite"></span>
             </div>
             <div class="campo">
