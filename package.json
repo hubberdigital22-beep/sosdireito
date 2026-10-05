@@ -1,0 +1,12 @@
+{
+  "name": "sosdireito",
+  "private": true,
+  "type": "module",
+  "description": "Site estático da SOS Direito. O HTML da raiz é gerado por _dev/build.py; api/ são funções serverless da Vercel (leads do formulário → JSYNQ, com fila em Blob).",
+  "scripts": {
+    "test": "node --test \"_dev/tests/*.test.mjs\""
+  },
+  "dependencies": {
+    "@vercel/blob": "2.8.0"
+  }
+}

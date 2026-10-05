@@ -1,4 +1,10 @@
 {
+  "crons": [
+    { "path": "/api/drenar", "schedule": "0 9 * * *" }
+  ],
+  "functions": {
+    "api/*.js": { "maxDuration": 30 }
+  },
   "redirects": [
     { "source": "/:path(.*)", "has": [{ "type": "host", "value": "sosdireito.vercel.app" }], "destination": "https://www.sosdireito.com.br/:path", "permanent": true },
 
