@@ -179,6 +179,19 @@ test('descrição do card: rótulos na ordem, texto livre por último, origem, g
   assert.doesNotMatch(d, /undefined|\[object/);
 });
 
+test('descrição leva todos os parâmetros de origem que o site guarda, e só os preenchidos', () => {
+  const { lead, problemas } = validarLead(com({ attribution: {
+    utm_source: 'google', utm_medium: 'cpc', utm_campaign: 'l1a', utm_term: 'visto l1a', utm_content: 'anuncio-2',
+    gclid: 'g1', gbraid: 'gb1', wbraid: 'wb1', outro: 'x' } }));
+  assert.deepEqual(problemas, []);
+  lead.id = 'x-2';
+  const rodape = montarDescricao(lead).split('\n\n').pop();
+  assert.equal(rodape, [
+    'Origem: google / cpc / l1a', 'Termo: visto l1a', 'Conteúdo: anuncio-2',
+    '[ref: g1]', '[gbraid: gb1]', '[wbraid: wb1]', 'ID do envio: x-2',
+  ].join('\n'));
+});
+
 test('descrição sem atribuição nem campos opcionais não deixa linhas vazias sobrando nem "undefined"', () => {
   const { lead } = validarLead({ nome: 'Ana', email: 'ana@exemplo.com' });
   lead.id = 'x-1';

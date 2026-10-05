@@ -174,7 +174,11 @@ export function montarDescricao(lead) {
   const origem = [a.utm_source, a.utm_medium, a.utm_campaign].filter(Boolean).join(' / ');
   const rodape = [];
   if (origem) rodape.push('Origem: ' + origem);
+  if (a.utm_term) rodape.push('Termo: ' + a.utm_term);
+  if (a.utm_content) rodape.push('Conteúdo: ' + a.utm_content);
   if (a.gclid) rodape.push('[ref: ' + a.gclid + ']');
+  if (a.gbraid) rodape.push('[gbraid: ' + a.gbraid + ']');
+  if (a.wbraid) rodape.push('[wbraid: ' + a.wbraid + ']');
   if (lead.id) rodape.push('ID do envio: ' + lead.id);
 
   return linhas.concat('', rodape).join('\n').trim();
