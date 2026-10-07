@@ -187,9 +187,12 @@ const bloco = (type, content, props = {}) => ({
    rótulos e ordem da mensagem do WhatsApp; o texto livre e a origem do clique
    sob título próprio; o ID do envio por último. O ID é o mesmo do arquivo no
    Blob e do log, e serve para reconhecer duplicata se um reenvio criar dois
-   cards. */
-export function montarDescricao(lead) {
+   cards. Com `aviso` (o cadastro antigo que o JSYNQ ligou ao card), a
+   descrição abre com um alerta, para quem atende não confiar nos campos de
+   contato. */
+export function montarDescricao(lead, { aviso = null } = {}) {
   const blocos = [];
+  if (aviso) blocos.push(blocoDoAviso(aviso));
   for (const nome of ORDEM) {
     const v = lead[nome];
     if (!v || nome === 'servico_procurado') continue;
@@ -220,6 +223,47 @@ export function montarDescricao(lead) {
     blocos.push(bloco('paragraph', [trecho('ID do envio: ' + lead.id, { italic: true })], { textColor: 'gray' }));
   }
   return JSON.stringify(blocos);
+}
+
+function blocoDoAviso(antigo) {
+  const cadastro = [antigo.nome, antigo.email, antigo.telefone].filter(Boolean)
+    .concat(antigo.empresa ? ['empresa ' + antigo.empresa] : []).join(' · ');
+  return bloco('paragraph', [
+    trecho('Atenção: ', { bold: true }),
+    trecho('o JSYNQ ligou este card a um contato que já existia no CRM, com o mesmo e-mail ou '
+      + 'telefone. Os campos de contato e a empresa mostram esse cadastro antigo (' + cadastro
+      + '). O que a pessoa enviou agora está abaixo.'),
+  ], { backgroundColor: 'yellow' });
+}
+
+/* O contato que ficou gravado no card, lido do que a API devolve: os campos
+   de contato em customFields ou, na falta deles, no topo do card. */
+export function contatoGravado(card) {
+  const c = card && typeof card === 'object' ? card : {};
+  const campos = Array.isArray(c.customFields) ? c.customFields : [];
+  const valor = (id) => {
+    const f = campos.find((x) => x && x.fieldId === id && x.value != null && String(x.value).trim());
+    if (f) return String(f.value).trim();
+    return typeof c[id] === 'string' ? c[id].trim() : '';
+  };
+  return { nome: valor('contactName'), email: valor('email'), telefone: valor('phone'), empresa: valor('company') };
+}
+
+const comparavel = (v) => String(v || '').normalize('NFC').trim().toLowerCase().replace(/\s+/g, ' ');
+const digitos = (v) => String(v || '').replace(/\D/g, '');
+
+/* O CRM junta contato por e-mail e também por telefone (medido em
+   07/10/2026). Quando junta, os campos de contato do card passam a mostrar o
+   cadastro que já existia, não o que a pessoa mandou. Devolve esse cadastro
+   antigo, ou null quando o card ficou com o contato enviado. Empresa no card
+   também denuncia o cadastro antigo: o site nunca manda empresa. */
+export function contatoDeOutroCadastro(lead, card) {
+  const g = contatoGravado(card);
+  const difere = (g.nome && comparavel(g.nome) !== comparavel(lead.nome))
+    || (g.email && comparavel(g.email) !== comparavel(lead.email))
+    || (g.telefone && digitos(g.telefone) !== digitos(lead.telefone))
+    || Boolean(g.empresa);
+  return difere ? g : null;
 }
 
 /* Os três campos de contato que todo projeto CRM do JSYNQ já traz (não são

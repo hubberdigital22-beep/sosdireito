@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import {
-  validarLead, montarCard, montarDescricao,
+  validarLead, montarCard, montarDescricao, contatoGravado, contatoDeOutroCadastro,
   ROTULOS, ORDEM, ORIGENS, STATUS, CAMPOS_NO_CRM, JSYNQ,
 } from '../../api/_lead.js';
 import { criarFila } from '../../api/_fila.js';
@@ -321,10 +321,10 @@ function calarConsole() {
 const semEspera = { esperar: async () => {} };
 
 test('entrega: 201 de primeira, um POST autenticado com o card na rota de cards do projeto', async () => {
-  const f = fetchFalso([{ status: 201, corpo: JSON.stringify({ newCard: { _id: 'k', slug: 'SDL-1' } }) }]);
+  const lead = { ...validarLead(CORPO).lead, id: 'a-1' };
+  const f = fetchFalso([{ status: 201, corpo: JSON.stringify({ newCard: cardGravado('k', 'SDL-1', lead) }) }]);
   const c = calarConsole();
   try {
-    const lead = { ...validarLead(CORPO).lead, id: 'a-1' };
     assert.equal(await entregarLead(lead, TOKEN, semEspera), true);
     assert.equal(f.chamadas.length, 1);
     assert.equal(f.chamadas[0].url, URL_CARDS);
@@ -411,6 +411,133 @@ test('entrega: o token nunca aparece no log', async () => {
     assert.equal(await entregarLead({ ...validarLead(CORPO).lead, id: 'a-6' }, TOKEN, semEspera), false);
     assert.ok(c.linhas.length > 0);
     for (const l of c.linhas) assert.ok(!l.includes('tok-secreto'), l);
+  } finally { f.restaurar(); c.restaurar(); }
+});
+
+/* ---------- contato que já existia no CRM ---------- */
+
+/* O card como a API devolve depois de criar: campos de contato em
+   customFields. Sem `outro`, com o contato que foi enviado. */
+function cardGravado(id, slug, lead, outro = null) {
+  const c = outro || { nome: lead.nome, email: lead.email, telefone: lead.telefone };
+  const customFields = [
+    { fieldId: 'contactName', value: c.nome },
+    { fieldId: 'email', value: c.email },
+    { fieldId: 'phone', value: c.telefone },
+  ].filter((x) => x.value);
+  if (c.empresa) customFields.push({ fieldId: 'company', value: c.empresa });
+  return { _id: id, slug, customFields };
+}
+
+const ANTIGO = { nome: 'nome responsavel site teste', email: 'email@siteteste.com',
+  telefone: '99999999999', empresa: 'nome empresa site teste' };
+
+test('contato gravado: lê os campos de contato do card, ou do topo quando faltam', () => {
+  assert.deepEqual(contatoGravado(cardGravado('k', 'S', null, ANTIGO)), ANTIGO);
+  assert.deepEqual(contatoGravado({ contactName: 'Ana', email: 'a@b.co', phone: '1', company: '' }),
+    { nome: 'Ana', email: 'a@b.co', telefone: '1', empresa: '' });
+  assert.deepEqual(contatoGravado(null), { nome: '', email: '', telefone: '', empresa: '' });
+});
+
+test('outro cadastro: mesmo contato (fora formato e maiúsculas) não avisa', () => {
+  const lead = validarLead(CORPO).lead;
+  assert.equal(contatoDeOutroCadastro(lead, cardGravado('k', 'S', lead)), null);
+  assert.equal(contatoDeOutroCadastro(lead, cardGravado('k', 'S', null,
+    { nome: ' MARIA  souza ', email: 'MARIA@exemplo.com', telefone: '11 999999999' })), null);
+  assert.equal(contatoDeOutroCadastro(lead, {}), null);
+});
+
+test('outro cadastro: nome, e-mail, telefone diferente ou empresa no card avisam', () => {
+  const lead = validarLead(CORPO).lead;
+  assert.deepEqual(contatoDeOutroCadastro(lead, cardGravado('k', 'S', null, ANTIGO)), ANTIGO);
+  const base = { nome: lead.nome, email: lead.email, telefone: lead.telefone };
+  for (const troca of [{ nome: 'Outra' }, { email: 'x@y.co' }, { telefone: '21 988887777' }, { empresa: 'ACME' }]) {
+    assert.ok(contatoDeOutroCadastro(lead, cardGravado('k', 'S', null, { ...base, ...troca })), JSON.stringify(troca));
+  }
+  // Lead só com telefone que caiu num cadastro com e-mail: é outro cadastro.
+  const soTel = validarLead(com({ email: '' })).lead;
+  assert.ok(contatoDeOutroCadastro(soTel, cardGravado('k', 'S', null, { ...base, email: 'velho@x.co' })));
+});
+
+test('descrição com aviso: alerta amarelo no topo com o cadastro antigo, o resto igual', () => {
+  const lead = { ...validarLead(CORPO).lead, id: 'w-1' };
+  const blocos = JSON.parse(montarDescricao(lead, { aviso: ANTIGO }));
+  assert.equal(blocos[0].props.backgroundColor, 'yellow');
+  const alerta = blocos[0].content.map((c) => c.text).join('');
+  assert.match(alerta, /^Atenção: o JSYNQ ligou este card a um contato que já existia/);
+  assert.match(alerta, /nome responsavel site teste · email@siteteste\.com · 99999999999 · empresa nome empresa site teste/);
+  assert.deepEqual(linhasDe(JSON.stringify(blocos.slice(1))), linhasDe(montarDescricao(lead)));
+});
+
+test('entrega: JSYNQ juntou com contato antigo → põe o aviso na descrição pelo PUT do card', async () => {
+  const lead = { ...validarLead(CORPO).lead, id: 'w-2' };
+  const f = fetchFalso([
+    { status: 201, corpo: JSON.stringify({ newCard: cardGravado('c9', 'SDL-9', lead, ANTIGO) }) },
+    { status: 200, corpo: '{}' },
+  ]);
+  const c = calarConsole();
+  try {
+    assert.equal(await entregarLead(lead, TOKEN, semEspera), true);
+    assert.equal(f.chamadas.length, 2);
+    assert.equal(f.chamadas[1].url, URL_CARDS + '/c9');
+    assert.equal(f.chamadas[1].opcoes.method, 'PUT');
+    assert.equal(f.chamadas[1].opcoes.headers.authorization, 'Bearer ' + TOKEN);
+    const corpo = JSON.parse(f.chamadas[1].opcoes.body);
+    assert.deepEqual(Object.keys(corpo), ['desc']);
+    const linhas = linhasDe(corpo.desc);
+    assert.match(linhas[0], /^Atenção:.*nome responsavel site teste/);
+    assert.equal(linhas[1], 'Nome: Maria Souza');
+    assert.match(c.linhas.join('\n'), /SDL-9.*aviso posto/);
+  } finally { f.restaurar(); c.restaurar(); }
+});
+
+test('entrega: resposta sem campos de contato → lê o card e só avisa se for outro cadastro', async () => {
+  const lead = { ...validarLead(CORPO).lead, id: 'w-3' };
+  let f = fetchFalso([
+    { status: 201, corpo: JSON.stringify({ newCard: { _id: 'c1', slug: 'SDL-1' } }) },
+    { status: 200, corpo: JSON.stringify({ card: cardGravado('c1', 'SDL-1', lead, ANTIGO) }) },
+    { status: 200, corpo: '{}' },
+  ]);
+  const c = calarConsole();
+  try {
+    assert.equal(await entregarLead(lead, TOKEN, semEspera), true);
+    assert.deepEqual(f.chamadas.map((x) => x.opcoes.method || 'GET'), ['POST', 'GET', 'PUT']);
+    assert.equal(f.chamadas[1].url, URL_CARDS + '/c1');
+    f.restaurar();
+
+    f = fetchFalso([
+      { status: 201, corpo: JSON.stringify({ newCard: { _id: 'c2', slug: 'SDL-2' } }) },
+      { status: 200, corpo: JSON.stringify({ card: cardGravado('c2', 'SDL-2', lead) }) },
+    ]);
+    assert.equal(await entregarLead(lead, TOKEN, semEspera), true);
+    assert.equal(f.chamadas.length, 2);
+  } finally { f.restaurar(); c.restaurar(); }
+});
+
+test('entrega: aviso que falha ou lança não muda o resultado nem tenta criar de novo', async () => {
+  const lead = { ...validarLead(CORPO).lead, id: 'w-4' };
+  for (const segunda of [{ status: 500, corpo: 'erro' }, new Error('rede caiu')]) {
+    const f = fetchFalso([
+      { status: 201, corpo: JSON.stringify({ newCard: cardGravado('c3', 'SDL-3', lead, ANTIGO) }) },
+      segunda,
+    ]);
+    const c = calarConsole();
+    try {
+      assert.equal(await entregarLead(lead, TOKEN, semEspera), true);
+      assert.equal(f.chamadas.filter((x) => x.opcoes.method === 'POST').length, 1);
+      assert.match(c.linhas.join('\n'), /SDL-3.*(aviso falhou|falhou)/);
+    } finally { f.restaurar(); c.restaurar(); }
+  }
+});
+
+test('entrega: criação demorada pula o aviso, para não estourar o tempo da função', async () => {
+  const lead = { ...validarLead(CORPO).lead, id: 'w-5' };
+  const f = fetchFalso([{ status: 201, corpo: JSON.stringify({ newCard: cardGravado('c4', 'SDL-4', lead, ANTIGO) }) }]);
+  const c = calarConsole();
+  const tempos = [0, 12000];
+  try {
+    assert.equal(await entregarLead(lead, TOKEN, { ...semEspera, agora: () => tempos.shift() ?? 12000 }), true);
+    assert.equal(f.chamadas.length, 1);
   } finally { f.restaurar(); c.restaurar(); }
 });
 

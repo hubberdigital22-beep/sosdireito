@@ -27,7 +27,9 @@
  * O que vai para o CRM é decidido em CAMPOS_NO_CRM, em _lead.js.
  */
 
-import { validarLead, montarCard, JSYNQ } from './_lead.js';
+import {
+  validarLead, montarCard, montarDescricao, contatoGravado, contatoDeOutroCadastro, JSYNQ,
+} from './_lead.js';
 import { fila as filaPadrao } from './_fila.js';
 
 const API = 'https://api.jsynq.com';
@@ -72,6 +74,42 @@ function resumo(lead) {
   return `| ${lead.id} · ${lead.nome} · ${lead.email || '?'} · ${lead.telefone || '?'}`;
 }
 
+const AVISO_ATE_MS = 10000;
+const AVISO_TIMEOUT_MS = 4000;
+
+/* Depois de criado o card: se o JSYNQ o ligou a um contato que já existia
+   (junta por e-mail ou telefone), os campos de contato mostram o cadastro
+   antigo, e a descrição ganha um aviso no topo para quem atende. Só aviso: o
+   lead já está gravado, então nada aqui muda o resultado da entrega. */
+async function avisarSeJuntou(lead, criado, authorization) {
+  const id = criado?._id;
+  if (!id) return;
+  const rota = `${API}/api/projects/${JSYNQ.projeto}/cards/${id}`;
+  try {
+    let card = criado;
+    const g = contatoGravado(card);
+    if (!g.nome && !g.email && !g.telefone) {
+      // A resposta da criação veio sem os campos de contato: lê o card.
+      const r = await fetch(rota, { headers: { authorization }, signal: AbortSignal.timeout(AVISO_TIMEOUT_MS) });
+      if (!r.ok) return;
+      const d = await r.json().catch(() => null);
+      card = d?.card || d?.data?.card || d;
+    }
+    const antigo = contatoDeOutroCadastro(lead, card);
+    if (!antigo) return;
+    const r = await fetch(rota, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json', authorization },
+      body: JSON.stringify({ desc: montarDescricao(lead, { aviso: antigo }) }),
+      signal: AbortSignal.timeout(AVISO_TIMEOUT_MS),
+    });
+    if (r.ok) console.log('[lead] card', criado.slug || id, 'ligado a contato que já existia: aviso posto');
+    else console.error('[lead] card', criado.slug || id, 'ligado a contato que já existia; aviso falhou:', r.status);
+  } catch (err) {
+    console.error('[lead] card', criado.slug || id, 'aviso de contato existente falhou:', err?.message);
+  }
+}
+
 /**
  * Uma entrega ao JSYNQ: cria o card. Usada pelo envio ao vivo e pelo reenvio
  * da fila, para os dois caminhos não divergirem com o tempo. Devolve true
@@ -82,7 +120,10 @@ function resumo(lead) {
  * inválido, dono do token fora do projeto), e o item fica na fila até alguém
  * corrigir. O token nunca vai para o log.
  */
-export async function entregarLead(lead, token, { esperar = espera, tentativas = 3 } = {}) {
+export async function entregarLead(lead, token, {
+  esperar = espera, tentativas = 3, agora = Date.now,
+} = {}) {
+  const inicio = agora();
   const url = `${API}/api/projects/${JSYNQ.projeto}/cards`;
   // Espaço ou quebra de linha colados junto do token no painel da Vercel
   // fariam o JSYNQ recusar a credencial e todo lead parar na fila.
@@ -114,6 +155,10 @@ export async function entregarLead(lead, token, { esperar = espera, tentativas =
       // A API devolve o card sob "newCard"; os outros nomes ficam de reserva.
       const card = dados?.newCard || dados?.card || dados?.data?.card || dados;
       console.log('[lead] card criado:', card?.slug || card?._id || '?', '· envio', lead.id);
+      // O aviso cabe no tempo da função só se a criação foi rápida. Sem ele o
+      // lead está salvo do mesmo jeito; estourar o tempo deixaria o item na
+      // fila e o reenvio criaria card repetido.
+      if (agora() - inicio < AVISO_ATE_MS) await avisarSeJuntou(lead, card, authorization);
       return true;
     }
     console.error('[lead] tentativa', i + 1, 'devolveu', res.status,
