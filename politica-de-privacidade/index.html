@@ -179,11 +179,11 @@ fbq('track', 'PageView');
 </script>
 <link rel="preload" href="../assets/fonts/sweet-sans-medium.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/roses-bolero.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="../assets/css/tokens.css?v=6ac3b1b4">
-<link rel="stylesheet" href="../assets/css/base.css?v=6ac3b1b4">
-<link rel="stylesheet" href="../assets/css/layout.css?v=6ac3b1b4">
-<link rel="stylesheet" href="../assets/css/components.css?v=6ac3b1b4">
-<link rel="stylesheet" href="../assets/css/pages/blog.css?v=6ac3b1b4">
+<link rel="stylesheet" href="../assets/css/tokens.css?v=6ac6bd81">
+<link rel="stylesheet" href="../assets/css/base.css?v=6ac6bd81">
+<link rel="stylesheet" href="../assets/css/layout.css?v=6ac6bd81">
+<link rel="stylesheet" href="../assets/css/components.css?v=6ac6bd81">
+<link rel="stylesheet" href="../assets/css/pages/blog.css?v=6ac6bd81">
 </head>
 <body>
 <!-- Bloco 2B — GTM noscript. Tem que ser a primeira coisa depois do <body>. -->
@@ -386,9 +386,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <li><strong>Dados de imigração:</strong> data da sua última entrada nos Estados Unidos, data
   de expiração da sua I-94 e o seu status imigratório. São necessários para avaliar o seu caso
   e recebem tratamento restrito — ver a seção sobre compartilhamento abaixo.</li>
-  <li><strong>Navegação:</strong> páginas visitadas, cliques nos botões de WhatsApp e de
-  e-mail, e dados técnicos padrão de qualquer visita a um site (tipo de dispositivo,
-  navegador, origem do acesso).</li>
+  <li><strong>Navegação:</strong> páginas visitadas, cliques no e-mail de contato e dados
+  técnicos padrão de qualquer visita a um site (tipo de dispositivo, navegador, origem do
+  acesso).</li>
   <li><strong>Origem do clique:</strong> quando você chega ao site por um anúncio, guardamos por
   90 dias os identificadores desse clique (como <code>gclid</code> e parâmetros
   <code>utm_*</code>) para saber quais campanhas geram contato real.</li>
@@ -425,11 +425,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <h2>Com quem compartilhamos</h2>
 <p>
-  Ao enviar o formulário, o seu navegador abre uma conversa no nosso WhatsApp com os dados já
-  preenchidos. Ao mesmo tempo, o site envia uma cópia desses dados a um servidor nosso, que a
-  entrega ao sistema de atendimento (CRM) em que a nossa equipe recebe e acompanha os contatos,
-  o JSYNQ. Até o sistema confirmar o recebimento, a cópia fica numa fila temporária e privada
-  na Vercel, a hospedagem do site. Esses serviços operam em servidores nos Estados Unidos.
+  Ao enviar o formulário, os seus dados vão para um servidor nosso, que os entrega ao sistema de
+  atendimento (CRM) em que a nossa equipe recebe e acompanha os contatos, o JSYNQ. Até o sistema
+  confirmar o recebimento, uma cópia fica numa fila temporária e privada na Vercel, a hospedagem
+  do site. Em seguida, pelo próprio sistema de atendimento, enviamos ao telefone que você
+  informou uma mensagem de WhatsApp do número +55 12 99625-6773, com materiais sobre o L-1A.
+  Esses serviços operam em servidores nos Estados Unidos.
 </p>
 <p>
   <strong>Os seus dados de imigração nunca são enviados a plataformas de anúncio.</strong>
@@ -450,8 +451,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <p>
   Os identificadores de origem de clique (<code>gclid</code>, <code>utm_*</code>) ficam no seu
   navegador por até 90 dias. O conteúdo do formulário, incluindo os dados de imigração, é lido
-  pela nossa equipe na conversa de WhatsApp gerada a partir do seu envio e no sistema de
-  atendimento, e mantido pelo tempo necessário para conduzir o seu atendimento. A cópia na fila
+  pela nossa equipe no sistema de atendimento, onde fica também a conversa de WhatsApp que
+  começa a partir do seu envio, e mantido pelo tempo necessário para conduzir o seu atendimento. A cópia na fila
   temporária é apagada assim que o sistema de atendimento confirma o recebimento; se ele estiver
   fora do ar, ela fica guardada só até a entrega ser concluída.
 </p>
@@ -509,7 +510,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="rodape__contato">
           <p>323 Sunny Isles Blvd, 7º andar<br>Sunny Isles, FL 33160, EUA</p>
           <p><a href="mailto:info@sosdireito.com.br">info@sosdireito.com.br</a></p>
-          <p><a href="https://wa.me/17863013817?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20SOS%20Direito%20e%20quero%20informa%C3%A7%C3%B5es%20sobre%20o%20visto%20L-1A." target="_blank" rel="noopener noreferrer">WhatsApp</a></p>
         </div>
         <ul class="sociais" style="margin-top:var(--sp-5)">
           <li><a href="https://www.instagram.com/sosdireito/" target="_blank" rel="noopener noreferrer" aria-label="Instagram da SOS Direito"><svg aria-hidden="true"><use href="#i-instagram"></use></svg></a></li>
@@ -529,32 +529,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </footer>
 
-<!-- Botão de WhatsApp. O número sai do config.js pelo build (17863013817),
-     que recusa gerar o site com número inválido — foi assim que um lead já
-     foi entregue no DDD errado, sem erro em lugar nenhum. O clique cai no
-     sd_whatsapp_click do Bloco 4, que até 17/09/2026 não tinha nenhum botão
-     para medir: o seletor existia e o site não tinha WhatsApp em página
-     nenhuma. -->
-<a class="wa-flutuante"
-   href="https://wa.me/17863013817?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20SOS%20Direito%20e%20quero%20informa%C3%A7%C3%B5es%20sobre%20o%20visto%20L-1A."
-   target="_blank" rel="noopener noreferrer"
-   aria-label="Falar com a SOS Direito no WhatsApp">
-  <svg class="wa-flutuante__icone" aria-hidden="true"><use href="#i-whatsapp"></use></svg>
-  <span class="wa-flutuante__rotulo">WhatsApp</span>
-</a>
-
-<script src="../assets/js/vendor/gsap.min.js?v=6ac3b1b4" defer></script>
-<script src="../assets/js/vendor/ScrollTrigger.min.js?v=6ac3b1b4" defer></script>
-<script src="../assets/js/config.js?v=6ac3b1b4" defer></script>
-<script src="../assets/js/motion.js?v=6ac3b1b4" defer></script>
-<script src="../assets/js/components/nav.js?v=6ac3b1b4" defer></script>
-<script src="../assets/js/components/accordion.js?v=6ac3b1b4" defer></script>
-<script src="../assets/js/components/trilha.js?v=6ac3b1b4" defer></script>
-<script src="../assets/js/components/timeline.js?v=6ac3b1b4" defer></script>
-<script src="../assets/js/components/carrossel.js?v=6ac3b1b4" defer></script>
-<script src="../assets/js/components/decor.js?v=6ac3b1b4" defer></script>
-<script src="../assets/js/components/form.js?v=6ac3b1b4" defer></script>
-<script src="../assets/js/components/galeria.js?v=6ac3b1b4" defer></script>
+<script src="../assets/js/vendor/gsap.min.js?v=6ac6bd81" defer></script>
+<script src="../assets/js/vendor/ScrollTrigger.min.js?v=6ac6bd81" defer></script>
+<script src="../assets/js/config.js?v=6ac6bd81" defer></script>
+<script src="../assets/js/motion.js?v=6ac6bd81" defer></script>
+<script src="../assets/js/components/nav.js?v=6ac6bd81" defer></script>
+<script src="../assets/js/components/accordion.js?v=6ac6bd81" defer></script>
+<script src="../assets/js/components/trilha.js?v=6ac6bd81" defer></script>
+<script src="../assets/js/components/timeline.js?v=6ac6bd81" defer></script>
+<script src="../assets/js/components/carrossel.js?v=6ac6bd81" defer></script>
+<script src="../assets/js/components/decor.js?v=6ac6bd81" defer></script>
+<script src="../assets/js/components/form.js?v=6ac6bd81" defer></script>
+<script src="../assets/js/components/galeria.js?v=6ac6bd81" defer></script>
 
 
 <!-- Bloco 4 — eventos de clique (e-mail, WhatsApp, calculadora).

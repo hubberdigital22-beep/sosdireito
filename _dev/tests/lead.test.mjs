@@ -142,18 +142,6 @@ test('hoje o CRM recebe os 13 campos', () => {
 
 /* ---------- texto do card e payload ---------- */
 
-test('rótulos e ordem são os do form.js (a mensagem do WhatsApp e o card dizem o mesmo)', () => {
-  const src = readFileSync(new URL('../../assets/js/components/form.js', import.meta.url), 'utf8');
-
-  const bloco = /var ROTULOS = \{([\s\S]*?)\};/.exec(src)[1];
-  const doForm = {};
-  for (const [, k, v] of bloco.matchAll(/(\w+):\s*'([^']*)'/g)) doForm[k] = v;
-  assert.deepEqual(ROTULOS, doForm);
-
-  const ordem = /var ORDEM = \[([\s\S]*?)\];/.exec(src)[1];
-  assert.deepEqual(ORDEM, [...ordem.matchAll(/'(\w+)'/g)].map((m) => m[1]));
-});
-
 test('as listas do servidor batem com as <option> do formulário', () => {
   const html = readFileSync(new URL('../../_dev/pages/08-contato.html', import.meta.url), 'utf8');
   const opcoes = (nome) => {
@@ -318,7 +306,10 @@ function calarConsole() {
   return { linhas, restaurar: () => { console.error = originais.error; console.log = originais.log; } };
 }
 
-const semEspera = { esperar: async () => {} };
+/* O WhatsApp tem testes próprios mais abaixo; nos de entrega ele é trocado
+   por um resultado pronto, para cada teste contar só as chamadas do card. */
+const ZAP_OK = { ok: true, enviados: ['mensagem de boas-vindas'], para: '+55 11 99999-9999', de: '+55 12 99625-6773' };
+const semEspera = { esperar: async () => {}, whatsapp: async () => ZAP_OK };
 
 test('entrega: 201 de primeira, um POST autenticado com o card na rota de cards do projeto', async () => {
   const lead = { ...validarLead(CORPO).lead, id: 'a-1' };
@@ -326,7 +317,9 @@ test('entrega: 201 de primeira, um POST autenticado com o card na rota de cards 
   const c = calarConsole();
   try {
     assert.equal(await entregarLead(lead, TOKEN, semEspera), true);
-    assert.equal(f.chamadas.length, 1);
+    assert.equal(f.chamadas.length, 2);
+    assert.equal(f.chamadas[1].url, URL_CARDS + '/k');
+    assert.equal(f.chamadas[1].opcoes.method, 'PUT');
     assert.equal(f.chamadas[0].url, URL_CARDS);
     assert.equal(f.chamadas[0].opcoes.method, 'POST');
     assert.equal(f.chamadas[0].opcoes.headers['content-type'], 'application/json');
@@ -485,9 +478,10 @@ test('entrega: JSYNQ juntou com contato antigo → põe o aviso na descrição p
     const corpo = JSON.parse(f.chamadas[1].opcoes.body);
     assert.deepEqual(Object.keys(corpo), ['desc']);
     const linhas = linhasDe(corpo.desc);
-    assert.match(linhas[0], /^Atenção:.*nome responsavel site teste/);
-    assert.equal(linhas[1], 'Nome: Maria Souza');
-    assert.match(c.linhas.join('\n'), /SDL-9.*aviso posto/);
+    assert.match(linhas[0], /^WhatsApp automático enviado/);
+    assert.match(linhas[1], /^Atenção:.*nome responsavel site teste/);
+    assert.equal(linhas[2], 'Nome: Maria Souza');
+    assert.match(c.linhas.join('\n'), /SDL-9 ligado a contato que já existia/);
   } finally { f.restaurar(); c.restaurar(); }
 });
 
@@ -508,13 +502,15 @@ test('entrega: resposta sem campos de contato → lê o card e só avisa se for 
     f = fetchFalso([
       { status: 201, corpo: JSON.stringify({ newCard: { _id: 'c2', slug: 'SDL-2' } }) },
       { status: 200, corpo: JSON.stringify({ card: cardGravado('c2', 'SDL-2', lead) }) },
+      { status: 200, corpo: '{}' },
     ]);
     assert.equal(await entregarLead(lead, TOKEN, semEspera), true);
-    assert.equal(f.chamadas.length, 2);
+    assert.deepEqual(f.chamadas.map((x) => x.opcoes.method || 'GET'), ['POST', 'GET', 'PUT']);
+    assert.doesNotMatch(JSON.parse(f.chamadas[2].opcoes.body).desc, /Atenção/);
   } finally { f.restaurar(); c.restaurar(); }
 });
 
-test('entrega: aviso que falha ou lança não muda o resultado nem tenta criar de novo', async () => {
+test('entrega: atualização da descrição que falha ou lança não muda o resultado nem tenta criar de novo', async () => {
   const lead = { ...validarLead(CORPO).lead, id: 'w-4' };
   for (const segunda of [{ status: 500, corpo: 'erro' }, new Error('rede caiu')]) {
     const f = fetchFalso([
@@ -525,20 +521,68 @@ test('entrega: aviso que falha ou lança não muda o resultado nem tenta criar d
     try {
       assert.equal(await entregarLead(lead, TOKEN, semEspera), true);
       assert.equal(f.chamadas.filter((x) => x.opcoes.method === 'POST').length, 1);
-      assert.match(c.linhas.join('\n'), /SDL-3.*(aviso falhou|falhou)/);
+      assert.match(c.linhas.join('\n'), /SDL-3 descrição não atualizada/);
     } finally { f.restaurar(); c.restaurar(); }
   }
 });
 
-test('entrega: criação demorada pula o aviso, para não estourar o tempo da função', async () => {
+test('entrega: criação demorada pula o WhatsApp, e o card diz que falta chamar à mão', async () => {
   const lead = { ...validarLead(CORPO).lead, id: 'w-5' };
-  const f = fetchFalso([{ status: 201, corpo: JSON.stringify({ newCard: cardGravado('c4', 'SDL-4', lead, ANTIGO) }) }]);
+  const f = fetchFalso([
+    { status: 201, corpo: JSON.stringify({ newCard: cardGravado('c4', 'SDL-4', lead) }) },
+    { status: 200, corpo: '{}' },
+  ]);
   const c = calarConsole();
-  const tempos = [0, 12000];
+  let chamouZap = false;
+  const relatorio = {};
   try {
-    assert.equal(await entregarLead(lead, TOKEN, { ...semEspera, agora: () => tempos.shift() ?? 12000 }), true);
-    assert.equal(f.chamadas.length, 1);
+    // Faltam 20 s para o limite: cabe criar (8 s), não cabe a sequência (25 s).
+    assert.equal(await entregarLead(lead, TOKEN, {
+      ...semEspera, relatorio, agora: () => 30000, limite: 50000,
+      whatsapp: async () => { chamouZap = true; return ZAP_OK; },
+    }), true);
+    assert.equal(chamouZap, false);
+    assert.equal(relatorio.whatsapp, 'nao_enviado');
+    assert.deepEqual(f.chamadas.map((x) => x.opcoes.method), ['POST', 'PUT']);
+    assert.match(linhasDe(JSON.parse(f.chamadas[1].opcoes.body).desc)[0], /^WhatsApp automático NÃO enviado: o card demorou a ser criado/);
   } finally { f.restaurar(); c.restaurar(); }
+});
+
+test('entrega: sem tempo para criar o card nem tenta, e o lead fica na fila', async () => {
+  const lead = { ...validarLead(CORPO).lead, id: 'w-7' };
+  const f = fetchFalso([]);
+  const c = calarConsole();
+  try {
+    assert.equal(await entregarLead(lead, TOKEN, { ...semEspera, agora: () => 45000, limite: 50000 }), false);
+    assert.equal(f.chamadas.length, 0);
+  } finally { f.restaurar(); c.restaurar(); }
+});
+
+test('entrega: o prazo do WhatsApp guarda tempo para reescrever a descrição', async () => {
+  const lead = { ...validarLead(CORPO).lead, id: 'w-8' };
+  const f = fetchFalso([{ status: 201, corpo: JSON.stringify({ newCard: cardGravado('c6', 'SDL-6', lead) }) }, { status: 200 }]);
+  const c = calarConsole();
+  let prazo;
+  try {
+    await entregarLead(lead, TOKEN, {
+      ...semEspera, agora: () => 1000, limite: 50000,
+      whatsapp: async (l, id, a, opcoes) => { prazo = opcoes.prazo; return ZAP_OK; },
+    });
+    assert.equal(prazo, 45000);
+  } finally { f.restaurar(); c.restaurar(); }
+});
+
+test('entrega: relatório diz ao handler se o WhatsApp saiu', async () => {
+  const lead = { ...validarLead(CORPO).lead, id: 'w-6' };
+  for (const [zap, esperado] of [[ZAP_OK, 'enviado'], [{ ok: false, enviados: [], motivo: 'x' }, 'nao_enviado']]) {
+    const f = fetchFalso([{ status: 201, corpo: JSON.stringify({ newCard: cardGravado('c5', 'SDL-5', lead) }) }, { status: 200 }]);
+    const c = calarConsole();
+    const relatorio = {};
+    try {
+      await entregarLead(lead, TOKEN, { ...semEspera, relatorio, whatsapp: async () => zap });
+      assert.equal(relatorio.whatsapp, esperado);
+    } finally { f.restaurar(); c.restaurar(); }
+  }
 });
 
 /* ---------- fila (Blob falso) ---------- */
@@ -745,23 +789,33 @@ test('rota: corpo em texto (sendBeacon) e em Buffer também são lidos', async (
   }
 });
 
-test('rota: caminho feliz guarda ANTES de entregar, apaga depois e drena 2', async () => {
+test('rota: caminho feliz guarda ANTES de entregar, apaga depois, responde e drena 1 depois da resposta', async () => {
   const fila = filaEspia();
   const eventos = fila.ordem;
   const h = criarHandler({
     fila, ambiente: PROD,
-    entregar: async (lead, token) => {
+    entregar: async (lead, token, { relatorio, limite }) => {
       eventos.push('entregar');
       assert.equal(token, TOKEN);
+      assert.ok(limite > Date.now() + 40000 && limite <= Date.now() + 50000, 'limite da chamada');
       assert.match(lead.id, /^[0-9a-z]+-[0-9a-z]{6}$/);
+      relatorio.whatsapp = 'enviado';
       return true;
     },
+    emSegundoPlano: (p) => { eventos.push('segundo plano'); return p; },
   });
   const r = res();
   await h(req(), r);
   assert.equal(r.codigo, 200);
-  assert.equal(r.corpo.ok, true);
-  assert.deepEqual(eventos, ['guardar', 'entregar', 'concluir', 'drenar:2']);
+  assert.deepEqual(r.corpo, { ok: true, id: r.corpo.id, whatsapp: 'enviado' });
+  assert.deepEqual(eventos, ['guardar', 'entregar', 'concluir', 'drenar:1', 'segundo plano']);
+});
+
+test('rota: sem relatório de WhatsApp o navegador ouve "nao_enviado", nunca uma promessa falsa', async () => {
+  const h = criarHandler({ fila: filaEspia(), ambiente: PROD, entregar: async () => true, emSegundoPlano: (p) => p });
+  const r = res();
+  await h(req(), r);
+  assert.equal(r.corpo.whatsapp, 'nao_enviado');
 });
 
 test('rota: JSYNQ recusa mas o lead está na fila → 200 pendente, sem apagar', async () => {
@@ -863,10 +917,11 @@ test('drenar: com o segredo certo, esvazia a fila pelo mesmo caminho de entrega'
   await fila.guardar('lead', { ...validarLead(com({ nome: 'João', email: '' })).lead, id: 'k2-b' });
 
   const enviados = [];
+  const limites = new Set();
   const h = criarDrenar({
     fila,
     ambiente: { CRON_SECRET: 's3gredo', JSYNQ_API_TOKEN: TOKEN },
-    entregar: async (lead, token) => { enviados.push([lead.id, token]); return true; },
+    entregar: async (lead, token, { limite }) => { enviados.push([lead.id, token]); limites.add(limite); return true; },
   });
   const c = calarConsole();
   try {
@@ -874,6 +929,8 @@ test('drenar: com o segredo certo, esvazia a fila pelo mesmo caminho de entrega'
     await h({ headers: { authorization: 'Bearer s3gredo' } }, r);
     assert.equal(r.codigo, 200);
     assert.deepEqual(enviados, [['k1-a', TOKEN], ['k2-b', TOKEN]]);
+    // Um limite só para a chamada inteira: o segundo lead não ganha 50 s novos.
+    assert.equal(limites.size, 1);
     assert.equal(r.corpo.filas.lead.restantes, 0);
     assert.equal(blob.itens.size, 0);
   } finally { c.restaurar(); }

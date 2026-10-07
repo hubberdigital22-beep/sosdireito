@@ -1,9 +1,14 @@
 /**
  * Reenvia para o JSYNQ o que ficou pendente na fila.
  *
- * Existem dois caminhos de reenvio, de propósito. Cada lead novo já drena dois
- * itens, o que resolve sozinho enquanto houver movimento no site. Este aqui é o
+ * Existem dois caminhos de reenvio, de propósito. Cada lead novo já drena um
+ * item, o que resolve sozinho enquanto houver movimento no site. Este aqui é o
  * que cobre o caso sem movimento: o cron chama uma vez por dia (vercel.json).
+ *
+ * Cada entrega cria o card e manda o primeiro atendimento por WhatsApp (uns
+ * 15 s), então cabem poucas por chamada no tempo da função. Todas dividem o
+ * mesmo limite (LIMITE_MS, em lead.js): a que não cabe nem começa, e fica
+ * para o próximo lead ou o próximo dia, sem se perder.
  *
  * Variáveis de ambiente:
  *   CRON_SECRET       obrigatório. A Vercel o manda como "Authorization:
@@ -15,7 +20,7 @@
 
 import { timingSafeEqual } from 'node:crypto';
 import { fila as filaPadrao } from './_fila.js';
-import { entregarLead } from './lead.js';
+import { entregarLead, LIMITE_MS } from './lead.js';
 
 function igual(a, b) {
   const x = Buffer.from(String(a));
@@ -29,6 +34,7 @@ export function criarHandler({
   entregar = entregarLead,
 } = {}) {
   return async function handler(req, res) {
+    const limite = Date.now() + LIMITE_MS;
     const segredo = ambiente.CRON_SECRET;
     if (!segredo) {
       console.error('[drenar] CRON_SECRET ausente: rota desligada.');
@@ -46,7 +52,7 @@ export function criarHandler({
       return res.status(503).json({ ok: false, error: 'not_configured' });
     }
 
-    const r = await fila.drenar('lead', (d) => entregar(d, token), 50);
+    const r = await fila.drenar('lead', (d) => entregar(d, token, { limite }), 3);
     const resto = await fila.resumo('lead');
     // Fila que não anda é sintoma de problema que ninguém viu ainda.
     if (resto.total) console.error('[drenar] ainda pendentes em lead:', resto.total, 'mais antigo:', resto.maisAntigo);

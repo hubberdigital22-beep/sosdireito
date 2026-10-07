@@ -187,11 +187,13 @@ const bloco = (type, content, props = {}) => ({
    rótulos e ordem da mensagem do WhatsApp; o texto livre e a origem do clique
    sob título próprio; o ID do envio por último. O ID é o mesmo do arquivo no
    Blob e do log, e serve para reconhecer duplicata se um reenvio criar dois
-   cards. Com `aviso` (o cadastro antigo que o JSYNQ ligou ao card), a
-   descrição abre com um alerta, para quem atende não confiar nos campos de
+   cards. Com `whatsapp` (o resultado do primeiro atendimento automático), a
+   descrição abre dizendo se a mensagem saiu; com `aviso` (o cadastro antigo
+   que o JSYNQ ligou ao card), alerta para não confiar nos campos de
    contato. */
-export function montarDescricao(lead, { aviso = null } = {}) {
+export function montarDescricao(lead, { aviso = null, whatsapp = null } = {}) {
   const blocos = [];
+  if (whatsapp) blocos.push(blocoDoWhatsapp(whatsapp));
   if (aviso) blocos.push(blocoDoAviso(aviso));
   for (const nome of ORDEM) {
     const v = lead[nome];
@@ -223,6 +225,23 @@ export function montarDescricao(lead, { aviso = null } = {}) {
     blocos.push(bloco('paragraph', [trecho('ID do envio: ' + lead.id, { italic: true })], { textColor: 'gray' }));
   }
   return JSON.stringify(blocos);
+}
+
+/* Verde quando a sequência inteira saiu; vermelho, com o motivo e o que
+   ficou faltando, quando quem atende precisa chamar a pessoa à mão. */
+function blocoDoWhatsapp(w) {
+  const enviados = w.enviados || [];
+  if (w.ok) {
+    return bloco('paragraph', [
+      trecho('WhatsApp automático enviado ', { bold: true }),
+      trecho(`para ${w.para} pelo número ${w.de}: ${enviados.join(', ')}.`),
+    ], { backgroundColor: 'green' });
+  }
+  const parcial = enviados.length ? ` Chegou a sair: ${enviados.join(', ')}.` : '';
+  return bloco('paragraph', [
+    trecho('WhatsApp automático NÃO enviado: ', { bold: true }),
+    trecho(`${w.motivo}.${parcial} Chamar a pessoa pelo WhatsApp à mão.`),
+  ], { backgroundColor: 'red' });
 }
 
 function blocoDoAviso(antigo) {

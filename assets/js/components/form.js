@@ -2,10 +2,11 @@
    SOS DIREITO — Formulário
    Validação, máscaras e estados de envio.
 
-   Os campos reproduzem o formulário do CRM em produção. O destino,
-   porém, é o WhatsApp: os campos viram uma mensagem pronta em wa.me,
-   aberta no submit. FORM_ENDPOINT só entra se o número do WhatsApp
-   ficar vazio.
+   O destino é /api/lead (FORM_ENDPOINT): o servidor guarda o lead,
+   cria o card no CRM e manda o primeiro atendimento pelo WhatsApp da
+   SOS. O formulário não abre WhatsApp nenhum; espera a resposta do
+   servidor e só então mostra o sucesso, porque agora ele é o único
+   caminho do lead.
    ============================================================ */
 (function () {
   'use strict';
@@ -22,86 +23,6 @@
   };
 
   var RE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-  /* ---- Destino WhatsApp ----
-     O formulário não tem backend: os campos viram uma mensagem pronta
-     em wa.me. A ordem abaixo é a ordem em que a mensagem é lida no
-     celular — nome e telefone primeiro, texto livre por último. */
-  var ROTULOS = {
-    nome: 'Nome',
-    email: 'E-mail',
-    telefone: 'Telefone',
-    pais: 'País',
-    origem: 'Como nos conheceu',
-    area_atuacao: 'Área de atuação',
-    graduacao: 'Graduação',
-    ano_graduacao: 'Ano de conclusão',
-    melhor_horario: 'Melhor horário para contato',
-    ultima_entrada_eua: 'Última entrada nos EUA',
-    expiracao_i94: 'Expiração da I-94',
-    status_imigratorio: 'Status imigratório nos EUA',
-    servico_procurado: 'Serviço procurado'
-  };
-  var ORDEM = ['nome', 'email', 'telefone', 'pais', 'origem',
-               'area_atuacao', 'graduacao', 'ano_graduacao', 'melhor_horario',
-               'ultima_entrada_eua', 'expiracao_i94', 'status_imigratorio',
-               'servico_procurado'];
-
-  /* Campos que o form.js trata como data (input[type=date]): o valor
-     nativo vem AAAA-MM-DD e vai para a mensagem em DD/MM/AAAA. */
-  var DATAS = ['ultima_entrada_eua', 'expiracao_i94'];
-
-  function formatarData(iso) {
-    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
-    return m ? m[3] + '/' + m[2] + '/' + m[1] : (iso || '');
-  }
-
-  /* Em <select>, o value existe para o CRM ("Brazil", "direct visit");
-     quem lê a mensagem no WhatsApp precisa do texto da opção. */
-  function valorLegivel(el, nome) {
-    if (!el) return '';
-    if (el.tagName === 'SELECT') {
-      var o = el.options[el.selectedIndex];
-      return o && o.value ? (o.textContent || '').trim() : '';
-    }
-    var v = (el.value || '').trim();
-    return DATAS.indexOf(nome) > -1 ? formatarData(v) : v;
-  }
-
-  function montarMensagem(form) {
-    var wa = cfg.WHATSAPP || {};
-    var linhas = [wa.saudacao || 'Olá! Vim pelo site da SOS Direito.', ''];
-
-    ORDEM.forEach(function (nome) {
-      var el = form.elements[nome];
-      if (!el) return;
-      var v = valorLegivel(el, nome);
-      if (!v) return;
-      if (nome === 'servico_procurado') {
-        /* Texto livre por último e com teto: URL muito longa quebra em
-           parte dos aparelhos. */
-        linhas.push('', ROTULOS[nome] + ':', v.slice(0, 600));
-      } else {
-        linhas.push(ROTULOS[nome] + ': ' + v);
-      }
-    });
-
-    /* Atribuição no fim da mensagem. O marcador [ref: ...] é o mesmo que
-       o Bloco 4 procura antes de injetar o gclid, então o link de
-       fallback não recebe o gclid duas vezes. */
-    var a = (window.sdAttr ? window.sdAttr() : {}) || {};
-    var origem = [a.utm_source, a.utm_medium, a.utm_campaign].filter(Boolean).join(' / ');
-    if (origem) linhas.push('', 'Origem: ' + origem);
-    if (a.gclid) linhas.push((origem ? '' : '\n') + '[ref: ' + a.gclid + ']');
-
-    return linhas.join('\n');
-  }
-
-  function linkWhatsapp(form) {
-    var numero = (((cfg.WHATSAPP || {}).numero) || '').replace(/\D/g, '');
-    if (!numero) return '';
-    return 'https://wa.me/' + numero + '?text=' + encodeURIComponent(montarMensagem(form));
-  }
 
   /* ---- Máscara de telefone ----
      Aceita número brasileiro (com ou sem DDI) e internacional.
@@ -212,6 +133,11 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
 
+      /* A resposta leva alguns segundos (card e WhatsApp). O botão já não
+         aceita clique nesse tempo, mas Enter num campo enviaria de novo:
+         seria um segundo card e uma segunda mensagem para a pessoa. */
+      if (botao && botao.getAttribute('data-carregando') === 'true') return;
+
       if (sucesso) sucesso.setAttribute('data-visivel', 'false');
       if (falha)   falha.setAttribute('data-visivel', 'false');
 
@@ -239,10 +165,25 @@
   function enviar(form, botao, sucesso, falha) {
     if (botao) botao.setAttribute('data-carregando', 'true');
 
-    var dados = new FormData(form);
+    /* Tudo o que o formulário tem, mais a origem do clique (UTM e gclid)
+       e a isca para robô. O servidor decide o que vai ao CRM. */
+    var corpo = {};
+    new FormData(form).forEach(function (valor, nome) {
+      if (typeof valor === 'string') corpo[nome] = valor;
+    });
+    corpo.attribution = (window.sdAttr ? window.sdAttr() : {}) || {};
 
-    function concluir(ok) {
+    /* O texto de sucesso tem duas versões: a mensagem já saiu no WhatsApp,
+       ou a equipe vai chamar em seguida (envio automático falhou ou o lead
+       ficou na fila do servidor). */
+    function concluir(ok, whatsapp) {
       if (botao) botao.removeAttribute('data-carregando');
+      if (ok && sucesso) {
+        var versao = whatsapp === 'enviado' ? 'enviado' : 'depois';
+        sucesso.querySelectorAll('[data-whatsapp]').forEach(function (el) {
+          el.hidden = el.getAttribute('data-whatsapp') !== versao;
+        });
+      }
       var alvo = ok ? sucesso : falha;
       if (alvo) {
         alvo.setAttribute('data-visivel', 'true');
@@ -252,33 +193,26 @@
       if (ok) form.reset();
     }
 
-    /* Caminho normal: abre o WhatsApp com a mensagem montada.
-       O window.open acontece dentro do gesto de submit, senão o
-       bloqueador de pop-up mata a aba. Se ainda assim for bloqueado,
-       o estado de sucesso traz o link para abrir na mão. */
-    var url = linkWhatsapp(form);
-    if (url) {
-      var link = sucesso && sucesso.querySelector('[data-form-whatsapp]');
-      if (link) link.href = url;
-      window.open(url, '_blank', 'noopener');
-      concluir(true);
-      return;
-    }
-
-    /* Sem número de WhatsApp e sem endpoint, não há para onde mandar:
-       mostra a falha em vez de fingir sucesso. */
     if (!cfg.FORM_ENDPOINT) {
-      console.error('[SOS] Sem WHATSAPP.numero e sem FORM_ENDPOINT — o lead não tem destino.');
+      console.error('[SOS] Sem FORM_ENDPOINT — o lead não tem destino.');
       concluir(false);
       return;
     }
 
+    /* keepalive: se a pessoa sair da página antes da resposta, o envio
+       continua. Só falha de verdade (rede, servidor fora) mostra o erro,
+       para a pessoa tentar de novo em vez de achar que foi. */
     fetch(cfg.FORM_ENDPOINT, {
-      method: cfg.FORM_METODO || 'POST',
-      body: dados,
-      headers: { Accept: 'application/json' }
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(corpo),
+      keepalive: true
     })
-      .then(function (r) { concluir(r.ok); })
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (d) {
+          concluir(r.ok && d.ok !== false, d.whatsapp);
+        });
+      })
       .catch(function () { concluir(false); });
   }
 })();

@@ -70,7 +70,7 @@ def base_de(url):
     return '../' * profundidade
 
 
-def montar(meta, corpo, partials, ver, wa_numero=''):
+def montar(meta, corpo, partials, ver):
     url = meta.get('url', '/')
     base = meta['base'] if 'base' in meta else base_de(url)
 
@@ -98,10 +98,6 @@ def montar(meta, corpo, partials, ver, wa_numero=''):
         'HEAD_EXTRA': meta.get('head_extra', ''),
         'SCRIPTS_EXTRA': meta.get('scripts_extra', ''),
         'SPRITE': partials['sprite'].strip(),
-        # Número do WhatsApp validado acima, injetado no HTML para o
-        # botão flutuante. Mantém o config.js como fonte única: um
-        # número errado trava o build antes de ir ao ar.
-        'WA_NUMERO': wa_numero,
         'LOGO': logo_recuado,
         'LOGO_VERTICAL': logo_vertical_recuado,
         'LOGO_MONOGRAMA': logo_monograma_recuado,
@@ -131,55 +127,6 @@ def montar(meta, corpo, partials, ver, wa_numero=''):
             return novo
         html = novo
     raise ValueError('placeholders não estabilizaram — referência circular?')
-
-
-def conferir_whatsapp():
-    """Valida o número do WhatsApp em config.js antes de gerar o site.
-
-    Existe por causa de um erro real: um número com um dígito a mais foi
-    para produção e o WhatsApp, em vez de recusar, reinterpretou sozinho
-    e entregou os leads num DDD errado — de um desconhecido. Não houve
-    erro em lugar nenhum, nem no console. A checagem tem que ser aqui,
-    antes de publicar, porque em runtime já é tarde.
-
-    Aceita os dois países onde a banca atende: Brasil (55 + DDD + 8 ou 9
-    dígitos) e Estados Unidos (1 + código de área + 7 dígitos).
-    """
-    caminho = os.path.join(RAIZ, 'assets', 'js', 'config.js')
-    if not os.path.exists(caminho):
-        return [], ''
-    m = re.search(r"numero:\s*'(\d*)'", ler(caminho))
-    if not m:
-        return ['config.js: WHATSAPP.numero não encontrado'], ''
-    n = m.group(1)
-    if not n:
-        return ['config.js: WHATSAPP.numero vazio — o formulário não tem destino'], ''
-    if n.startswith('55'):
-        # 55 + DDD(2) + 8 ou 9 dígitos
-        if len(n) not in (12, 13):
-            return ['config.js: WHATSAPP.numero tem %d dígitos; celular brasileiro '
-                    'tem 12 ou 13 (55 + DDD + 8 ou 9). Valor: %s' % (len(n), n)], ''
-        ddd = int(n[2:4])
-        if not (11 <= ddd <= 99):
-            return ['config.js: DDD inválido (%s) em %s' % (n[2:4], n)], ''
-        return [], n
-
-    if n.startswith('1'):
-        # 1 + área(3) + central(3) + 4 dígitos
-        if len(n) != 11:
-            return ['config.js: WHATSAPP.numero tem %d dígitos; número dos EUA '
-                    'tem 11 (1 + área + 7). Valor: %s' % (len(n), n)], ''
-        area, central = n[1:4], n[4:7]
-        if area[0] in '01' or central[0] in '01':
-            return ['config.js: área ou central não pode começar com 0 nem 1 '
-                    '(%s-%s) em %s' % (area, central, n)], ''
-        if area[1] == area[2] == '1':
-            return ['config.js: %s é código de serviço (N11), não código de '
-                    'área, em %s' % (area, n)], ''
-        return [], n
-
-    return ['config.js: WHATSAPP.numero não começa com 55 (Brasil) nem com 1 '
-            '(EUA). Valor: %s' % n], ''
 
 
 def conferir_lead():
@@ -252,13 +199,6 @@ def conferir_lead():
 
 
 def main():
-    problemas, wa_numero = conferir_whatsapp()
-    if problemas:
-        for p in problemas:
-            print('ERRO: %s' % p)
-        print('\nNada foi gerado. Corrija o número antes de publicar.')
-        return 1
-
     problemas = conferir_lead()
     if problemas:
         for p in problemas:
@@ -290,7 +230,7 @@ def main():
         texto = ler(os.path.join(PAGES, nome))
         try:
             meta, corpo = parse_fonte(texto)
-            html = montar(meta, corpo, partials, ver, wa_numero)
+            html = montar(meta, corpo, partials, ver)
         except ValueError as e:
             print('ERRO em %s: %s' % (nome, e), file=sys.stderr)
             return 1

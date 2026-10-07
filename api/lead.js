@@ -2,9 +2,10 @@
  * Recebe o lead do formulário de /contato/ e cria o card no projeto
  * "SOS Direito · Leads do site", no JSYNQ da Hubber.
  *
- * O formulário continua abrindo o WhatsApp sozinho (form.js); esta rota é a
- * cópia que vai para o CRM. Quem chama é assets/js/components/lead-crm.js, sem
- * esperar resposta: nada aqui pode atrasar nem estragar o WhatsApp.
+ * É o único destino do formulário: o form.js não abre mais o WhatsApp de quem
+ * preenche e espera esta resposta para mostrar o resultado. Depois de criar o
+ * card, a rota manda o primeiro atendimento por WhatsApp, do número da SOS
+ * ligado ao JSYNQ (_whatsapp.js), e diz ao navegador se a mensagem saiu.
  *
  * O card é criado pela API do JSYNQ, que só responde 2xx depois de gravar.
  * O token é a credencial e por isso mora só na variável de ambiente, nunca no
@@ -18,19 +19,27 @@
  * proteção.
  *
  * Variáveis de ambiente (painel da Vercel, nunca no código):
- *   JSYNQ_API_TOKEN         token de API do JSYNQ, com escrita em projetos. O
- *                           dono do token assina os cards e precisa ser
- *                           integrante do projeto, que é privado.
+ *   JSYNQ_API_TOKEN         token de API do JSYNQ: leitura de projetos, leitura
+ *                           e escrita de cards e de workspaces (o WhatsApp do
+ *                           JSYNQ fica sob "workspaces"). O dono do token assina
+ *                           os cards e precisa ser integrante do projeto, que é
+ *                           privado.
  *   BLOB_STORE_ID ou BLOB_READ_WRITE_TOKEN   criadas pela Vercel ao conectar o
  *                           Blob ao projeto (a primeira é o store novo, via OIDC).
  *
  * O que vai para o CRM é decidido em CAMPOS_NO_CRM, em _lead.js.
  */
 
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import {
   validarLead, montarCard, montarDescricao, contatoGravado, contatoDeOutroCadastro, JSYNQ,
 } from './_lead.js';
+import {
+  telefoneWhatsapp, sequencia, numeroLegivel, NUMERO_SOS, NUMERO_SOS_LEGIVEL,
+} from './_whatsapp.js';
 import { fila as filaPadrao } from './_fila.js';
+import { waitUntil as depoisDaResposta } from '@vercel/functions';
 
 const API = 'https://api.jsynq.com';
 const MAX_BODY = 64 * 1024; // 13 campos de texto e a atribuição cabem de sobra
@@ -74,40 +83,148 @@ function resumo(lead) {
   return `| ${lead.id} · ${lead.nome} · ${lead.email || '?'} · ${lead.telefone || '?'}`;
 }
 
-const AVISO_ATE_MS = 10000;
-const AVISO_TIMEOUT_MS = 4000;
+/* A função tem 60 s (vercel.json) e cada chamada fixa um limite absoluto,
+   LIMITE_MS depois do início, que vale para todas as entregas dela. Um passo
+   (criar o card, conferir o contato, cada envio de WhatsApp, reescrever a
+   descrição) só começa se cabe inteiro até lá, contando o tempo máximo de
+   espera dele. Os 10 s que sobram são para tirar o lead da fila: ser cortado
+   depois de criar o card e antes disso faria o reenvio repetir card e
+   mensagem. Sem tempo para o WhatsApp, o card diz que falta chamar à mão. */
+export const LIMITE_MS = 50000;
+const TIMEOUT_CRIACAO_MS = 8000;
+const TIMEOUT_CARD_MS = 5000;
+const TIMEOUT_WHATSAPP_MS = 15000;
+const ENTRE_MENSAGENS_MS = 800;
+// Achar a sessão, pelo menos a mensagem de boas-vindas e reescrever a descrição.
+const MINIMO_WHATSAPP_MS = TIMEOUT_CARD_MS + TIMEOUT_WHATSAPP_MS + TIMEOUT_CARD_MS;
 
-/* Depois de criado o card: se o JSYNQ o ligou a um contato que já existia
-   (junta por e-mail ou telefone), os campos de contato mostram o cadastro
-   antigo, e a descrição ganha um aviso no topo para quem atende. Só aviso: o
-   lead já está gravado, então nada aqui muda o resultado da entrega. */
-async function avisarSeJuntou(lead, criado, authorization) {
-  const id = criado?._id;
-  if (!id) return;
-  const rota = `${API}/api/projects/${JSYNQ.projeto}/cards/${id}`;
-  try {
-    let card = criado;
-    const g = contatoGravado(card);
-    if (!g.nome && !g.email && !g.telefone) {
-      // A resposta da criação veio sem os campos de contato: lê o card.
-      const r = await fetch(rota, { headers: { authorization }, signal: AbortSignal.timeout(AVISO_TIMEOUT_MS) });
-      if (!r.ok) return;
-      const d = await r.json().catch(() => null);
-      card = d?.card || d?.data?.card || d;
-    }
-    const antigo = contatoDeOutroCadastro(lead, card);
-    if (!antigo) return;
-    const r = await fetch(rota, {
-      method: 'PUT',
-      headers: { 'content-type': 'application/json', authorization },
-      body: JSON.stringify({ desc: montarDescricao(lead, { aviso: antigo }) }),
-      signal: AbortSignal.timeout(AVISO_TIMEOUT_MS),
-    });
-    if (r.ok) console.log('[lead] card', criado.slug || id, 'ligado a contato que já existia: aviso posto');
-    else console.error('[lead] card', criado.slug || id, 'ligado a contato que já existia; aviso falhou:', r.status);
-  } catch (err) {
-    console.error('[lead] card', criado.slug || id, 'aviso de contato existente falhou:', err?.message);
+const pdfs = new Map();
+async function pdfBase64(arquivo) {
+  if (!pdfs.has(arquivo)) {
+    const bytes = await readFile(join(process.cwd(), 'api', '_materiais', arquivo));
+    pdfs.set(arquivo, bytes.toString('base64'));
   }
+  return pdfs.get(arquivo);
+}
+
+/* A sessão de WhatsApp do número da SOS, achada pelo número na lista de
+   sessões do workspace. Sem cache: reconectar o aparelho troca a sessão, e
+   um lead a mais por dia não justifica guardar estado. */
+async function acharSessao(authorization) {
+  const r = await fetch(`${API}/api/whatsapp-lite/sessions`, {
+    headers: { authorization }, signal: AbortSignal.timeout(TIMEOUT_CARD_MS),
+  });
+  if (!r.ok) return { erro: `a lista de números do JSYNQ respondeu ${r.status}` };
+  const d = await r.json().catch(() => null);
+  const lista = [d, d?.sessions, d?.data, d?.data?.sessions, d?.items].find(Array.isArray) || [];
+  // Contas antigas de alguns DDDs aparecem no WhatsApp sem o nono dígito.
+  const sem9 = NUMERO_SOS.slice(0, 4) + NUMERO_SOS.slice(5);
+  const sessao = lista.find((x) => {
+    const texto = JSON.stringify(x || {});
+    return texto.includes(NUMERO_SOS) || texto.includes(sem9);
+  });
+  const id = sessao?._id || sessao?.id || sessao?.sessionId;
+  return id ? { id } : { erro: `o número ${NUMERO_SOS_LEGIVEL} não está ligado ao JSYNQ` };
+}
+
+/* A sequência da Camila, do número da SOS para o telefone do lead, com a
+   conversa ligada ao card. Para no primeiro envio que falhar: mandar o PDF
+   sem a mensagem que o apresenta confundiria a pessoa. `prazo` é a hora em
+   que o último envio precisa ter terminado. */
+export async function enviarWhatsapp(lead, cardId, authorization, { agora = Date.now, prazo = Infinity, esperar = espera } = {}) {
+  const numero = telefoneWhatsapp(lead);
+  if (!numero) {
+    return { ok: false, enviados: [], motivo: `não deu para saber o código do país do telefone "${lead.telefone || ''}"` };
+  }
+  const base = { para: numeroLegivel(numero), de: NUMERO_SOS_LEGIVEL, enviados: [] };
+  const s = await acharSessao(authorization);
+  if (!s.id) return { ...base, ok: false, motivo: s.erro };
+
+  const vinculo = cardId ? { linkedEntityType: 'card', linkedEntityId: cardId } : {};
+  for (const [i, item] of sequencia(numero, new Date(agora())).entries()) {
+    if (i) await esperar(ENTRE_MENSAGENS_MS);
+    if (agora() + TIMEOUT_WHATSAPP_MS > prazo) return { ...base, ok: false, motivo: 'acabou o tempo da função antes do fim' };
+    const corpo = item.tipo === 'texto'
+      ? { phone: numero, text: item.texto, ...vinculo }
+      : { phone: numero, mediaBase64: await pdfBase64(item.arquivo), mimeType: 'application/pdf',
+          mediaType: 'document', fileName: item.nome, ...vinculo };
+    let res;
+    try {
+      res = await fetch(`${API}/api/whatsapp-lite/sessions/${s.id}/send-to-phone`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization },
+        body: JSON.stringify(corpo),
+        signal: AbortSignal.timeout(TIMEOUT_WHATSAPP_MS),
+      });
+    } catch (err) {
+      return { ...base, ok: false, motivo: `${item.rotulo} não saiu (${err?.message})` };
+    }
+    if (!res.ok) {
+      const detalhe = (await res.text().catch(() => '')).slice(0, 120);
+      console.error('[lead] WhatsApp:', item.rotulo, 'devolveu', res.status, detalhe);
+      return { ...base, ok: false, motivo: `${item.rotulo} não saiu (o JSYNQ respondeu ${res.status})` };
+    }
+    base.enviados.push(item.rotulo);
+  }
+  return { ...base, ok: true };
+}
+
+/* Depois de criado o card: confere se o JSYNQ o ligou a um contato que já
+   existia (junta por e-mail ou telefone), manda o primeiro atendimento por
+   WhatsApp e reescreve a descrição com o resultado dos dois no topo. O lead
+   já está gravado, então nada aqui muda o resultado da entrega nem faz o
+   lead ser reenviado (o reenvio duplicaria card e mensagem). */
+async function completarCard(lead, criado, authorization, { agora, limite, esperar, whatsapp: enviar }) {
+  const id = criado?._id;
+  const rota = `${API}/api/projects/${JSYNQ.projeto}/cards/${id}`;
+  const rotulo = criado?.slug || id || '?';
+  const cabe = (ms) => agora() + ms <= limite;
+
+  let aviso = null;
+  if (id) {
+    try {
+      let card = criado;
+      const g = contatoGravado(card);
+      // A resposta da criação veio sem os campos de contato: lê o card, se
+      // ainda der tempo de ler e de reescrever a descrição depois.
+      if (!g.nome && !g.email && !g.telefone && cabe(2 * TIMEOUT_CARD_MS)) {
+        const r = await fetch(rota, { headers: { authorization }, signal: AbortSignal.timeout(TIMEOUT_CARD_MS) });
+        const d = r.ok ? await r.json().catch(() => null) : null;
+        card = d?.card || d?.data?.card || d || {};
+      }
+      aviso = contatoDeOutroCadastro(lead, card);
+    } catch (err) {
+      console.error('[lead] card', rotulo, 'conferência do contato falhou:', err?.message);
+    }
+  }
+
+  let whatsapp;
+  try {
+    whatsapp = cabe(MINIMO_WHATSAPP_MS)
+      ? await enviar(lead, id, authorization, { agora, esperar, prazo: limite - TIMEOUT_CARD_MS })
+      : { ok: false, enviados: [], motivo: 'o card demorou a ser criado e não sobrou tempo para a mensagem' };
+  } catch (err) {
+    whatsapp = { ok: false, enviados: [], motivo: `erro inesperado (${err?.message})` };
+  }
+  console.log('[lead] card', rotulo, whatsapp.ok ? 'WhatsApp enviado' : `WhatsApp não enviado: ${whatsapp.motivo}`);
+  if (aviso) console.log('[lead] card', rotulo, 'ligado a contato que já existia');
+
+  if (id && !cabe(TIMEOUT_CARD_MS)) {
+    console.error('[lead] card', rotulo, 'descrição não atualizada: sem tempo');
+  } else if (id) {
+    try {
+      const r = await fetch(rota, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', authorization },
+        body: JSON.stringify({ desc: montarDescricao(lead, { aviso, whatsapp }) }),
+        signal: AbortSignal.timeout(TIMEOUT_CARD_MS),
+      });
+      if (!r.ok) console.error('[lead] card', rotulo, 'descrição não atualizada:', r.status);
+    } catch (err) {
+      console.error('[lead] card', rotulo, 'descrição não atualizada:', err?.message);
+    }
+  }
+  return whatsapp;
 }
 
 /**
@@ -119,11 +236,15 @@ async function avisarSeJuntou(lead, criado, authorization) {
  * passageiros. 4xx não repete: o mesmo corpo vai dar a mesma resposta (token
  * inválido, dono do token fora do projeto), e o item fica na fila até alguém
  * corrigir. O token nunca vai para o log.
+ *
+ * `limite` é a hora em que a entrega precisa ter terminado (veja LIMITE_MS).
+ * Uma tentativa que não cabe mais nele não começa: o lead fica na fila, sem
+ * card criado, para o próximo reenvio.
  */
 export async function entregarLead(lead, token, {
-  esperar = espera, tentativas = 3, agora = Date.now,
+  esperar = espera, tentativas = 3, agora = Date.now, limite = agora() + LIMITE_MS,
+  relatorio = null, whatsapp = enviarWhatsapp,
 } = {}) {
-  const inicio = agora();
   const url = `${API}/api/projects/${JSYNQ.projeto}/cards`;
   // Espaço ou quebra de linha colados junto do token no painel da Vercel
   // fariam o JSYNQ recusar a credencial e todo lead parar na fila.
@@ -132,13 +253,17 @@ export async function entregarLead(lead, token, {
   const corpo = JSON.stringify(montarCard(lead));
   for (let i = 0; i < tentativas; i++) {
     if (i) await esperar(i * 600);
+    if (agora() + TIMEOUT_CRIACAO_MS > limite) {
+      console.error('[lead] sem tempo para criar o card nesta chamada; fica na fila:', lead.id);
+      return false;
+    }
     let res;
     try {
       res = await fetch(url, {
         method: 'POST',
         headers: { 'content-type': 'application/json', authorization },
         body: corpo,
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(TIMEOUT_CRIACAO_MS),
       });
     } catch (err) {
       console.error('[lead] tentativa', i + 1, 'falhou:', err?.message);
@@ -155,10 +280,8 @@ export async function entregarLead(lead, token, {
       // A API devolve o card sob "newCard"; os outros nomes ficam de reserva.
       const card = dados?.newCard || dados?.card || dados?.data?.card || dados;
       console.log('[lead] card criado:', card?.slug || card?._id || '?', '· envio', lead.id);
-      // O aviso cabe no tempo da função só se a criação foi rápida. Sem ele o
-      // lead está salvo do mesmo jeito; estourar o tempo deixaria o item na
-      // fila e o reenvio criaria card repetido.
-      if (agora() - inicio < AVISO_ATE_MS) await avisarSeJuntou(lead, card, authorization);
+      const w = await completarCard(lead, card, authorization, { agora, limite, esperar, whatsapp });
+      if (relatorio) relatorio.whatsapp = w.ok ? 'enviado' : 'nao_enviado';
       return true;
     }
     console.error('[lead] tentativa', i + 1, 'devolveu', res.status,
@@ -172,8 +295,10 @@ export function criarHandler({
   fila = filaPadrao,
   ambiente = process.env,
   entregar = entregarLead,
+  emSegundoPlano = depoisDaResposta,
 } = {}) {
   return async function handler(req, res) {
+    const limite = Date.now() + LIMITE_MS;
     if (req.method !== 'POST') {
       res.setHeader('Allow', 'POST');
       return res.status(405).json({ ok: false, error: 'method_not_allowed' });
@@ -207,14 +332,19 @@ export function criarHandler({
     const token = ambiente.JSYNQ_API_TOKEN;
     if (token) {
       try {
-        if (await entregar(lead, token)) {
+        const relatorio = {};
+        if (await entregar(lead, token, { relatorio, limite })) {
           await fila.concluir(naFila);
           // O CRM respondeu, então é boa hora de empurrar o que ficou para trás.
+          // Depois da resposta: cada pendente também manda WhatsApp, e a pessoa
+          // que acabou de enviar o formulário não pode esperar por isso. O
+          // limite é o mesmo desta chamada; o que não couber fica para depois.
           if (fila.ativa()) {
-            const r = await fila.drenar('lead', (d) => entregar(d, token), 2);
-            if (r.entregues) console.log('[lead] fila: reenviados', r.entregues);
+            emSegundoPlano(fila.drenar('lead', (d) => entregar(d, token, { limite }), 1)
+              .then((r) => { if (r.entregues) console.log('[lead] fila: reenviados', r.entregues); })
+              .catch((err) => console.error('[lead] fila: reenvio falhou:', err?.message)));
           }
-          return res.status(200).json({ ok: true, id: lead.id });
+          return res.status(200).json({ ok: true, id: lead.id, whatsapp: relatorio.whatsapp || 'nao_enviado' });
         }
       } catch (err) {
         console.error('[lead] falha ao falar com o JSYNQ:', err?.message, resumo(lead));
@@ -224,8 +354,8 @@ export function criarHandler({
     }
 
     // Aqui o CRM não aceitou. Com o lead na fila ele foi recebido de fato e
-    // será entregue depois. Como o navegador não espera esta resposta, o
-    // status serve só ao log e ao teste.
+    // será entregue depois (o WhatsApp sai junto, na entrega). O navegador
+    // mostra sucesso, sem prometer a mensagem para já.
     if (naFila) {
       console.error('[lead] na fila para reenvio:', naFila);
       return res.status(200).json({ ok: true, pendente: true, id: lead.id });

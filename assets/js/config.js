@@ -29,19 +29,7 @@ window.SOS.config = {
   },
 
   /* ---- Formulário ----
-     O destino do formulário é o WhatsApp: os campos viram uma mensagem
-     pronta em wa.me, aberta no submit. Não há backend.
-
-     Número oficial da banca, o mesmo de empresa.telefoneLink. É o
-     único lugar do site onde o destino do lead aparece: se mudar,
-     muda aqui. O build recusa gerar o site com número inválido. */
-  WHATSAPP: {
-    numero: '17863013817',
-    saudacao: 'Olá! Vim pelo site da SOS Direito.'
-  },
-
-  /* Só entra em cena se WHATSAPP.numero ficar vazio. Mantido para o
-     caso de o destino virar um backend no futuro. */
-  FORM_ENDPOINT: null,
-  FORM_METODO: 'POST'
+     O destino do formulário é o servidor: /api/lead guarda o lead, cria o
+     card no CRM e manda o primeiro atendimento pelo WhatsApp. */
+  FORM_ENDPOINT: '/api/lead'
 };

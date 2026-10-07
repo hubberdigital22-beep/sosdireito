@@ -4,7 +4,7 @@ title: Fale com a SOS Direito | Assessoria Imigratória
 desc: Entre em contato com a SOS Direito e descubra o caminho certo para levar sua empresa ou sua carreira para os Estados Unidos.
 head_extra: <link rel="stylesheet" href="../assets/css/pages/contato.css?v={{VER}}">
  <script src="../assets/js/data/paises.js?v={{VER}}" defer></script>
-scripts_extra: <script src="../assets/js/components/lead-tracking.js?v={{VER}}" defer></script> <script src="../assets/js/components/lead-crm.js?v={{VER}}" defer></script>
+scripts_extra: <script src="../assets/js/components/lead-tracking.js?v={{VER}}" defer></script>
 ---
 
 <section class="hero hero--interno secao--marfim">
@@ -103,9 +103,11 @@ scripts_extra: <script src="../assets/js/components/lead-tracking.js?v={{VER}}" 
             <div class="campo">
               <!-- CRM: mobile — obrigatório. É também o que alimenta o user_data
                    da conversão aprimorada, junto com o e-mail. -->
-              <label class="campo__rotulo" for="c-telefone">Telefone</label>
+              <label class="campo__rotulo" for="c-telefone">WhatsApp</label>
               <input class="campo__controle" type="tel" id="c-telefone" name="telefone"
-                     autocomplete="tel" data-mascara="telefone" placeholder="(11) 99999-9999" required>
+                     autocomplete="tel" data-mascara="telefone" placeholder="(11) 99999-9999" required
+                     aria-describedby="c-telefone-dica">
+              <span class="campo__dica" id="c-telefone-dica">Fora do Brasil, comece com + e o código do país.</span>
               <span class="campo__erro" aria-live="polite"></span>
             </div>
             <div class="campo">
@@ -213,9 +215,9 @@ scripts_extra: <script src="../assets/js/components/lead-tracking.js?v={{VER}}" 
           </p>
 
           <!-- Isca para robô: pessoa não vê nem alcança por teclado. Fora de
-               .campo__controle de propósito, para o form.js não validar nem
-               levar para a mensagem do WhatsApp. O servidor trata preenchida
-               como robô e responde sucesso sem entregar nada. -->
+               .campo__controle de propósito, para o form.js não validar. O
+               servidor trata preenchida como robô e responde sucesso sem
+               entregar nada. -->
           <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden">
             <label>Não preencha este campo
               <input type="text" name="site_extra" tabindex="-1" autocomplete="off">
@@ -228,17 +230,17 @@ scripts_extra: <script src="../assets/js/components/lead-tracking.js?v={{VER}}" 
             </button>
           </div>
 
+          <!-- O form.js mostra uma das duas versões, conforme a resposta de
+               /api/lead: a mensagem já saiu no WhatsApp, ou a equipe chama
+               em seguida (envio automático falhou ou o lead ficou na fila). -->
           <div class="form__estado form__estado--sucesso" data-form-sucesso data-visivel="false">
-            <strong>Tudo certo.</strong>
-            Abrimos o WhatsApp com os seus dados já preenchidos — é só tocar em enviar.
-            <a data-form-whatsapp href="#" target="_blank" rel="noopener"
-               style="display:inline-block;margin-top:var(--sp-3);font-weight:600">
-              Não abriu? Abrir o WhatsApp
-            </a>
+            <strong>Recebemos os seus dados.</strong>
+            <span data-whatsapp="enviado" hidden>Acabamos de enviar uma mensagem no seu WhatsApp, do número +55 12 99625-6773, com os materiais sobre o L-1A.</span>
+            <span data-whatsapp="depois" hidden>Em breve vamos falar com você pelo WhatsApp, do número +55 12 99625-6773.</span>
           </div>
           <div class="form__estado form__estado--erro" data-form-erro data-visivel="false">
-            <strong>Não foi possível abrir o WhatsApp.</strong>
-            Escreva para <a href="mailto:info@sosdireito.com.br">info@sosdireito.com.br</a>.
+            <strong>Não conseguimos enviar agora.</strong>
+            Tente de novo em instantes ou escreva para <a href="mailto:info@sosdireito.com.br">info@sosdireito.com.br</a>.
           </div>
         </form>
       </div>
