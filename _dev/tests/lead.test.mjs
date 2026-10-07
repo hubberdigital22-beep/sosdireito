@@ -257,15 +257,22 @@ test('card: projeto da SOS no JSYNQ da Hubber, coluna Leads e o Nicolas como res
   const lead = { ...validarLead(CORPO).lead, id: 'c-1' };
   const card = montarCard(lead);
   assert.deepEqual(Object.keys(card),
-    ['title', 'type', 'board', 'column', 'assignedUsers', 'contactName', 'email', 'phone', 'desc']);
+    ['title', 'type', 'board', 'column', 'assignedUsers', 'customFields', 'desc']);
   assert.equal(card.title, 'Maria Souza');
   assert.equal(card.board, JSYNQ.quadro);
   assert.equal(card.column, JSYNQ.coluna);
   assert.deepEqual(card.assignedUsers, [JSYNQ.responsavel]);
-  assert.equal(card.contactName, 'Maria Souza');
-  assert.equal(card.email, 'maria@exemplo.com');
-  assert.equal(card.phone, '(11) 99999-9999');
+  assert.deepEqual(card.customFields, [
+    { fieldId: 'contactName', fieldName: 'Contact name', fieldType: 'text', value: 'Maria Souza' },
+    { fieldId: 'email', fieldName: 'Email', fieldType: 'email', value: 'maria@exemplo.com' },
+    { fieldId: 'phone', fieldName: 'Phone', fieldType: 'text', value: '(11) 99999-9999' },
+  ]);
   assert.deepEqual(linhasDe(card.desc), linhasDe(montarDescricao(lead)));
+});
+
+test('card: contato só em customFields, nunca no topo (pela API, no topo ele sai em dobro)', () => {
+  const card = montarCard({ ...validarLead(CORPO).lead, id: 'c-3' });
+  for (const k of ['contactName', 'email', 'phone', 'company']) assert.ok(!(k in card), k);
 });
 
 test('card: dados de rastreio só na descrição, nunca em campo personalizado', () => {
@@ -273,7 +280,7 @@ test('card: dados de rastreio só na descrição, nunca em campo personalizado',
     utm_source: 'google', utm_medium: 'cpc', utm_campaign: 'l1a', utm_term: 'visto', utm_content: 'v2',
     gclid: 'g1', gbraid: 'gb1', wbraid: 'wb1' } })).lead, id: 'c-2' };
   const card = montarCard(lead);
-  assert.ok(!('customFields' in card));
+  assert.deepEqual(card.customFields.map((c) => c.fieldId), ['contactName', 'email', 'phone']);
   const { desc, ...resto } = card;
   assert.doesNotMatch(JSON.stringify(resto), /google|cpc|l1a|visto|v2|g1|gb1|wb1|c-2/);
   const l = linhasDe(desc);
@@ -282,12 +289,11 @@ test('card: dados de rastreio só na descrição, nunca em campo personalizado',
 });
 
 test('card: e-mail e telefone só quando existem', () => {
-  const soTel = montarCard(validarLead(com({ email: '' })).lead);
-  assert.ok(!('email' in soTel));
-  assert.equal(soTel.phone, '(11) 99999-9999');
-  const soEmail = montarCard(validarLead(com({ telefone: '' })).lead);
-  assert.ok(!('phone' in soEmail));
-  assert.equal(soEmail.email, 'maria@exemplo.com');
+  const campos = (card) => Object.fromEntries(card.customFields.map((c) => [c.fieldId, c.value]));
+  assert.deepEqual(campos(montarCard(validarLead(com({ email: '' })).lead)),
+    { contactName: 'Maria Souza', phone: '(11) 99999-9999' });
+  assert.deepEqual(campos(montarCard(validarLead(com({ telefone: '' })).lead)),
+    { contactName: 'Maria Souza', email: 'maria@exemplo.com' });
 });
 
 /* ---------- entrega ao JSYNQ ---------- */

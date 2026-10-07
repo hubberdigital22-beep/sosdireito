@@ -222,23 +222,31 @@ export function montarDescricao(lead) {
   return JSON.stringify(blocos);
 }
 
-/* O corpo de POST /api/projects/{projeto}/cards. Nome, e-mail e telefone vão
-   nos campos de contato do CRM, para o JSYNQ criar o contato; todo o resto,
-   inclusive a origem do clique, fica só na descrição, sem campo
-   personalizado. E-mail e telefone entram só quando existem. Chave vazia ou
-   e-mail inventado não serve: o CRM deduplica contato por e-mail, e dois
-   leads sem e-mail virariam a mesma pessoa se compartilhassem um valor. */
+/* Os três campos de contato que todo projeto CRM do JSYNQ já traz (não são
+   campos personalizados): com eles o JSYNQ cria o contato. Vão em
+   customFields, com o id do próprio campo, e não no topo do card: pela API,
+   nome, e-mail e telefone no topo saem gravados duas vezes (medido em
+   07/10/2026). */
+const CONTATO = [
+  { fieldId: 'contactName', fieldName: 'Contact name', fieldType: 'text', chave: 'nome' },
+  { fieldId: 'email', fieldName: 'Email', fieldType: 'email', chave: 'email' },
+  { fieldId: 'phone', fieldName: 'Phone', fieldType: 'text', chave: 'telefone' },
+];
+
+/* O corpo de POST /api/projects/{projeto}/cards. Só o contato vai em campo;
+   todo o resto, inclusive a origem do clique, fica só na descrição. E-mail e
+   telefone entram só quando existem. Chave vazia ou e-mail inventado não
+   serve: o CRM deduplica contato por e-mail, e dois leads sem e-mail virariam
+   a mesma pessoa se compartilhassem um valor. */
 export function montarCard(lead) {
-  const card = {
+  return {
     title: lead.nome,
     type: 'task',
     board: JSYNQ.quadro,
     column: JSYNQ.coluna,
     assignedUsers: [JSYNQ.responsavel],
-    contactName: lead.nome,
+    customFields: CONTATO.filter((c) => lead[c.chave])
+      .map(({ fieldId, fieldName, fieldType, chave }) => ({ fieldId, fieldName, fieldType, value: lead[chave] })),
+    desc: montarDescricao(lead),
   };
-  if (lead.email) card.email = lead.email;
-  if (lead.telefone) card.phone = lead.telefone;
-  card.desc = montarDescricao(lead);
-  return card;
 }
