@@ -110,6 +110,11 @@ async function pdfBase64(arquivo) {
 /* A sessão de WhatsApp do número da SOS, achada pelo número na lista de
    sessões do workspace. Sem cache: reconectar o aparelho troca a sessão, e
    um lead a mais por dia não justifica guardar estado. */
+// Celular brasileiro antigo pode aparecer no WhatsApp sem o nono dígito.
+const NUMEROS_DA_SESSAO = NUMERO_SOS.startsWith('55') && NUMERO_SOS.length === 13
+  ? [NUMERO_SOS, NUMERO_SOS.slice(0, 4) + NUMERO_SOS.slice(5)]
+  : [NUMERO_SOS];
+
 async function acharSessao(authorization) {
   const r = await fetch(`${API}/api/whatsapp-lite/sessions`, {
     headers: { authorization }, signal: AbortSignal.timeout(TIMEOUT_CARD_MS),
@@ -117,11 +122,9 @@ async function acharSessao(authorization) {
   if (!r.ok) return { erro: `a lista de números do JSYNQ respondeu ${r.status}` };
   const d = await r.json().catch(() => null);
   const lista = [d, d?.sessions, d?.data, d?.data?.sessions, d?.items].find(Array.isArray) || [];
-  // Contas antigas de alguns DDDs aparecem no WhatsApp sem o nono dígito.
-  const sem9 = NUMERO_SOS.slice(0, 4) + NUMERO_SOS.slice(5);
   const sessao = lista.find((x) => {
     const texto = JSON.stringify(x || {});
-    return texto.includes(NUMERO_SOS) || texto.includes(sem9);
+    return NUMEROS_DA_SESSAO.some((n) => texto.includes(n));
   });
   const id = sessao?._id || sessao?.id || sessao?.sessionId;
   return id ? { id } : { erro: `o número ${NUMERO_SOS_LEGIVEL} não está ligado ao JSYNQ` };

@@ -11,11 +11,12 @@
  * API do JSYNQ é o lead.js.
  */
 
-/* O número que fala com o lead, ligado como sessão de WhatsApp no workspace
-   da Hubber (Configurações → Mensagens → WhatsApp). A sessão é achada pelo
-   número a cada envio, então reconectar o aparelho não pede mudança aqui. */
-export const NUMERO_SOS = '5512996256773';
-export const NUMERO_SOS_LEGIVEL = '+55 12 99625-6773';
+/* O número que fala com o lead: o "COMERCIAL EUA", ligado como sessão de
+   WhatsApp no workspace da Hubber (Configurações → Mensagens → WhatsApp). A
+   sessão é achada pelo número a cada envio, então reconectar o aparelho ou
+   renomear a sessão não pede mudança aqui. */
+export const NUMERO_SOS = '16892802039';
+export const NUMERO_SOS_LEGIVEL = '+1 (689) 280-2039';
 
 export const CALCULADORA = 'https://www.sosdireito.com.br/calculadora/';
 
@@ -92,13 +93,13 @@ export function sequencia(numero, agora = new Date()) {
   ];
 }
 
-/* +55 12 99625-6773 / +1 305 555 0100, só para o texto do card. */
+/* +55 11 99999-9999 / +1 (305) 555-0100, só para o texto do card. */
 export function numeroLegivel(numero) {
   const d = String(numero);
   if (d.startsWith('55') && (d.length === 12 || d.length === 13)) {
     const n = d.slice(4);
     return `+55 ${d.slice(2, 4)} ${n.slice(0, n.length - 4)}-${n.slice(-4)}`;
   }
-  if (d.startsWith('1') && d.length === 11) return `+1 ${d.slice(1, 4)} ${d.slice(4, 7)} ${d.slice(7)}`;
+  if (d.startsWith('1') && d.length === 11) return `+1 (${d.slice(1, 4)}) ${d.slice(4, 7)}-${d.slice(7)}`;
   return '+' + d;
 }

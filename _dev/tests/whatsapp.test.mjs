@@ -48,9 +48,9 @@ test('telefone: DDD que não existe, tamanho estranho ou vazio → null (a equip
 test('número legível no card', () => {
   assert.equal(numeroLegivel('5511999999999'), '+55 11 99999-9999');
   assert.equal(numeroLegivel('551234567890'), '+55 12 3456-7890');
-  assert.equal(numeroLegivel('13055550100'), '+1 305 555 0100');
+  assert.equal(numeroLegivel('13055550100'), '+1 (305) 555-0100');
   assert.equal(numeroLegivel('351912345678'), '+351912345678');
-  assert.equal(numeroLegivel(NUMERO_SOS), '+55 12 99625-6773');
+  assert.equal(numeroLegivel(NUMERO_SOS), '+1 (689) 280-2039');
 });
 
 /* ---------- textos ---------- */
@@ -121,8 +121,8 @@ function calarConsole() {
 }
 
 const SESSOES = JSON.stringify({ sessions: [
-  { _id: 'outra', label: 'COMERCIAL EUA', phone: '16892802039' },
-  { _id: 'sos', label: 'SOS', me: { id: `${NUMERO_SOS}:7@s.whatsapp.net` } },
+  { _id: 'outra', label: 'OUTRO CLIENTE', phone: '5511988887777' },
+  { _id: 'sos', label: 'COMERCIAL EUA', me: { id: `${NUMERO_SOS}:7@s.whatsapp.net` } },
 ] });
 const LEAD = { nome: 'Maria', telefone: '(11) 99999-9999' };
 const opcoes = { esperar: async () => {}, agora: () => Date.UTC(2026, 9, 7, 17, 0) };
@@ -136,7 +136,7 @@ test('envio: acha a sessão pelo número da SOS e manda os quatro itens ligados 
     const r = await enviarWhatsapp(LEAD, 'card1', AUTH, opcoes);
     assert.equal(r.ok, true);
     assert.equal(r.para, '+55 11 99999-9999');
-    assert.equal(r.de, '+55 12 99625-6773');
+    assert.equal(r.de, '+1 (689) 280-2039');
     assert.equal(r.enviados.length, 4);
     assert.match(f.chamadas[0].url, /\/api\/whatsapp-lite\/sessions$/);
     const envios = f.chamadas.slice(1);
@@ -159,10 +159,9 @@ test('envio: acha a sessão pelo número da SOS e manda os quatro itens ligados 
   } finally { f.restaurar(); }
 });
 
-test('envio: número da SOS também é achado sem o nono dígito', async () => {
-  const sem9 = NUMERO_SOS.slice(0, 4) + NUMERO_SOS.slice(5);
+test('envio: a sessão é achada pelo número em qualquer campo, mesmo com outro nome', async () => {
   const f = fetchFalso([
-    { status: 200, corpo: JSON.stringify([{ id: 'velha', jid: `${sem9}@s.whatsapp.net` }]) },
+    { status: 200, corpo: JSON.stringify([{ id: 'velha', name: 'Qualquer nome', jid: `${NUMERO_SOS}@s.whatsapp.net` }]) },
     { status: 200 }, { status: 200 }, { status: 200 }, { status: 200 },
   ]);
   try {
@@ -184,7 +183,7 @@ test('envio: telefone sem país reconhecível não chama a API', async () => {
 
 test('envio: número da SOS desconectado ou sem permissão para listar → não envia e diz por quê', async () => {
   for (const [resposta, motivo] of [
-    [{ status: 200, corpo: JSON.stringify({ sessions: [{ _id: 'outra', phone: '16892802039' }] }) }, /não está ligado ao JSYNQ/],
+    [{ status: 200, corpo: JSON.stringify({ sessions: [{ _id: 'outra', phone: '5511988887777' }] }) }, /não está ligado ao JSYNQ/],
     [{ status: 401, corpo: 'Unauthorized' }, /respondeu 401/],
   ]) {
     const f = fetchFalso([resposta]);
@@ -226,11 +225,11 @@ test('envio: não começa um item que pode passar do prazo', async () => {
 test('card: bloco verde quando o WhatsApp saiu, vermelho com o motivo quando não', () => {
   const lead = { nome: 'Ana', email: 'ana@exemplo.com', id: 'z-1' };
   const ok = JSON.parse(montarDescricao(lead, { whatsapp: {
-    ok: true, para: '+55 11 99999-9999', de: '+55 12 99625-6773',
+    ok: true, para: '+55 11 99999-9999', de: '+1 (689) 280-2039',
     enviados: ['mensagem de boas-vindas', 'link da calculadora'] } }));
   assert.equal(ok[0].props.backgroundColor, 'green');
   assert.equal(linhasDe(JSON.stringify(ok))[0],
-    'WhatsApp automático enviado para +55 11 99999-9999 pelo número +55 12 99625-6773: mensagem de boas-vindas, link da calculadora.');
+    'WhatsApp automático enviado para +55 11 99999-9999 pelo número +1 (689) 280-2039: mensagem de boas-vindas, link da calculadora.');
 
   const nao = JSON.parse(montarDescricao(lead, { whatsapp: {
     ok: false, enviados: ['mensagem de boas-vindas'], motivo: 'o link não saiu' } }));

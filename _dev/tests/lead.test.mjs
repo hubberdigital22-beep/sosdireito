@@ -308,7 +308,7 @@ function calarConsole() {
 
 /* O WhatsApp tem testes próprios mais abaixo; nos de entrega ele é trocado
    por um resultado pronto, para cada teste contar só as chamadas do card. */
-const ZAP_OK = { ok: true, enviados: ['mensagem de boas-vindas'], para: '+55 11 99999-9999', de: '+55 12 99625-6773' };
+const ZAP_OK = { ok: true, enviados: ['mensagem de boas-vindas'], para: '+55 11 99999-9999', de: '+1 (689) 280-2039' };
 const semEspera = { esperar: async () => {}, whatsapp: async () => ZAP_OK };
 
 test('entrega: 201 de primeira, um POST autenticado com o card na rota de cards do projeto', async () => {
