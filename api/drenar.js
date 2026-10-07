@@ -5,10 +5,9 @@
  * item, o que resolve sozinho enquanto houver movimento no site. Este aqui é o
  * que cobre o caso sem movimento: o cron chama uma vez por dia (vercel.json).
  *
- * Cada entrega cria o card e manda o primeiro atendimento por WhatsApp (uns
- * 15 s), então cabem poucas por chamada no tempo da função. Todas dividem o
- * mesmo limite (LIMITE_MS, em lead.js): a que não cabe nem começa, e fica
- * para o próximo lead ou o próximo dia, sem se perder.
+ * Todas as entregas de uma chamada dividem o mesmo limite (LIMITE_MS, em
+ * lead.js): a que não cabe mais no tempo da função nem começa, e fica para o
+ * próximo lead ou o próximo dia, sem se perder.
  *
  * Variáveis de ambiente:
  *   CRON_SECRET       obrigatório. A Vercel o manda como "Authorization:
@@ -52,7 +51,7 @@ export function criarHandler({
       return res.status(503).json({ ok: false, error: 'not_configured' });
     }
 
-    const r = await fila.drenar('lead', (d) => entregar(d, token, { limite }), 3);
+    const r = await fila.drenar('lead', (d) => entregar(d, token, { limite }), 50);
     const resto = await fila.resumo('lead');
     // Fila que não anda é sintoma de problema que ninguém viu ainda.
     if (resto.total) console.error('[drenar] ainda pendentes em lead:', resto.total, 'mais antigo:', resto.maisAntigo);

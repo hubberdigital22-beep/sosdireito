@@ -3,7 +3,7 @@
     { "path": "/api/drenar", "schedule": "0 9 * * *" }
   ],
   "functions": {
-    "api/*.js": { "maxDuration": 60, "includeFiles": "api/_materiais/**" }
+    "api/*.js": { "maxDuration": 60 }
   },
   "redirects": [
     { "source": "/:path(.*)", "has": [{ "type": "host", "value": "sosdireito.vercel.app" }], "destination": "https://www.sosdireito.com.br/:path", "permanent": true },

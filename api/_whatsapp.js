@@ -1,29 +1,22 @@
 /**
- * O primeiro atendimento por WhatsApp de quem envia o formulário de /contato/.
+ * O telefone do lead no formato que o WhatsApp do JSYNQ usa.
  *
- * O formulário não abre mais o WhatsApp de quem preenche. Depois que o card
- * nasce no JSYNQ, o servidor manda, do número da SOS ligado ao JSYNQ, a mesma
- * sequência que a Camila mandava à mão: a mensagem de boas-vindas, o link da
- * calculadora e os dois PDFs. Só o envio do formulário dispara isso: a
- * automação não reage a mensagem que chega no número.
+ * O primeiro atendimento por WhatsApp não sai daqui: é a automação do
+ * projeto no JSYNQ, "Primeiro atendimento WhatsApp (leads do site)" (coluna
+ * Leads, ícone de raio no quadro). Ela dispara quando nasce um card com a
+ * etiqueta "Site" e manda, do número COMERCIAL EUA, a mensagem de
+ * boas-vindas e o link da calculadora para o telefone do contato do card. As
+ * rotas de WhatsApp do JSYNQ não aceitam token de API (medido em 07/10/2026),
+ * por isso o servidor do site não tem como mandar a mensagem ele mesmo.
  *
- * Aqui ficam só funções puras (telefone, saudação, textos). Quem fala com a
- * API do JSYNQ é o lead.js.
+ * O site só garante duas coisas para a automação funcionar: o telefone vai
+ * para o card com o código do país, e a etiqueta só vai quando esse código é
+ * conhecido. Sem ele, mensagem nenhuma sai e o card pede o contato à mão.
  */
 
-/* O número que fala com o lead: o "COMERCIAL EUA", ligado como sessão de
-   WhatsApp no workspace da Hubber (Configurações → Mensagens → WhatsApp). A
-   sessão é achada pelo número a cada envio, então reconectar o aparelho ou
-   renomear a sessão não pede mudança aqui. */
-export const NUMERO_SOS = '16892802039';
+/* O número que fala com o lead. Só aparece no texto do formulário e no
+   card; quem escolhe o número de envio é a automação do JSYNQ. */
 export const NUMERO_SOS_LEGIVEL = '+1 (689) 280-2039';
-
-export const CALCULADORA = 'https://www.sosdireito.com.br/calculadora/';
-
-export const PDFS = [
-  { arquivo: 'o-que-e-o-l1a.pdf', nome: 'O que é o L1-A - SOS Direito.pdf' },
-  { arquivo: 'lista-de-documentos-l1a.pdf', nome: 'Lista de documentos para o L-1A - SOS Direito.pdf' },
-];
 
 /* DDDs que existem no Brasil. Número de 10 ou 11 dígitos sem "+" só vira
    +55 se começar por um deles; o resto fica para a equipe chamar à mão, em
@@ -36,8 +29,8 @@ const DDD = new Set([
 ]);
 
 /**
- * O telefone do lead no formato do WhatsApp (só dígitos, com o código do
- * país), ou null quando não dá para ter certeza do país.
+ * O telefone do lead só com dígitos e com o código do país, ou null quando
+ * não dá para ter certeza do país.
  *
  * O campo é livre: o formulário formata no padrão brasileiro e aceita
  * número internacional começando com "+". Regras, na ordem:
@@ -59,47 +52,4 @@ export function telefoneWhatsapp(lead) {
   if ((d.length === 12 || d.length === 13) && d.startsWith('55') && DDD.has(+d.slice(2, 4))) return d;
   if ((d.length === 10 || d.length === 11) && DDD.has(+d.slice(0, 2))) return '55' + d;
   return null;
-}
-
-/* "Super bom dia / boa tarde / boa noite", no horário de quem recebe:
-   Nova York para número dos EUA, Brasília para o resto. */
-export function saudacao(numero, agora = new Date()) {
-  const fuso = String(numero).startsWith('1') ? 'America/New_York' : 'America/Sao_Paulo';
-  const hora = Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: fuso })
-    .format(agora));
-  if (hora >= 5 && hora < 12) return 'Super bom dia !!!';
-  if (hora >= 12 && hora < 18) return 'Super boa tarde !!!';
-  return 'Super boa noite !!!';
-}
-
-/* O texto da primeira mensagem, o da Camila, com a saudação do horário. */
-export function mensagemInicial(numero, agora = new Date()) {
-  return [
-    saudacao(numero, agora),
-    'Muito obrigada por seu contato.',
-    'Somos especialistas em aquisição de residência permanente por transferência executiva.',
-    'Abaixo lhe encaminho todos os detalhes de como podemos lhe auxiliar na trajetória do L1-A.',
-    'Ao revisar o material, caso haja interesse de se relocar para os EUA nos próximos 6 meses '
-      + 'por gentileza nos avise para fazermos o agendamento no qual vamos esclarecer todas as suas dúvidas.',
-  ].join('\n');
-}
-
-/* A sequência, na ordem em que chega no celular. Cada item vira um envio. */
-export function sequencia(numero, agora = new Date()) {
-  return [
-    { tipo: 'texto', rotulo: 'mensagem de boas-vindas', texto: mensagemInicial(numero, agora) },
-    { tipo: 'texto', rotulo: 'link da calculadora', texto: CALCULADORA },
-    ...PDFS.map((p) => ({ tipo: 'pdf', rotulo: p.nome, arquivo: p.arquivo, nome: p.nome })),
-  ];
-}
-
-/* +55 11 99999-9999 / +1 (305) 555-0100, só para o texto do card. */
-export function numeroLegivel(numero) {
-  const d = String(numero);
-  if (d.startsWith('55') && (d.length === 12 || d.length === 13)) {
-    const n = d.slice(4);
-    return `+55 ${d.slice(2, 4)} ${n.slice(0, n.length - 4)}-${n.slice(-4)}`;
-  }
-  if (d.startsWith('1') && d.length === 11) return `+1 (${d.slice(1, 4)}) ${d.slice(4, 7)}-${d.slice(7)}`;
-  return '+' + d;
 }

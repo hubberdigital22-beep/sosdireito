@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import {
-  validarLead, montarCard, montarDescricao, contatoGravado, contatoDeOutroCadastro,
+  validarLead, montarCard, montarDescricao, contatoGravado, contatoDeOutroCadastro, telefoneDoCrm,
   ROTULOS, ORDEM, ORIGENS, STATUS, CAMPOS_NO_CRM, JSYNQ,
 } from '../../api/_lead.js';
 import { criarFila } from '../../api/_fila.js';
@@ -231,7 +231,9 @@ test('descrição sem atribuição nem campos opcionais não deixa título vazio
   const { lead } = validarLead({ nome: 'Ana', email: 'ana@exemplo.com' });
   lead.id = 'x-1';
   const d = montarDescricao(lead);
-  assert.deepEqual(linhasDe(d), ['Nome: Ana', 'E-mail: ana@exemplo.com', 'ID do envio: x-1']);
+  assert.deepEqual(linhasDe(d), [
+    'WhatsApp automático não sai para este lead: a pessoa não deixou telefone. Chamar a pessoa à mão.',
+    'Nome: Ana', 'E-mail: ana@exemplo.com', 'ID do envio: x-1']);
   assert.doesNotMatch(d, /undefined|\[object/);
 });
 
@@ -241,19 +243,21 @@ test('card: projeto da SOS no JSYNQ da Hubber, coluna Leads e o Nicolas como res
     quadro: '6ac6505b1da4055c1f0439fa',
     coluna: '6ac6505b1da4055c1f043a02',
     responsavel: '6ab13770effd9919b7232453',
+    etiquetaSite: '6ac6d4e698afae68b322f2c9',
   });
   const lead = { ...validarLead(CORPO).lead, id: 'c-1' };
   const card = montarCard(lead);
   assert.deepEqual(Object.keys(card),
-    ['title', 'type', 'board', 'column', 'assignedUsers', 'customFields', 'desc']);
+    ['title', 'type', 'board', 'column', 'assignedUsers', 'labels', 'customFields', 'desc']);
   assert.equal(card.title, 'Maria Souza');
   assert.equal(card.board, JSYNQ.quadro);
   assert.equal(card.column, JSYNQ.coluna);
   assert.deepEqual(card.assignedUsers, [JSYNQ.responsavel]);
+  assert.deepEqual(card.labels, [JSYNQ.etiquetaSite]);
   assert.deepEqual(card.customFields, [
     { fieldId: 'contactName', fieldName: 'Contact name', fieldType: 'text', value: 'Maria Souza' },
     { fieldId: 'email', fieldName: 'Email', fieldType: 'email', value: 'maria@exemplo.com' },
-    { fieldId: 'phone', fieldName: 'Phone', fieldType: 'text', value: '(11) 99999-9999' },
+    { fieldId: 'phone', fieldName: 'Phone', fieldType: 'text', value: '+5511999999999' },
   ]);
   assert.deepEqual(linhasDe(card.desc), linhasDe(montarDescricao(lead)));
 });
@@ -279,7 +283,7 @@ test('card: dados de rastreio só na descrição, nunca em campo personalizado',
 test('card: e-mail e telefone só quando existem', () => {
   const campos = (card) => Object.fromEntries(card.customFields.map((c) => [c.fieldId, c.value]));
   assert.deepEqual(campos(montarCard(validarLead(com({ email: '' })).lead)),
-    { contactName: 'Maria Souza', phone: '(11) 99999-9999' });
+    { contactName: 'Maria Souza', phone: '+5511999999999' });
   assert.deepEqual(campos(montarCard(validarLead(com({ telefone: '' })).lead)),
     { contactName: 'Maria Souza', email: 'maria@exemplo.com' });
 });
@@ -306,10 +310,7 @@ function calarConsole() {
   return { linhas, restaurar: () => { console.error = originais.error; console.log = originais.log; } };
 }
 
-/* O WhatsApp tem testes próprios mais abaixo; nos de entrega ele é trocado
-   por um resultado pronto, para cada teste contar só as chamadas do card. */
-const ZAP_OK = { ok: true, enviados: ['mensagem de boas-vindas'], para: '+55 11 99999-9999', de: '+1 (689) 280-2039' };
-const semEspera = { esperar: async () => {}, whatsapp: async () => ZAP_OK };
+const semEspera = { esperar: async () => {} };
 
 test('entrega: 201 de primeira, um POST autenticado com o card na rota de cards do projeto', async () => {
   const lead = { ...validarLead(CORPO).lead, id: 'a-1' };
@@ -317,9 +318,7 @@ test('entrega: 201 de primeira, um POST autenticado com o card na rota de cards 
   const c = calarConsole();
   try {
     assert.equal(await entregarLead(lead, TOKEN, semEspera), true);
-    assert.equal(f.chamadas.length, 2);
-    assert.equal(f.chamadas[1].url, URL_CARDS + '/k');
-    assert.equal(f.chamadas[1].opcoes.method, 'PUT');
+    assert.equal(f.chamadas.length, 1);
     assert.equal(f.chamadas[0].url, URL_CARDS);
     assert.equal(f.chamadas[0].opcoes.method, 'POST');
     assert.equal(f.chamadas[0].opcoes.headers['content-type'], 'application/json');
@@ -412,7 +411,7 @@ test('entrega: o token nunca aparece no log', async () => {
 /* O card como a API devolve depois de criar: campos de contato em
    customFields. Sem `outro`, com o contato que foi enviado. */
 function cardGravado(id, slug, lead, outro = null) {
-  const c = outro || { nome: lead.nome, email: lead.email, telefone: lead.telefone };
+  const c = outro || { nome: lead.nome, email: lead.email, telefone: telefoneDoCrm(lead) };
   const customFields = [
     { fieldId: 'contactName', value: c.nome },
     { fieldId: 'email', value: c.email },
@@ -478,9 +477,8 @@ test('entrega: JSYNQ juntou com contato antigo → põe o aviso na descrição p
     const corpo = JSON.parse(f.chamadas[1].opcoes.body);
     assert.deepEqual(Object.keys(corpo), ['desc']);
     const linhas = linhasDe(corpo.desc);
-    assert.match(linhas[0], /^WhatsApp automático enviado/);
-    assert.match(linhas[1], /^Atenção:.*nome responsavel site teste/);
-    assert.equal(linhas[2], 'Nome: Maria Souza');
+    assert.match(linhas[0], /^Atenção:.*nome responsavel site teste/);
+    assert.equal(linhas[1], 'Nome: Maria Souza');
     assert.match(c.linhas.join('\n'), /SDL-9 ligado a contato que já existia/);
   } finally { f.restaurar(); c.restaurar(); }
 });
@@ -502,11 +500,9 @@ test('entrega: resposta sem campos de contato → lê o card e só avisa se for 
     f = fetchFalso([
       { status: 201, corpo: JSON.stringify({ newCard: { _id: 'c2', slug: 'SDL-2' } }) },
       { status: 200, corpo: JSON.stringify({ card: cardGravado('c2', 'SDL-2', lead) }) },
-      { status: 200, corpo: '{}' },
     ]);
     assert.equal(await entregarLead(lead, TOKEN, semEspera), true);
-    assert.deepEqual(f.chamadas.map((x) => x.opcoes.method || 'GET'), ['POST', 'GET', 'PUT']);
-    assert.doesNotMatch(JSON.parse(f.chamadas[2].opcoes.body).desc, /Atenção/);
+    assert.deepEqual(f.chamadas.map((x) => x.opcoes.method || 'GET'), ['POST', 'GET']);
   } finally { f.restaurar(); c.restaurar(); }
 });
 
@@ -521,30 +517,19 @@ test('entrega: atualização da descrição que falha ou lança não muda o resu
     try {
       assert.equal(await entregarLead(lead, TOKEN, semEspera), true);
       assert.equal(f.chamadas.filter((x) => x.opcoes.method === 'POST').length, 1);
-      assert.match(c.linhas.join('\n'), /SDL-3 descrição não atualizada/);
+      assert.match(c.linhas.join('\n'), /SDL-3 (ligado a contato que já existia; aviso falhou|aviso de contato existente falhou)/);
     } finally { f.restaurar(); c.restaurar(); }
   }
 });
 
-test('entrega: criação demorada pula o WhatsApp, e o card diz que falta chamar à mão', async () => {
+test('entrega: perto do limite o card é criado, mas não se lê nem se reescreve depois', async () => {
   const lead = { ...validarLead(CORPO).lead, id: 'w-5' };
-  const f = fetchFalso([
-    { status: 201, corpo: JSON.stringify({ newCard: cardGravado('c4', 'SDL-4', lead) }) },
-    { status: 200, corpo: '{}' },
-  ]);
+  const f = fetchFalso([{ status: 201, corpo: JSON.stringify({ newCard: { _id: 'c4', slug: 'SDL-4' } }) }]);
   const c = calarConsole();
-  let chamouZap = false;
-  const relatorio = {};
   try {
-    // Faltam 20 s para o limite: cabe criar (8 s), não cabe a sequência (25 s).
-    assert.equal(await entregarLead(lead, TOKEN, {
-      ...semEspera, relatorio, agora: () => 30000, limite: 50000,
-      whatsapp: async () => { chamouZap = true; return ZAP_OK; },
-    }), true);
-    assert.equal(chamouZap, false);
-    assert.equal(relatorio.whatsapp, 'nao_enviado');
-    assert.deepEqual(f.chamadas.map((x) => x.opcoes.method), ['POST', 'PUT']);
-    assert.match(linhasDe(JSON.parse(f.chamadas[1].opcoes.body).desc)[0], /^WhatsApp automático NÃO enviado: o card demorou a ser criado/);
+    // Faltam 9 s: cabe criar (8 s), não cabe ler o card e ainda avisar (10 s).
+    assert.equal(await entregarLead(lead, TOKEN, { ...semEspera, agora: () => 41000, limite: 50000 }), true);
+    assert.deepEqual(f.chamadas.map((x) => x.opcoes.method), ['POST']);
   } finally { f.restaurar(); c.restaurar(); }
 });
 
@@ -558,29 +543,15 @@ test('entrega: sem tempo para criar o card nem tenta, e o lead fica na fila', as
   } finally { f.restaurar(); c.restaurar(); }
 });
 
-test('entrega: o prazo do WhatsApp guarda tempo para reescrever a descrição', async () => {
-  const lead = { ...validarLead(CORPO).lead, id: 'w-8' };
-  const f = fetchFalso([{ status: 201, corpo: JSON.stringify({ newCard: cardGravado('c6', 'SDL-6', lead) }) }, { status: 200 }]);
-  const c = calarConsole();
-  let prazo;
-  try {
-    await entregarLead(lead, TOKEN, {
-      ...semEspera, agora: () => 1000, limite: 50000,
-      whatsapp: async (l, id, a, opcoes) => { prazo = opcoes.prazo; return ZAP_OK; },
-    });
-    assert.equal(prazo, 45000);
-  } finally { f.restaurar(); c.restaurar(); }
-});
-
-test('entrega: relatório diz ao handler se o WhatsApp saiu', async () => {
-  const lead = { ...validarLead(CORPO).lead, id: 'w-6' };
-  for (const [zap, esperado] of [[ZAP_OK, 'enviado'], [{ ok: false, enviados: [], motivo: 'x' }, 'nao_enviado']]) {
-    const f = fetchFalso([{ status: 201, corpo: JSON.stringify({ newCard: cardGravado('c5', 'SDL-5', lead) }) }, { status: 200 }]);
+test('entrega: relatório diz ao handler se a mensagem automática pode sair', async () => {
+  for (const [telefone, esperado] of [['(11) 99999-9999', 'automatico'], ['(305) 555-0100', 'manual']]) {
+    const lead = { ...validarLead(com({ telefone })).lead, id: 'w-6' };
+    const f = fetchFalso([{ status: 201, corpo: JSON.stringify({ newCard: cardGravado('c5', 'SDL-5', lead) }) }]);
     const c = calarConsole();
     const relatorio = {};
     try {
-      await entregarLead(lead, TOKEN, { ...semEspera, relatorio, whatsapp: async () => zap });
-      assert.equal(relatorio.whatsapp, esperado);
+      await entregarLead(lead, TOKEN, { ...semEspera, relatorio });
+      assert.equal(relatorio.whatsapp, esperado, telefone);
     } finally { f.restaurar(); c.restaurar(); }
   }
 });
@@ -799,7 +770,7 @@ test('rota: caminho feliz guarda ANTES de entregar, apaga depois, responde e dre
       assert.equal(token, TOKEN);
       assert.ok(limite > Date.now() + 40000 && limite <= Date.now() + 50000, 'limite da chamada');
       assert.match(lead.id, /^[0-9a-z]+-[0-9a-z]{6}$/);
-      relatorio.whatsapp = 'enviado';
+      relatorio.whatsapp = 'automatico';
       return true;
     },
     emSegundoPlano: (p) => { eventos.push('segundo plano'); return p; },
@@ -807,15 +778,15 @@ test('rota: caminho feliz guarda ANTES de entregar, apaga depois, responde e dre
   const r = res();
   await h(req(), r);
   assert.equal(r.codigo, 200);
-  assert.deepEqual(r.corpo, { ok: true, id: r.corpo.id, whatsapp: 'enviado' });
+  assert.deepEqual(r.corpo, { ok: true, id: r.corpo.id, whatsapp: 'automatico' });
   assert.deepEqual(eventos, ['guardar', 'entregar', 'concluir', 'drenar:1', 'segundo plano']);
 });
 
-test('rota: sem relatório de WhatsApp o navegador ouve "nao_enviado", nunca uma promessa falsa', async () => {
+test('rota: sem relatório o navegador ouve "manual", nunca uma promessa de mensagem', async () => {
   const h = criarHandler({ fila: filaEspia(), ambiente: PROD, entregar: async () => true, emSegundoPlano: (p) => p });
   const r = res();
   await h(req(), r);
-  assert.equal(r.corpo.whatsapp, 'nao_enviado');
+  assert.equal(r.corpo.whatsapp, 'manual');
 });
 
 test('rota: JSYNQ recusa mas o lead está na fila → 200 pendente, sem apagar', async () => {

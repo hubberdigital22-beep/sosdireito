@@ -173,13 +173,13 @@
     });
     corpo.attribution = (window.sdAttr ? window.sdAttr() : {}) || {};
 
-    /* O texto de sucesso tem duas versões: a mensagem já saiu no WhatsApp,
-       ou a equipe vai chamar em seguida (envio automático falhou ou o lead
-       ficou na fila do servidor). */
+    /* O texto de sucesso tem duas versões: a mensagem automática está a
+       caminho do WhatsApp da pessoa, ou a equipe vai chamar em seguida
+       (telefone sem código de país conhecido, ou lead na fila do servidor). */
     function concluir(ok, whatsapp) {
       if (botao) botao.removeAttribute('data-carregando');
       if (ok && sucesso) {
-        var versao = whatsapp === 'enviado' ? 'enviado' : 'depois';
+        var versao = whatsapp === 'automatico' ? 'automatico' : 'depois';
         sucesso.querySelectorAll('[data-whatsapp]').forEach(function (el) {
           el.hidden = el.getAttribute('data-whatsapp') !== versao;
         });

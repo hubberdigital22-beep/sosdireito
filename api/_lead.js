@@ -20,6 +20,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import { telefoneWhatsapp } from './_whatsapp.js';
 
 export const ROTULOS = {
   nome: 'Nome',
@@ -77,6 +78,9 @@ export const JSYNQ = {
   quadro: '6ac6505b1da4055c1f0439fa',
   coluna: '6ac6505b1da4055c1f043a02',       // Leads
   responsavel: '6ab13770effd9919b7232453',  // Nicolas, em todo card
+  // Etiqueta "Site": é ela que dispara o primeiro atendimento por WhatsApp
+  // (automação do projeto no JSYNQ). Ver _whatsapp.js.
+  etiquetaSite: '6ac6d4e698afae68b322f2c9',
 };
 
 const DATAS = ['ultima_entrada_eua', 'expiracao_i94'];
@@ -187,13 +191,13 @@ const bloco = (type, content, props = {}) => ({
    rótulos e ordem da mensagem do WhatsApp; o texto livre e a origem do clique
    sob título próprio; o ID do envio por último. O ID é o mesmo do arquivo no
    Blob e do log, e serve para reconhecer duplicata se um reenvio criar dois
-   cards. Com `whatsapp` (o resultado do primeiro atendimento automático), a
-   descrição abre dizendo se a mensagem saiu; com `aviso` (o cadastro antigo
-   que o JSYNQ ligou ao card), alerta para não confiar nos campos de
-   contato. */
-export function montarDescricao(lead, { aviso = null, whatsapp = null } = {}) {
+   cards. Quando o primeiro atendimento automático não pode sair (telefone sem
+   código de país reconhecível), a descrição abre pedindo o contato à mão; com
+   `aviso` (o cadastro antigo que o JSYNQ ligou ao card), alerta para não
+   confiar nos campos de contato. */
+export function montarDescricao(lead, { aviso = null } = {}) {
   const blocos = [];
-  if (whatsapp) blocos.push(blocoDoWhatsapp(whatsapp));
+  if (!telefoneWhatsapp(lead)) blocos.push(blocoSemWhatsapp(lead));
   if (aviso) blocos.push(blocoDoAviso(aviso));
   for (const nome of ORDEM) {
     const v = lead[nome];
@@ -227,20 +231,14 @@ export function montarDescricao(lead, { aviso = null, whatsapp = null } = {}) {
   return JSON.stringify(blocos);
 }
 
-/* Verde quando a sequência inteira saiu; vermelho, com o motivo e o que
-   ficou faltando, quando quem atende precisa chamar a pessoa à mão. */
-function blocoDoWhatsapp(w) {
-  const enviados = w.enviados || [];
-  if (w.ok) {
-    return bloco('paragraph', [
-      trecho('WhatsApp automático enviado ', { bold: true }),
-      trecho(`para ${w.para} pelo número ${w.de}: ${enviados.join(', ')}.`),
-    ], { backgroundColor: 'green' });
-  }
-  const parcial = enviados.length ? ` Chegou a sair: ${enviados.join(', ')}.` : '';
+/* Vermelho: a automação do JSYNQ não vai mandar nada para este lead. */
+function blocoSemWhatsapp(lead) {
+  const motivo = lead.telefone
+    ? `não deu para saber o código do país do telefone "${lead.telefone}"`
+    : 'a pessoa não deixou telefone';
   return bloco('paragraph', [
-    trecho('WhatsApp automático NÃO enviado: ', { bold: true }),
-    trecho(`${w.motivo}.${parcial} Chamar a pessoa pelo WhatsApp à mão.`),
+    trecho('WhatsApp automático não sai para este lead: ', { bold: true }),
+    trecho(`${motivo}. Chamar a pessoa à mão.`),
   ], { backgroundColor: 'red' });
 }
 
@@ -271,6 +269,13 @@ export function contatoGravado(card) {
 const comparavel = (v) => String(v || '').normalize('NFC').trim().toLowerCase().replace(/\s+/g, ' ');
 const digitos = (v) => String(v || '').replace(/\D/g, '');
 
+/* O telefone que vai para o contato do card: com "+" e o código do país
+   quando ele é conhecido, que é o formato que o WhatsApp do JSYNQ usa. */
+export function telefoneDoCrm(lead) {
+  const n = telefoneWhatsapp(lead);
+  return n ? '+' + n : lead.telefone;
+}
+
 /* O CRM junta contato por e-mail e também por telefone (medido em
    07/10/2026). Quando junta, os campos de contato do card passam a mostrar o
    cadastro que já existia, não o que a pessoa mandou. Devolve esse cadastro
@@ -280,7 +285,8 @@ export function contatoDeOutroCadastro(lead, card) {
   const g = contatoGravado(card);
   const difere = (g.nome && comparavel(g.nome) !== comparavel(lead.nome))
     || (g.email && comparavel(g.email) !== comparavel(lead.email))
-    || (g.telefone && digitos(g.telefone) !== digitos(lead.telefone))
+    || (g.telefone && digitos(g.telefone) !== digitos(telefoneDoCrm(lead))
+      && digitos(g.telefone) !== digitos(lead.telefone))
     || Boolean(g.empresa);
   return difere ? g : null;
 }
@@ -308,8 +314,13 @@ export function montarCard(lead) {
     board: JSYNQ.quadro,
     column: JSYNQ.coluna,
     assignedUsers: [JSYNQ.responsavel],
+    // Sem país conhecido, nada de etiqueta: a automação não dispara e não
+    // manda mensagem para um número incompleto.
+    labels: telefoneWhatsapp(lead) ? [JSYNQ.etiquetaSite] : [],
     customFields: CONTATO.filter((c) => lead[c.chave])
-      .map(({ fieldId, fieldName, fieldType, chave }) => ({ fieldId, fieldName, fieldType, value: lead[chave] })),
+      .map(({ fieldId, fieldName, fieldType, chave }) => ({
+        fieldId, fieldName, fieldType, value: chave === 'telefone' ? telefoneDoCrm(lead) : lead[chave],
+      })),
     desc: montarDescricao(lead),
   };
 }
