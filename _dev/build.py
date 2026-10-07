@@ -192,9 +192,10 @@ def conferir_lead():
     lista, para a descrição do card e a mensagem do WhatsApp dizerem a mesma
     coisa.
 
-    Confere também que a URL do webhook do JSYNQ não foi parar no repositório:
-    ela é a única credencial do webhook e só pode viver na variável de
-    ambiente da Vercel.
+    Confere também que nenhuma URL de webhook do JSYNQ foi parar no
+    repositório. O destino antigo (o CRM da SOS) era um webhook sem token, então
+    a URL é a própria credencial: quem a tiver cria card lá. O destino atual
+    usa o JSYNQ_API_TOKEN, que só vive na variável de ambiente da Vercel.
     """
     problemas = []
     pagina = os.path.join(PAGES, '08-contato.html')
@@ -243,8 +244,8 @@ def conferir_lead():
             caminho = os.path.join(pasta, a)
             try:
                 if agulha in ler(caminho):
-                    problemas.append('%s contém a URL do webhook do JSYNQ; ela só pode ficar em '
-                                     'JSYNQ_WEBHOOK_URL, na Vercel' % os.path.relpath(caminho, RAIZ))
+                    problemas.append('%s contém a URL de um webhook do JSYNQ; credencial não '
+                                     'entra no repositório' % os.path.relpath(caminho, RAIZ))
             except (UnicodeDecodeError, OSError):
                 continue
     return problemas

@@ -1,5 +1,5 @@
-/* Testes do caminho do lead: validação, texto do card, entrega ao webhook,
-   fila no Blob e a rota. Tudo sem rede: o Blob é um Map e o fetch é trocado.
+/* Testes do caminho do lead: validação, card, entrega ao JSYNQ, fila no Blob
+   e a rota. Tudo sem rede: o Blob é um Map e o fetch é trocado.
 
    Rodar:  npm test   (ou  node --test "_dev/tests/*.test.mjs")
 */
@@ -8,14 +8,15 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import {
-  validarLead, montarPayload, montarDescricao,
-  ROTULOS, ORDEM, ORIGENS, STATUS, CAMPOS_NO_CRM, EMPRESA,
+  validarLead, montarCard, montarDescricao,
+  ROTULOS, ORDEM, ORIGENS, STATUS, CAMPOS_NO_CRM, JSYNQ,
 } from '../../api/_lead.js';
 import { criarFila } from '../../api/_fila.js';
 import { criarHandler, entregarLead } from '../../api/lead.js';
 import { criarHandler as criarDrenar } from '../../api/drenar.js';
 
-const URL_WEBHOOK = 'https://exemplo.invalid/webhook-secreto-123';
+const TOKEN = 'tok-secreto-123';
+const URL_CARDS = 'https://api.jsynq.com/api/projects/6ac6505b1da4055c1f0439f6/cards';
 
 const CORPO = {
   nome: '  Maria Souza ',
@@ -50,10 +51,18 @@ test('lead completo: normaliza e não devolve problemas', () => {
   assert.deepEqual(lead.attribution, { gclid: 'abc123def456', utm_source: 'google', utm_medium: 'cpc', utm_campaign: 'l1a' });
 });
 
-test('nome, e-mail e telefone são obrigatórios: o JSYNQ não cria card sem o e-mail', () => {
-  assert.deepEqual(validarLead(com({ telefone: '' })).problemas, ['telefone']);
-  assert.deepEqual(validarLead(com({ email: '' })).problemas, ['email']);
-  assert.deepEqual(validarLead(com({ email: '', telefone: '' })).problemas, ['email', 'telefone']);
+test('basta e-mail ou telefone: o card nasce com o que veio', () => {
+  const soTel = validarLead(com({ email: '' }));
+  assert.deepEqual(soTel.problemas, []);
+  assert.equal(soTel.lead.email, undefined);
+  const soEmail = validarLead(com({ telefone: '' }));
+  assert.deepEqual(soEmail.problemas, []);
+  assert.equal(soEmail.lead.telefone, undefined);
+});
+
+test('sem e-mail e sem telefone o problema é "contato"', () => {
+  assert.deepEqual(validarLead(com({ email: '', telefone: '' })).problemas, ['contato']);
+  assert.deepEqual(validarLead(com({ email: '   ', telefone: undefined })).problemas, ['contato']);
 });
 
 test('nome é obrigatório', () => {
@@ -61,10 +70,15 @@ test('nome é obrigatório', () => {
   assert.deepEqual(validarLead(com({ nome: undefined })).problemas, ['nome']);
 });
 
-test('e-mail malformado e telefone curto ou longo são apontados', () => {
+test('e-mail malformado e telefone curto são apontados, mesmo com o outro contato certo', () => {
   assert.deepEqual(validarLead(com({ email: 'maria@' })).problemas, ['email']);
   assert.deepEqual(validarLead(com({ telefone: '(11) 9999' })).problemas, ['telefone']);
-  assert.deepEqual(validarLead(com({ telefone: '1'.repeat(16) })).problemas, ['telefone']);
+});
+
+test('telefone comprido passa: o form.js só confere o mínimo de dígitos', () => {
+  const { lead, problemas } = validarLead(com({ telefone: '(11) 99999-9999 / (11) 98888-8888' }));
+  assert.deepEqual(problemas, []);
+  assert.equal(lead.telefone, '(11) 99999-9999 (11) 98888-8888');
 });
 
 test('internacional: número dos EUA e do Brasil com DDI passam', () => {
@@ -104,9 +118,9 @@ test('caracteres de controle saem e o texto livre mantém as quebras de linha', 
   assert.equal(lead.servico_procurado, 'a\nbc');
 });
 
-test('corpo que não é objeto vira "nome", "email" e "telefone", sem exceção', () => {
+test('corpo que não é objeto vira "nome" e "contato", sem exceção', () => {
   for (const ruim of [null, undefined, 'texto', 42, []]) {
-    assert.deepEqual(validarLead(ruim).problemas, ['nome', 'email', 'telefone']);
+    assert.deepEqual(validarLead(ruim).problemas, ['nome', 'contato']);
   }
 });
 
@@ -151,11 +165,16 @@ test('as listas do servidor batem com as <option> do formulário', () => {
   assert.deepEqual(opcoes('status_imigratorio').map((o) => o[0]).sort(), [...STATUS].sort());
 });
 
-test('descrição do card: rótulos na ordem, texto livre por último, origem, gclid e ID', () => {
+/* A descrição é BlockNote em JSON. Para conferir o conteúdo, cada bloco vira
+   uma linha de texto, e título ganha "# " na frente. */
+const linhasDe = (desc) => JSON.parse(desc).map((b) =>
+  (b.type === 'heading' ? '# ' : '') + b.content.map((c) => c.text).join(''));
+
+test('descrição do card: rótulos na ordem, texto livre e origem sob título próprio, ID por último', () => {
   const { lead } = validarLead(CORPO);
   lead.id = 'm3k2x9a1-f4k2zq';
   const d = montarDescricao(lead);
-  assert.equal(d, [
+  assert.deepEqual(linhasDe(d), [
     'Nome: Maria Souza',
     'E-mail: maria@exemplo.com',
     'Telefone: (11) 99999-9999',
@@ -168,15 +187,43 @@ test('descrição do card: rótulos na ordem, texto livre por último, origem, g
     'Última entrada nos EUA: 10/01/2026',
     'Expiração da I-94: 10/07/2026',
     'Status imigratório nos EUA: Turista',
-    '',
-    'Serviço procurado:',
-    'Quero um L-1A.\nTenho empresa no Brasil.',
-    '',
+    '# Serviço procurado',
+    'Quero um L-1A.',
+    'Tenho empresa no Brasil.',
+    '# Origem do lead',
     'Origem: google / cpc / l1a',
     '[ref: abc123def456]',
     'ID do envio: m3k2x9a1-f4k2zq',
-  ].join('\n'));
+  ]);
   assert.doesNotMatch(d, /undefined|\[object/);
+});
+
+test('descrição: formato de blocos que o JSYNQ guarda, com rótulo em negrito e ids únicos', () => {
+  const blocos = JSON.parse(montarDescricao({ ...validarLead(CORPO).lead, id: 'b-1' }));
+  const ids = blocos.map((b) => b.id);
+  assert.equal(new Set(ids).size, ids.length);
+  for (const b of blocos) {
+    assert.match(b.id, /^[0-9a-f-]{36}$/);
+    assert.ok(['paragraph', 'heading'].includes(b.type));
+    assert.equal(b.props.textAlignment, 'left');
+    assert.deepEqual(b.children, []);
+    for (const c of b.content) assert.equal(c.type, 'text');
+  }
+  assert.deepEqual(blocos[0].content, [
+    { type: 'text', text: 'Nome: ', styles: { bold: true } },
+    { type: 'text', text: 'Maria Souza', styles: {} },
+  ]);
+  for (const b of blocos.filter((x) => x.type === 'heading')) assert.equal(b.props.level, 3);
+  const ultimo = blocos.at(-1);
+  assert.equal(ultimo.props.textColor, 'gray');
+  assert.deepEqual(ultimo.content[0].styles, { italic: true });
+});
+
+test('descrição: texto livre vira um parágrafo por linha, sem linha vazia', () => {
+  const lead = validarLead(com({ servico_procurado: 'Linha 1\r\n\r\n  Linha 2  \n\n' })).lead;
+  const l = linhasDe(montarDescricao(lead));
+  assert.deepEqual(l.slice(l.indexOf('# Serviço procurado'), l.indexOf('# Origem do lead')),
+    ['# Serviço procurado', 'Linha 1', 'Linha 2']);
 });
 
 test('descrição leva todos os parâmetros de origem que o site guarda, e só os preenchidos', () => {
@@ -185,36 +232,65 @@ test('descrição leva todos os parâmetros de origem que o site guarda, e só o
     gclid: 'g1', gbraid: 'gb1', wbraid: 'wb1', outro: 'x' } }));
   assert.deepEqual(problemas, []);
   lead.id = 'x-2';
-  const rodape = montarDescricao(lead).split('\n\n').pop();
-  assert.equal(rodape, [
-    'Origem: google / cpc / l1a', 'Termo: visto l1a', 'Conteúdo: anuncio-2',
+  const l = linhasDe(montarDescricao(lead));
+  assert.deepEqual(l.slice(l.indexOf('# Origem do lead')), [
+    '# Origem do lead', 'Origem: google / cpc / l1a', 'Termo: visto l1a', 'Conteúdo: anuncio-2',
     '[ref: g1]', '[gbraid: gb1]', '[wbraid: wb1]', 'ID do envio: x-2',
-  ].join('\n'));
+  ]);
 });
 
-test('descrição sem atribuição nem campos opcionais não deixa linhas vazias sobrando nem "undefined"', () => {
+test('descrição sem atribuição nem campos opcionais não deixa título vazio nem "undefined"', () => {
   const { lead } = validarLead({ nome: 'Ana', email: 'ana@exemplo.com' });
   lead.id = 'x-1';
-  assert.equal(montarDescricao(lead), 'Nome: Ana\nE-mail: ana@exemplo.com\n\nID do envio: x-1');
+  const d = montarDescricao(lead);
+  assert.deepEqual(linhasDe(d), ['Nome: Ana', 'E-mail: ana@exemplo.com', 'ID do envio: x-1']);
+  assert.doesNotMatch(d, /undefined|\[object/);
 });
 
-test('payload do webhook: chaves certas, e-mail e telefone só quando existem', () => {
-  const cheio = validarLead(CORPO).lead;
-  assert.deepEqual(Object.keys(montarPayload(cheio)), ['name', 'email', 'phone', 'company', 'message']);
-  assert.equal(montarPayload(cheio).company, EMPRESA);
-
-  const soTel = validarLead(com({ email: '' })).lead;
-  const p1 = montarPayload(soTel);
-  assert.deepEqual(Object.keys(p1), ['name', 'phone', 'company', 'message']);
-  assert.ok(!('email' in p1));
-
-  const soEmail = validarLead(com({ telefone: '' })).lead;
-  const p2 = montarPayload(soEmail);
-  assert.deepEqual(Object.keys(p2), ['name', 'email', 'company', 'message']);
-  assert.ok(!('phone' in p2));
+test('card: projeto da SOS no JSYNQ da Hubber, coluna Leads e o Nicolas como responsável', () => {
+  assert.deepEqual(JSYNQ, {
+    projeto: '6ac6505b1da4055c1f0439f6',
+    quadro: '6ac6505b1da4055c1f0439fa',
+    coluna: '6ac6505b1da4055c1f043a02',
+    responsavel: '6ab13770effd9919b7232453',
+  });
+  const lead = { ...validarLead(CORPO).lead, id: 'c-1' };
+  const card = montarCard(lead);
+  assert.deepEqual(Object.keys(card),
+    ['title', 'type', 'board', 'column', 'assignedUsers', 'contactName', 'email', 'phone', 'desc']);
+  assert.equal(card.title, 'Maria Souza');
+  assert.equal(card.board, JSYNQ.quadro);
+  assert.equal(card.column, JSYNQ.coluna);
+  assert.deepEqual(card.assignedUsers, [JSYNQ.responsavel]);
+  assert.equal(card.contactName, 'Maria Souza');
+  assert.equal(card.email, 'maria@exemplo.com');
+  assert.equal(card.phone, '(11) 99999-9999');
+  assert.deepEqual(linhasDe(card.desc), linhasDe(montarDescricao(lead)));
 });
 
-/* ---------- entrega ao webhook ---------- */
+test('card: dados de rastreio só na descrição, nunca em campo personalizado', () => {
+  const lead = { ...validarLead(com({ attribution: {
+    utm_source: 'google', utm_medium: 'cpc', utm_campaign: 'l1a', utm_term: 'visto', utm_content: 'v2',
+    gclid: 'g1', gbraid: 'gb1', wbraid: 'wb1' } })).lead, id: 'c-2' };
+  const card = montarCard(lead);
+  assert.ok(!('customFields' in card));
+  const { desc, ...resto } = card;
+  assert.doesNotMatch(JSON.stringify(resto), /google|cpc|l1a|visto|v2|g1|gb1|wb1|c-2/);
+  const l = linhasDe(desc);
+  for (const v of ['Origem: google / cpc / l1a', 'Termo: visto', 'Conteúdo: v2',
+    '[ref: g1]', '[gbraid: gb1]', '[wbraid: wb1]', 'ID do envio: c-2']) assert.ok(l.includes(v), v);
+});
+
+test('card: e-mail e telefone só quando existem', () => {
+  const soTel = montarCard(validarLead(com({ email: '' })).lead);
+  assert.ok(!('email' in soTel));
+  assert.equal(soTel.phone, '(11) 99999-9999');
+  const soEmail = montarCard(validarLead(com({ telefone: '' })).lead);
+  assert.ok(!('phone' in soEmail));
+  assert.equal(soEmail.email, 'maria@exemplo.com');
+});
+
+/* ---------- entrega ao JSYNQ ---------- */
 
 function fetchFalso(respostas) {
   const chamadas = [];
@@ -238,26 +314,59 @@ function calarConsole() {
 
 const semEspera = { esperar: async () => {} };
 
-test('entrega: 200 de primeira, um POST JSON com o payload', async () => {
-  const f = fetchFalso([{ status: 200 }]);
+test('entrega: 201 de primeira, um POST autenticado com o card na rota de cards do projeto', async () => {
+  const f = fetchFalso([{ status: 201, corpo: JSON.stringify({ newCard: { _id: 'k', slug: 'SDL-1' } }) }]);
+  const c = calarConsole();
   try {
     const lead = { ...validarLead(CORPO).lead, id: 'a-1' };
-    assert.equal(await entregarLead(lead, URL_WEBHOOK, semEspera), true);
+    assert.equal(await entregarLead(lead, TOKEN, semEspera), true);
     assert.equal(f.chamadas.length, 1);
-    assert.equal(f.chamadas[0].url, URL_WEBHOOK);
+    assert.equal(f.chamadas[0].url, URL_CARDS);
     assert.equal(f.chamadas[0].opcoes.method, 'POST');
     assert.equal(f.chamadas[0].opcoes.headers['content-type'], 'application/json');
-    const enviado = JSON.parse(f.chamadas[0].opcoes.body);
-    assert.equal(enviado.name, 'Maria Souza');
-    assert.match(enviado.message, /ID do envio: a-1/);
-  } finally { f.restaurar(); }
+    assert.equal(f.chamadas[0].opcoes.headers.authorization, 'Bearer ' + TOKEN);
+    const { desc, ...enviado } = JSON.parse(f.chamadas[0].opcoes.body);
+    const { desc: esperada, ...card } = montarCard(lead);
+    assert.deepEqual(enviado, card);
+    assert.deepEqual(linhasDe(desc), linhasDe(esperada));
+    assert.match(c.linhas.join('\n'), /SDL-1.*a-1/);
+  } finally { f.restaurar(); c.restaurar(); }
+});
+
+test('entrega: espaço e quebra de linha em volta do token não vão no cabeçalho', async () => {
+  const f = fetchFalso([{ status: 201 }]);
+  const c = calarConsole();
+  try {
+    await entregarLead({ ...validarLead(CORPO).lead, id: 'a-8' }, `  ${TOKEN}\n`, semEspera);
+    assert.equal(f.chamadas[0].opcoes.headers.authorization, 'Bearer ' + TOKEN);
+  } finally { f.restaurar(); c.restaurar(); }
+});
+
+test('entrega: token que já vem com "Bearer" não ganha outro', async () => {
+  const f = fetchFalso([{ status: 201 }]);
+  const c = calarConsole();
+  try {
+    await entregarLead({ ...validarLead(CORPO).lead, id: 'a-0' }, 'Bearer ' + TOKEN, semEspera);
+    assert.equal(f.chamadas[0].opcoes.headers.authorization, 'Bearer ' + TOKEN);
+  } finally { f.restaurar(); c.restaurar(); }
+});
+
+test('entrega: 2xx que diz no corpo que não gravou devolve false, para o lead ficar na fila', async () => {
+  for (const corpo of [{ status: false, message: 'erro' }, { success: false }]) {
+    const f = fetchFalso([{ status: 200, corpo: JSON.stringify(corpo) }]);
+    const c = calarConsole();
+    try {
+      assert.equal(await entregarLead({ ...validarLead(CORPO).lead, id: 'a-7' }, TOKEN, semEspera), false);
+      assert.equal(f.chamadas.length, 1);
+    } finally { f.restaurar(); c.restaurar(); }
+  }
 });
 
 test('entrega: 500, 500, 200 → true na terceira tentativa', async () => {
   const f = fetchFalso([{ status: 500 }, { status: 502 }, { status: 201 }]);
   const c = calarConsole();
   try {
-    assert.equal(await entregarLead({ ...validarLead(CORPO).lead, id: 'a-2' }, URL_WEBHOOK, semEspera), true);
+    assert.equal(await entregarLead({ ...validarLead(CORPO).lead, id: 'a-2' }, TOKEN, semEspera), true);
     assert.equal(f.chamadas.length, 3);
   } finally { f.restaurar(); c.restaurar(); }
 });
@@ -266,7 +375,7 @@ test('entrega: 500 três vezes → false', async () => {
   const f = fetchFalso([{ status: 500 }, { status: 500 }, { status: 500 }]);
   const c = calarConsole();
   try {
-    assert.equal(await entregarLead({ ...validarLead(CORPO).lead, id: 'a-3' }, URL_WEBHOOK, semEspera), false);
+    assert.equal(await entregarLead({ ...validarLead(CORPO).lead, id: 'a-3' }, TOKEN, semEspera), false);
     assert.equal(f.chamadas.length, 3);
   } finally { f.restaurar(); c.restaurar(); }
 });
@@ -275,7 +384,7 @@ test('entrega: erro de rede é tentado de novo', async () => {
   const f = fetchFalso([new Error('fetch failed'), new Error('fetch failed'), { status: 200 }]);
   const c = calarConsole();
   try {
-    assert.equal(await entregarLead({ ...validarLead(CORPO).lead, id: 'a-4' }, URL_WEBHOOK, semEspera), true);
+    assert.equal(await entregarLead({ ...validarLead(CORPO).lead, id: 'a-4' }, TOKEN, semEspera), true);
     assert.equal(f.chamadas.length, 3);
   } finally { f.restaurar(); c.restaurar(); }
 });
@@ -284,18 +393,18 @@ test('entrega: 4xx não repete (o mesmo corpo daria a mesma resposta)', async ()
   const f = fetchFalso([{ status: 400, corpo: 'payload inválido' }, { status: 200 }]);
   const c = calarConsole();
   try {
-    assert.equal(await entregarLead({ ...validarLead(CORPO).lead, id: 'a-5' }, URL_WEBHOOK, semEspera), false);
+    assert.equal(await entregarLead({ ...validarLead(CORPO).lead, id: 'a-5' }, TOKEN, semEspera), false);
     assert.equal(f.chamadas.length, 1);
   } finally { f.restaurar(); c.restaurar(); }
 });
 
-test('entrega: a URL do webhook nunca aparece no log', async () => {
-  const f = fetchFalso([{ status: 500 }, new Error('boom'), { status: 404 }]);
+test('entrega: o token nunca aparece no log', async () => {
+  const f = fetchFalso([{ status: 500 }, new Error('boom'), { status: 401, corpo: 'token inválido' }]);
   const c = calarConsole();
   try {
-    await entregarLead({ ...validarLead(CORPO).lead, id: 'a-6' }, URL_WEBHOOK, semEspera);
+    assert.equal(await entregarLead({ ...validarLead(CORPO).lead, id: 'a-6' }, TOKEN, semEspera), false);
     assert.ok(c.linhas.length > 0);
-    for (const l of c.linhas) assert.ok(!l.includes('webhook-secreto'), l);
+    for (const l of c.linhas) assert.ok(!l.includes('tok-secreto'), l);
   } finally { f.restaurar(); c.restaurar(); }
 });
 
@@ -427,7 +536,7 @@ function res() {
   };
 }
 
-const PROD = { JSYNQ_WEBHOOK_URL: URL_WEBHOOK, VERCEL_ENV: 'production' };
+const PROD = { JSYNQ_API_TOKEN: TOKEN, VERCEL_ENV: 'production' };
 
 test('rota: só aceita POST', async () => {
   const h = criarHandler({ fila: filaEspia(), ambiente: PROD, entregar: async () => true });
@@ -477,7 +586,7 @@ test('rota: lead inválido dá 422 com a lista de campos e não guarda nada', as
   const r = res();
   await h(req({ body: com({ email: '', telefone: '' }) }), r);
   assert.equal(r.codigo, 422);
-  assert.deepEqual(r.corpo, { ok: false, error: 'validation', campos: ['email', 'telefone'] });
+  assert.deepEqual(r.corpo, { ok: false, error: 'validation', campos: ['contato'] });
   assert.deepEqual(fila.ordem, []);
 });
 
@@ -508,9 +617,9 @@ test('rota: caminho feliz guarda ANTES de entregar, apaga depois e drena 2', asy
   const eventos = fila.ordem;
   const h = criarHandler({
     fila, ambiente: PROD,
-    entregar: async (lead, url) => {
+    entregar: async (lead, token) => {
       eventos.push('entregar');
-      assert.equal(url, URL_WEBHOOK);
+      assert.equal(token, TOKEN);
       assert.match(lead.id, /^[0-9a-z]+-[0-9a-z]{6}$/);
       return true;
     },
@@ -547,7 +656,7 @@ test('rota: entrega que lança também deixa o lead na fila', async () => {
   } finally { c.restaurar(); }
 });
 
-test('rota: JSYNQ recusa e não há Blob → 502; sem URL e sem Blob → 503', async () => {
+test('rota: JSYNQ recusa e não há Blob → 502; sem token e sem Blob → 503', async () => {
   const c = calarConsole();
   try {
     let r = res();
@@ -561,7 +670,7 @@ test('rota: JSYNQ recusa e não há Blob → 502; sem URL e sem Blob → 503', a
   } finally { c.restaurar(); }
 });
 
-test('rota: sem a URL do webhook mas com Blob, o lead fica guardado (200 pendente)', async () => {
+test('rota: sem o token mas com Blob, o lead fica guardado (200 pendente)', async () => {
   const fila = filaEspia();
   let entregas = 0;
   const h = criarHandler({ fila, ambiente: { VERCEL_ENV: 'production' }, entregar: async () => { entregas++; return true; } });
@@ -583,13 +692,13 @@ test('rota: o log de falha dupla leva só o caminho de volta, sem status imigrat
     await h(req(), res());
     const log = c.linhas.join('\n');
     assert.match(log, /Maria Souza/);
-    assert.doesNotMatch(log, /Turista|L-1A|10\/01\/2026|webhook-secreto/);
+    assert.doesNotMatch(log, /Turista|L-1A|10\/01\/2026|tok-secreto/);
   } finally { c.restaurar(); }
 });
 
 /* ---------- o cron ---------- */
 
-test('drenar: sem CRON_SECRET recusa; segredo errado dá 401; sem Blob avisa', async () => {
+test('drenar: sem CRON_SECRET recusa; segredo errado dá 401; sem Blob avisa; sem token recusa', async () => {
   const chamada = (auth) => ({ headers: auth ? { authorization: auth } : {} });
   const c = calarConsole();
   try {
@@ -598,15 +707,19 @@ test('drenar: sem CRON_SECRET recusa; segredo errado dá 401; sem Blob avisa', a
     assert.equal(r.codigo, 503);
 
     r = res();
-    await criarDrenar({ fila: filaEspia(), ambiente: { CRON_SECRET: 's3gredo', JSYNQ_WEBHOOK_URL: URL_WEBHOOK } })(chamada('Bearer errado'), r);
+    await criarDrenar({ fila: filaEspia(), ambiente: { CRON_SECRET: 's3gredo', JSYNQ_API_TOKEN: TOKEN } })(chamada('Bearer errado'), r);
     assert.equal(r.codigo, 401);
     r = res();
-    await criarDrenar({ fila: filaEspia(), ambiente: { CRON_SECRET: 's3gredo', JSYNQ_WEBHOOK_URL: URL_WEBHOOK } })(chamada(), r);
+    await criarDrenar({ fila: filaEspia(), ambiente: { CRON_SECRET: 's3gredo', JSYNQ_API_TOKEN: TOKEN } })(chamada(), r);
     assert.equal(r.codigo, 401);
 
     r = res();
-    await criarDrenar({ fila: filaEspia({ ativa: false }), ambiente: { CRON_SECRET: 's3gredo', JSYNQ_WEBHOOK_URL: URL_WEBHOOK } })(chamada('Bearer s3gredo'), r);
+    await criarDrenar({ fila: filaEspia({ ativa: false }), ambiente: { CRON_SECRET: 's3gredo', JSYNQ_API_TOKEN: TOKEN } })(chamada('Bearer s3gredo'), r);
     assert.deepEqual(r.corpo, { ok: true, fila: 'inativa' });
+
+    r = res();
+    await criarDrenar({ fila: filaEspia(), ambiente: { CRON_SECRET: 's3gredo' } })(chamada('Bearer s3gredo'), r);
+    assert.equal(r.codigo, 503);
   } finally { c.restaurar(); }
 });
 
@@ -619,15 +732,15 @@ test('drenar: com o segredo certo, esvazia a fila pelo mesmo caminho de entrega'
   const enviados = [];
   const h = criarDrenar({
     fila,
-    ambiente: { CRON_SECRET: 's3gredo', JSYNQ_WEBHOOK_URL: URL_WEBHOOK },
-    entregar: async (lead, url) => { enviados.push([lead.id, url]); return true; },
+    ambiente: { CRON_SECRET: 's3gredo', JSYNQ_API_TOKEN: TOKEN },
+    entregar: async (lead, token) => { enviados.push([lead.id, token]); return true; },
   });
   const c = calarConsole();
   try {
     const r = res();
     await h({ headers: { authorization: 'Bearer s3gredo' } }, r);
     assert.equal(r.codigo, 200);
-    assert.deepEqual(enviados, [['k1-a', URL_WEBHOOK], ['k2-b', URL_WEBHOOK]]);
+    assert.deepEqual(enviados, [['k1-a', TOKEN], ['k2-b', TOKEN]]);
     assert.equal(r.corpo.filas.lead.restantes, 0);
     assert.equal(blob.itens.size, 0);
   } finally { c.restaurar(); }

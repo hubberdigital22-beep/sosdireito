@@ -2,7 +2,7 @@
    SOS DIREITO — Cópia do lead para o CRM
    O formulário de contato continua abrindo o WhatsApp sozinho (form.js).
    Este arquivo manda uma cópia do mesmo lead para /api/lead, que o guarda
-   numa fila privada e o entrega ao CRM (JSYNQ) da SOS.
+   numa fila privada e o entrega ao CRM (o projeto de leads da SOS no JSYNQ).
 
    Nada aqui pode atrasar nem estragar o WhatsApp: o envio acontece DEPOIS
    que o form.js validou e abriu a conversa (o estado de sucesso acende), a

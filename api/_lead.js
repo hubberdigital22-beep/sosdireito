@@ -1,23 +1,25 @@
 /**
- * O lead do formulário de /contato/, do corpo do POST até o payload do webhook
- * do JSYNQ. Só funções puras: nada aqui lê ambiente, rede ou relógio, para o
- * teste rodar sem nenhum dos três.
+ * O lead do formulário de /contato/, do corpo do POST até o card do projeto
+ * "SOS Direito · Leads do site", no JSYNQ da Hubber. Nada aqui lê ambiente,
+ * rede ou relógio, para o teste rodar sem nenhum dos três (só os ids dos
+ * blocos da descrição são aleatórios).
  *
- * O servidor exige só o que o CRM da SOS (JSYNQ) exige para criar o card: nome,
- * e-mail e telefone. Sem o e-mail o JSYNQ responde sucesso e não cria card, então
- * aceitar um lead assim seria perdê-lo em silêncio; recusar com 422 deixa o
- * motivo no log. O resto o servidor aceita como veio, e quem impõe as demais
- * regras do formulário é o form.js. Se o servidor fosse mais rígido, qualquer
+ * O servidor exige o mínimo para o lead ter caminho de volta (nome e e-mail ou
+ * telefone) e aceita o resto como veio. Quem impõe as regras do formulário é o
+ * form.js, que hoje pede os três. Se o servidor fosse mais rígido, qualquer
  * mudança no formulário (campo que deixa de ser obrigatório, opção nova) faria
- * o CRM recusar os leads sem erro visível, porque o WhatsApp abre do mesmo jeito.
- * Perder o lead do CRM é justamente o que esta camada existe para evitar. Por
- * isso texto acima do limite é cortado, não recusado.
+ * o CRM recusar os leads sem erro visível, porque o WhatsApp abre do mesmo
+ * jeito. Perder o lead do CRM é justamente o que esta camada existe para
+ * evitar. Por isso texto acima do limite é cortado, não recusado, e telefone
+ * comprido passa: o form.js só confere o mínimo de dígitos.
  *
  * Os rótulos e a ordem de ROTULOS/ORDEM são os do form.js: o teste em
  * _dev/tests confere as duas listas contra ele. ORIGENS e STATUS reproduzem as
  * <option> do formulário e o build (conferir_lead, em _dev/build.py) trava se
  * o HTML e estas listas divergirem.
  */
+
+import { randomUUID } from 'node:crypto';
 
 export const ROTULOS = {
   nome: 'Nome',
@@ -66,7 +68,16 @@ export const STATUS = [
   'Outro'
 ];
 
-export const EMPRESA = 'SOS Direito - Site';
+/* Onde o card nasce. Fixo no código, sem variável de ambiente: uma variável
+   errada na Vercel mandaria os leads para outro projeto sem ninguém perceber.
+   O projeto é privado; o dono do JSYNQ_API_TOKEN precisa ser integrante dele,
+   e é quem aparece como autor de cada card. */
+export const JSYNQ = {
+  projeto: '6ac6505b1da4055c1f0439f6',      // SOS Direito · Leads do site
+  quadro: '6ac6505b1da4055c1f0439fa',
+  coluna: '6ac6505b1da4055c1f043a02',       // Leads
+  responsavel: '6ab13770effd9919b7232453',  // Nicolas, em todo card
+};
 
 const DATAS = ['ultima_entrada_eua', 'expiracao_i94'];
 const ESSENCIAIS = ['nome', 'email', 'telefone'];
@@ -123,9 +134,10 @@ function atribuicao(a) {
 /**
  * Corpo do POST → { lead, problemas }.
  *
- * `problemas` só tem o que impede o CRM de criar o card: 'nome', 'email' e
- * 'telefone', cada um ausente ou inválido (e-mail malformado, telefone curto ou
- * longo demais). Quando vazio, `lead` está pronto para guardar e entregar.
+ * `problemas` só tem o que impede o lead de ter caminho de volta: 'nome',
+ * 'email' (malformado), 'telefone' (menos de 10 dígitos, a mesma regra do
+ * form.js) e 'contato' (nenhum dos dois). Quando vazio, `lead` está pronto
+ * para guardar e entregar.
  */
 export function validarLead(corpo, { campos = CAMPOS_NO_CRM } = {}) {
   const b = corpo && typeof corpo === 'object' ? corpo : {};
@@ -136,11 +148,17 @@ export function validarLead(corpo, { campos = CAMPOS_NO_CRM } = {}) {
   if (nome) lead.nome = nome; else problemas.push('nome');
 
   const email = linha(b.email, LIMITE.email).toLowerCase();
-  if (RE_EMAIL.test(email)) lead.email = email; else problemas.push('email');
+  if (email) {
+    if (RE_EMAIL.test(email)) lead.email = email; else problemas.push('email');
+  }
 
   const tel = telefone(b.telefone);
-  if (tel.digitos >= 10 && tel.digitos <= 15) lead.telefone = tel.valor;
-  else problemas.push('telefone');
+  if (tel.valor) {
+    if (tel.digitos >= 10) lead.telefone = tel.valor; else problemas.push('telefone');
+  }
+
+  // Sem nenhum dos dois: se um veio malformado, o problema já é dele.
+  if (!email && !tel.valor) problemas.push('contato');
 
   for (const nomeCampo of ORDEM) {
     if (ESSENCIAIS.includes(nomeCampo) || !campos.includes(nomeCampo)) continue;
@@ -157,44 +175,70 @@ export function validarLead(corpo, { campos = CAMPOS_NO_CRM } = {}) {
   return { lead, problemas };
 }
 
-/* O texto do card: os mesmos rótulos e a mesma ordem da mensagem do
-   WhatsApp, com o texto livre por último, mais a origem do clique e o ID do
-   envio. O ID é o mesmo do arquivo no Blob e do log, e serve para reconhecer
-   duplicata se um reenvio criar dois cards. */
+const PROPS = { backgroundColor: 'default', textColor: 'default', textAlignment: 'left' };
+const trecho = (text, styles = {}) => ({ type: 'text', text, styles });
+const bloco = (type, content, props = {}) => ({
+  id: randomUUID(), type, props: { ...PROPS, ...props }, content, children: [],
+});
+
+/* A descrição do card. O JSYNQ guarda a descrição como blocos do editor
+   (BlockNote, em JSON) e descarta as linhas em branco de texto corrido, então
+   as seções vão como blocos: os campos com o rótulo em negrito, nos mesmos
+   rótulos e ordem da mensagem do WhatsApp; o texto livre e a origem do clique
+   sob título próprio; o ID do envio por último. O ID é o mesmo do arquivo no
+   Blob e do log, e serve para reconhecer duplicata se um reenvio criar dois
+   cards. */
 export function montarDescricao(lead) {
-  const linhas = [];
+  const blocos = [];
   for (const nome of ORDEM) {
     const v = lead[nome];
-    if (!v) continue;
-    if (nome === 'servico_procurado') linhas.push('', ROTULOS[nome] + ':', v);
-    else linhas.push(ROTULOS[nome] + ': ' + v);
+    if (!v || nome === 'servico_procurado') continue;
+    blocos.push(bloco('paragraph', [trecho(ROTULOS[nome] + ': ', { bold: true }), trecho(v)]));
+  }
+
+  const livre = (lead.servico_procurado || '').split('\n').map((l) => l.trim()).filter(Boolean);
+  if (livre.length) {
+    blocos.push(bloco('heading', [trecho(ROTULOS.servico_procurado)], { level: 3 }));
+    for (const l of livre) blocos.push(bloco('paragraph', [trecho(l)]));
   }
 
   const a = lead.attribution || {};
   const origem = [a.utm_source, a.utm_medium, a.utm_campaign].filter(Boolean).join(' / ');
-  const rodape = [];
-  if (origem) rodape.push('Origem: ' + origem);
-  if (a.utm_term) rodape.push('Termo: ' + a.utm_term);
-  if (a.utm_content) rodape.push('Conteúdo: ' + a.utm_content);
-  if (a.gclid) rodape.push('[ref: ' + a.gclid + ']');
-  if (a.gbraid) rodape.push('[gbraid: ' + a.gbraid + ']');
-  if (a.wbraid) rodape.push('[wbraid: ' + a.wbraid + ']');
-  if (lead.id) rodape.push('ID do envio: ' + lead.id);
+  const rastreio = [];
+  if (origem) rastreio.push('Origem: ' + origem);
+  if (a.utm_term) rastreio.push('Termo: ' + a.utm_term);
+  if (a.utm_content) rastreio.push('Conteúdo: ' + a.utm_content);
+  if (a.gclid) rastreio.push('[ref: ' + a.gclid + ']');
+  if (a.gbraid) rastreio.push('[gbraid: ' + a.gbraid + ']');
+  if (a.wbraid) rastreio.push('[wbraid: ' + a.wbraid + ']');
+  if (rastreio.length) {
+    blocos.push(bloco('heading', [trecho('Origem do lead')], { level: 3 }));
+    for (const l of rastreio) blocos.push(bloco('paragraph', [trecho(l)]));
+  }
 
-  return linhas.concat('', rodape).join('\n').trim();
+  if (lead.id) {
+    blocos.push(bloco('paragraph', [trecho('ID do envio: ' + lead.id, { italic: true })], { textColor: 'gray' }));
+  }
+  return JSON.stringify(blocos);
 }
 
-/* O que o webhook do JSYNQ espera: name, email, phone, company e message.
-   E-mail e telefone entram só quando existem. Chave vazia ou e-mail
-   inventado não serve: o CRM deduplica contato por e-mail, e dois leads sem
-   e-mail viraram a mesma pessoa se compartilhassem um valor. O campo
-   "assunto" do código original não existe neste formulário, então
-   `company` leva um valor fixo e o resto vai na descrição. */
-export function montarPayload(lead) {
-  const payload = { name: lead.nome };
-  if (lead.email) payload.email = lead.email;
-  if (lead.telefone) payload.phone = lead.telefone;
-  payload.company = EMPRESA;
-  payload.message = montarDescricao(lead);
-  return payload;
+/* O corpo de POST /api/projects/{projeto}/cards. Nome, e-mail e telefone vão
+   nos campos de contato do CRM, para o JSYNQ criar o contato; todo o resto,
+   inclusive a origem do clique, fica só na descrição, sem campo
+   personalizado. E-mail e telefone entram só quando existem. Chave vazia ou
+   e-mail inventado não serve: o CRM deduplica contato por e-mail, e dois
+   leads sem e-mail virariam a mesma pessoa se compartilhassem um valor. */
+export function montarCard(lead) {
+  const card = {
+    title: lead.nome,
+    type: 'task',
+    board: JSYNQ.quadro,
+    column: JSYNQ.coluna,
+    assignedUsers: [JSYNQ.responsavel],
+    contactName: lead.nome,
+  };
+  if (lead.email) card.email = lead.email;
+  if (lead.telefone) card.phone = lead.telefone;
+  card.desc = montarDescricao(lead);
+  return card;
 }

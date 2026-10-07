@@ -10,7 +10,7 @@
  *                     Bearer ..." nas chamadas do cron. Sem ele a rota recusa,
  *                     para não ficar um endpoint aberto disparando trabalho a
  *                     pedido de qualquer um.
- *   JSYNQ_WEBHOOK_URL a mesma de lead.js.
+ *   JSYNQ_API_TOKEN   o mesmo de lead.js.
  */
 
 import { timingSafeEqual } from 'node:crypto';
@@ -40,13 +40,13 @@ export function criarHandler({
 
     if (!fila.ativa()) return res.status(200).json({ ok: true, fila: 'inativa' });
 
-    const url = ambiente.JSYNQ_WEBHOOK_URL;
-    if (!url) {
-      console.error('[drenar] JSYNQ_WEBHOOK_URL ausente.');
+    const token = ambiente.JSYNQ_API_TOKEN;
+    if (!token) {
+      console.error('[drenar] JSYNQ_API_TOKEN ausente.');
       return res.status(503).json({ ok: false, error: 'not_configured' });
     }
 
-    const r = await fila.drenar('lead', (d) => entregar(d, url), 50);
+    const r = await fila.drenar('lead', (d) => entregar(d, token), 50);
     const resto = await fila.resumo('lead');
     // Fila que não anda é sintoma de problema que ninguém viu ainda.
     if (resto.total) console.error('[drenar] ainda pendentes em lead:', resto.total, 'mais antigo:', resto.maisAntigo);
